@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tower Defense</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Top Info Bar -->
+        <div id="top-bar">
+            <div class="info-items" style="display:flex;gap:8px;">
+                <span id="wave-info" class="info-item">Wave: 0/20</span>
+                <span id="lives-info" class="info-item">Lives: 20</span>
+                <span id="gold-info" class="info-item">Gold: 200</span>
+                <span id="score-info" class="info-item">Score: 0</span>
+                <span id="record-info" class="info-item">Record: 0</span>
+            </div>
+            <div class="controls">
+                <button id="next-wave-btn">Next Wave</button>
+                <button class="speed-btn active" data-speed="1">1x</button>
+                <button class="speed-btn" data-speed="2">2x</button>
+                <button class="speed-btn" data-speed="3">3x</button>
+                <button id="pause-btn">Start</button>
+                <button id="mute-btn">Mute</button>
+            </div>
+        </div>
+
+        <!-- 3-Layer Canvas Stack -->
+        <div id="canvas-wrapper">
+            <canvas id="terrain-canvas"></canvas>
+            <canvas id="game-canvas"></canvas>
+            <canvas id="ui-canvas"></canvas>
+
+            <!-- Tower Info Popup -->
+            <div id="tower-info"></div>
+
+            <!-- Game Screens -->
+            <div id="menu-screen" class="game-screen visible">
+                <div class="screen-title">Tower Defense</div>
+                <div class="screen-subtitle">
+                    Place towers to defend against 20 waves of enemies.
+                    Use the bottom panel or keys 1-5 to select towers.
+                </div>
+                <button id="start-btn" class="screen-btn">Start Game</button>
+                <div class="key-hints">
+                    <kbd>1</kbd>-<kbd>5</kbd> Select tower &nbsp;
+                    <kbd>Space</kbd> Pause &nbsp;
+                    <kbd>N</kbd> Next wave &nbsp;
+                    <kbd>+</kbd>/<kbd>-</kbd> Speed
+                    <br>
+                    <kbd>U</kbd> Upgrade &nbsp;
+                    <kbd>S</kbd> Sell &nbsp;
+                    <kbd>T</kbd> Target mode &nbsp;
+                    <kbd>Esc</kbd> Deselect &nbsp;
+                    <kbd>B</kbd> Blow them all!
+                </div>
+            </div>
+
+            <div id="game-over-screen" class="game-screen">
+                <div class="screen-title">Game Over</div>
+                <div class="screen-subtitle">Your defenses have fallen!</div>
+                <div id="game-over-score" class="screen-score"></div>
+                <button id="restart-btn" class="screen-btn">Try Again</button>
+            </div>
+
+            <div id="victory-screen" class="game-screen">
+                <div class="screen-title">Victory!</div>
+                <div class="screen-subtitle">You survived all 20 waves! Excellent strategy!</div>
+                <div id="victory-score" class="screen-score"></div>
+                <button id="restart-btn-victory" class="screen-btn">Play Again</button>
+            </div>
+        </div>
+
+        <!-- Bottom Tower Panel -->
+        <div id="bottom-bar">
+            <div id="tower-panel"></div>
+        </div>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

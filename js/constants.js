@@ -1,0 +1,232 @@
+// ── Canvas & Grid ──────────────────────────────────────────
+export const COLS = 30;
+export const ROWS = 20;
+export const CELL = 32;
+export const CANVAS_W = COLS * CELL; // 960
+export const CANVAS_H = ROWS * CELL; // 640
+
+// ── Game States ────────────────────────────────────────────
+export const STATE = {
+    MENU: 'MENU',
+    PLAYING: 'PLAYING',
+    PAUSED: 'PAUSED',
+    GAME_OVER: 'GAME_OVER',
+    VICTORY: 'VICTORY',
+};
+
+// ── Cell Types ─────────────────────────────────────────────
+export const CELL_TYPE = {
+    BUILDABLE: 0,
+    PATH: 1,
+    BLOCKED: 2,
+};
+
+// ── Map Waypoints (grid coords) ────────────────────────────
+// Serpentine path with 10+ turns
+export const WAYPOINTS = [
+    { x: 0, y: 2 },
+    { x: 7, y: 2 },
+    { x: 7, y: 6 },
+    { x: 2, y: 6 },
+    { x: 2, y: 10 },
+    { x: 10, y: 10 },
+    { x: 10, y: 4 },
+    { x: 15, y: 4 },
+    { x: 15, y: 14 },
+    { x: 6, y: 14 },
+    { x: 6, y: 18 },
+    { x: 20, y: 18 },
+    { x: 20, y: 12 },
+    { x: 25, y: 12 },
+    { x: 25, y: 6 },
+    { x: 29, y: 6 },
+];
+
+// ── Decorative obstacles (grid coords) ─────────────────────
+export const BLOCKED_CELLS = [
+    { x: 4, y: 0 }, { x: 5, y: 0 },
+    { x: 12, y: 1 }, { x: 13, y: 1 },
+    { x: 22, y: 3 }, { x: 23, y: 3 },
+    { x: 0, y: 8 }, { x: 1, y: 8 },
+    { x: 18, y: 8 }, { x: 19, y: 8 },
+    { x: 27, y: 10 }, { x: 28, y: 10 },
+    { x: 12, y: 16 }, { x: 13, y: 16 },
+    { x: 24, y: 16 }, { x: 25, y: 16 },
+    { x: 3, y: 19 }, { x: 4, y: 19 },
+    { x: 16, y: 0 }, { x: 27, y: 2 },
+    { x: 0, y: 15 }, { x: 14, y: 12 },
+];
+
+// ── Economy ────────────────────────────────────────────────
+export const STARTING_GOLD = 200;
+export const STARTING_LIVES = 20;
+export const SELL_REFUND = 0.6;       // 60% back
+export const INTEREST_RATE = 0.02;    // 2% between waves
+export const WAVE_BONUS_BASE = 25;
+export const WAVE_BONUS_PER = 10;
+
+// ── Tower Definitions ──────────────────────────────────────
+export const TOWER_TYPES = {
+    arrow: {
+        name: 'Arrow',
+        cost: 50,
+        color: '#4a7c3f',
+        levels: [
+            { damage: 12, range: 3.5, fireRate: 0.4, projSpeed: 300 },
+            { damage: 18, range: 4.0, fireRate: 0.33, projSpeed: 340, upgradeCost: 40 },
+            { damage: 28, range: 4.5, fireRate: 0.25, projSpeed: 380, upgradeCost: 80 },
+        ],
+    },
+    cannon: {
+        name: 'Cannon',
+        cost: 100,
+        color: '#8b5e3c',
+        splash: true,
+        levels: [
+            { damage: 30, range: 3.0, fireRate: 1.2, projSpeed: 200, splashRadius: 1.2 },
+            { damage: 50, range: 3.5, fireRate: 1.0, projSpeed: 220, splashRadius: 1.5, upgradeCost: 75 },
+            { damage: 80, range: 4.0, fireRate: 0.85, projSpeed: 240, splashRadius: 1.8, upgradeCost: 140 },
+        ],
+    },
+    frost: {
+        name: 'Frost',
+        cost: 75,
+        color: '#5b9bd5',
+        slow: true,
+        levels: [
+            { damage: 5, range: 3.0, fireRate: 0.8, projSpeed: 250, slowFactor: 0.5, slowDuration: 2.0 },
+            { damage: 8, range: 3.5, fireRate: 0.7, projSpeed: 270, slowFactor: 0.4, slowDuration: 2.5, upgradeCost: 60 },
+            { damage: 12, range: 4.0, fireRate: 0.6, projSpeed: 290, slowFactor: 0.3, slowDuration: 3.0, upgradeCost: 110 },
+        ],
+    },
+    lightning: {
+        name: 'Lightning',
+        cost: 125,
+        color: '#9b59b6',
+        chain: true,
+        levels: [
+            { damage: 15, range: 3.5, fireRate: 1.0, projSpeed: 500, chainCount: 3, chainRange: 2.0, chainDecay: 0.7 },
+            { damage: 22, range: 4.0, fireRate: 0.85, projSpeed: 550, chainCount: 4, chainRange: 2.5, chainDecay: 0.7, upgradeCost: 90 },
+            { damage: 32, range: 4.5, fireRate: 0.7, projSpeed: 600, chainCount: 5, chainRange: 3.0, chainDecay: 0.75, upgradeCost: 160 },
+        ],
+    },
+    sniper: {
+        name: 'Sniper',
+        cost: 150,
+        color: '#c0392b',
+        crit: true,
+        levels: [
+            { damage: 60, range: 6.0, fireRate: 2.0, projSpeed: 600, critChance: 0.10, critMulti: 2.5 },
+            { damage: 90, range: 7.0, fireRate: 1.7, projSpeed: 650, critChance: 0.15, critMulti: 2.8, upgradeCost: 120 },
+            { damage: 140, range: 8.0, fireRate: 1.5, projSpeed: 700, critChance: 0.20, critMulti: 3.0, upgradeCost: 200 },
+        ],
+    },
+};
+
+// ── Enemy Definitions ──────────────────────────────────────
+export const ENEMY_TYPES = {
+    grunt: {
+        name: 'Grunt',
+        baseHP: 30,
+        speed: 60,     // px per second
+        reward: 5,
+        livesCost: 1,
+        color: '#e74c3c',
+        radius: 8,
+        armor: 0,
+    },
+    runner: {
+        name: 'Runner',
+        baseHP: 15,
+        speed: 110,
+        reward: 4,
+        livesCost: 1,
+        color: '#f39c12',
+        radius: 6,
+        armor: 0,
+    },
+    tank: {
+        name: 'Tank',
+        baseHP: 120,
+        speed: 35,
+        reward: 15,
+        livesCost: 2,
+        color: '#2c3e50',
+        radius: 12,
+        armor: 0.30,
+    },
+    healer: {
+        name: 'Healer',
+        baseHP: 50,
+        speed: 55,
+        reward: 10,
+        livesCost: 1,
+        color: '#2ecc71',
+        radius: 8,
+        armor: 0,
+        healRadius: 2.0,  // grid cells
+        healRate: 5,       // HP per second to nearby allies
+    },
+    boss: {
+        name: 'Boss',
+        baseHP: 500,
+        speed: 25,
+        reward: 50,
+        livesCost: 5,
+        color: '#8e44ad',
+        radius: 16,
+        armor: 0.25,
+    },
+    swarm: {
+        name: 'Swarm',
+        baseHP: 8,
+        speed: 90,
+        reward: 2,
+        livesCost: 1,
+        color: '#e67e22',
+        radius: 5,
+        armor: 0,
+    },
+};
+
+// ── Wave Definitions ───────────────────────────────────────
+// { type, count, interval (seconds between spawns), delay (seconds before group) }
+export const WAVES = [
+    // Wave 1-5: Introduction
+    [{ type: 'grunt', count: 8, interval: 1.0, delay: 0 }],
+    [{ type: 'grunt', count: 10, interval: 0.9, delay: 0 }],
+    [{ type: 'grunt', count: 8, interval: 0.8, delay: 0 }, { type: 'runner', count: 4, interval: 0.5, delay: 2 }],
+    [{ type: 'runner', count: 12, interval: 0.4, delay: 0 }],
+    [{ type: 'grunt', count: 10, interval: 0.7, delay: 0 }, { type: 'tank', count: 2, interval: 2.0, delay: 3 }],
+    // Wave 6-10: Variety
+    [{ type: 'swarm', count: 20, interval: 0.25, delay: 0 }],
+    [{ type: 'tank', count: 5, interval: 1.5, delay: 0 }, { type: 'grunt', count: 8, interval: 0.6, delay: 2 }],
+    [{ type: 'runner', count: 10, interval: 0.4, delay: 0 }, { type: 'healer', count: 2, interval: 3.0, delay: 3 }],
+    [{ type: 'grunt', count: 12, interval: 0.6, delay: 0 }, { type: 'healer', count: 3, interval: 2.0, delay: 2 }],
+    [{ type: 'boss', count: 1, interval: 0, delay: 0 }, { type: 'grunt', count: 6, interval: 0.8, delay: 5 }],
+    // Wave 11-15: Escalation
+    [{ type: 'swarm', count: 30, interval: 0.2, delay: 0 }],
+    [{ type: 'tank', count: 6, interval: 1.2, delay: 0 }, { type: 'healer', count: 3, interval: 2.0, delay: 2 }],
+    [{ type: 'runner', count: 15, interval: 0.35, delay: 0 }, { type: 'tank', count: 3, interval: 1.5, delay: 3 }],
+    [{ type: 'grunt', count: 15, interval: 0.5, delay: 0 }, { type: 'runner', count: 10, interval: 0.3, delay: 3 }, { type: 'healer', count: 2, interval: 2.0, delay: 5 }],
+    [{ type: 'boss', count: 2, interval: 5.0, delay: 0 }, { type: 'tank', count: 4, interval: 1.5, delay: 3 }],
+    // Wave 16-20: Endgame
+    [{ type: 'swarm', count: 40, interval: 0.15, delay: 0 }, { type: 'tank', count: 4, interval: 1.0, delay: 2 }],
+    [{ type: 'tank', count: 8, interval: 1.0, delay: 0 }, { type: 'healer', count: 4, interval: 1.5, delay: 2 }],
+    [{ type: 'runner', count: 20, interval: 0.25, delay: 0 }, { type: 'boss', count: 1, interval: 0, delay: 5 }],
+    [{ type: 'grunt', count: 15, interval: 0.4, delay: 0 }, { type: 'tank', count: 6, interval: 1.0, delay: 2 }, { type: 'healer', count: 4, interval: 1.5, delay: 4 }, { type: 'runner', count: 10, interval: 0.3, delay: 6 }],
+    [{ type: 'boss', count: 3, interval: 4.0, delay: 0 }, { type: 'tank', count: 5, interval: 1.2, delay: 3 }, { type: 'healer', count: 3, interval: 2.0, delay: 5 }, { type: 'swarm', count: 25, interval: 0.2, delay: 7 }],
+];
+
+export const TOTAL_WAVES = 20;
+
+// ── Targeting Modes ────────────────────────────────────────
+export const TARGET_MODES = ['First', 'Closest', 'Strongest', 'Weakest'];
+
+// ── Particle Pool ──────────────────────────────────────────
+export const MAX_PARTICLES = 500;
+
+// ── HP Scaling ─────────────────────────────────────────────
+export function getHPScale(wave) {
+    return wave * Math.pow(1.12, wave) * 0.95;
+}
