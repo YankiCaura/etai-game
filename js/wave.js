@@ -66,7 +66,8 @@ export class WaveManager {
     update(dt) {
         if (!this.spawning) return;
 
-        const hpScale = getHPScale(this.currentWave);
+        const mapMul = this.game.map.def.hpMultiplier || 1;
+        const hpScale = getHPScale(this.currentWave) * mapMul;
         let allDone = true;
 
         for (let g = 0; g < this.spawnGroups.length; g++) {

@@ -27,6 +27,7 @@ export const MAP_DEFS = {
         name: 'Serpentine Valley',
         difficulty: 'Easy',
         color: '#27ae60',
+        hpMultiplier: 1.0,
         description: 'A long winding path gives you plenty of time to build defenses.',
         waypoints: [
             { x: 0, y: 2 }, { x: 7, y: 2 }, { x: 7, y: 6 }, { x: 2, y: 6 },
@@ -48,6 +49,7 @@ export const MAP_DEFS = {
         name: 'Split Creek',
         difficulty: 'Medium',
         color: '#f39c12',
+        hpMultiplier: 0.85,
         description: 'The path forks midway — enemies randomly pick a branch.',
         waypoints: [
             { x: 0, y: 9 }, { x: 6, y: 9 }, { x: 6, y: 10 },
@@ -71,6 +73,7 @@ export const MAP_DEFS = {
         name: 'The Gauntlet',
         difficulty: 'Hard',
         color: '#e74c3c',
+        hpMultiplier: 0.65,
         description: 'A short direct path — enemies arrive fast, every tower counts.',
         waypoints: [
             { x: 0, y: 10 }, { x: 5, y: 10 }, { x: 5, y: 5 }, { x: 12, y: 5 },
