@@ -87,7 +87,7 @@ export const MAP_DEFS = {
     splitcreek: {
         name: 'Split Creek',
         themeColor: '#d4a026',
-        hpMultiplier: 0.75,
+        hpMultiplier: 0.80,
         environment: 'desert',
         description: 'The path forks midway — enemies randomly pick a branch.',
         layouts: [
@@ -367,7 +367,7 @@ export const WAVES = [
     [{ type: 'tank', count: 8, interval: 1.0, delay: 0 }, { type: 'healer', count: 4, interval: 1.5, delay: 2 }],
     [{ type: 'runner', count: 20, interval: 0.25, delay: 0 }, { type: 'boss', count: 1, interval: 0, delay: 5 }],
     [{ type: 'grunt', count: 15, interval: 0.4, delay: 0 }, { type: 'tank', count: 6, interval: 1.0, delay: 2 }, { type: 'healer', count: 4, interval: 1.5, delay: 4 }, { type: 'runner', count: 10, interval: 0.3, delay: 6 }],
-    [{ type: 'boss', count: 3, interval: 4.0, delay: 0 }, { type: 'tank', count: 5, interval: 1.2, delay: 3 }, { type: 'healer', count: 3, interval: 2.0, delay: 5 }, { type: 'swarm', count: 25, interval: 0.2, delay: 7 }],
+    [{ type: 'boss', count: 2, interval: 6.0, delay: 0 }, { type: 'tank', count: 5, interval: 1.2, delay: 3 }, { type: 'healer', count: 3, interval: 2.0, delay: 5 }, { type: 'swarm', count: 25, interval: 0.2, delay: 7 }],
 ];
 
 export const TOTAL_WAVES = 20;
