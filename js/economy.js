@@ -10,12 +10,12 @@ export class Economy {
         this.mapId = 'serpentine';
         this.record = 0;
 
-        // One-time fresh start for level system (v2)
-        if (!localStorage.getItem('td_v2_clean')) {
+        // One-time fresh start for balance retuning (v3)
+        if (!localStorage.getItem('td_v3_clean')) {
             for (const key of Object.keys(localStorage)) {
                 if (key.startsWith('td_')) localStorage.removeItem(key);
             }
-            localStorage.setItem('td_v2_clean', '1');
+            localStorage.setItem('td_v3_clean', '1');
         }
     }
 

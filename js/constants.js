@@ -87,7 +87,7 @@ export const MAP_DEFS = {
     splitcreek: {
         name: 'Split Creek',
         themeColor: '#d4a026',
-        hpMultiplier: 0.85,
+        hpMultiplier: 0.75,
         environment: 'desert',
         description: 'The path forks midway — enemies randomly pick a branch.',
         layouts: [
@@ -382,5 +382,5 @@ export const MAX_PARTICLES = 500;
 
 // ── HP Scaling ─────────────────────────────────────────────
 export function getHPScale(wave) {
-    return wave * Math.pow(1.12, wave) * 0.9;
+    return wave * Math.pow(1.10, wave) * 0.9;
 }
