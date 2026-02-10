@@ -1,4 +1,5 @@
-import { TOWER_TYPES, TARGET_MODES, STATE } from './constants.js';
+import { TOWER_TYPES, TARGET_MODES, STATE, MAP_DEFS, COLS, ROWS, CELL_TYPE } from './constants.js';
+import { Economy } from './economy.js';
 
 export class UI {
     constructor(game) {
@@ -16,9 +17,160 @@ export class UI {
         this.elPauseBtn = document.getElementById('pause-btn');
         this.elMuteBtn = document.getElementById('mute-btn');
         this.elNextWaveBtn = document.getElementById('next-wave-btn');
+        this.elMapSelect = document.getElementById('map-select');
 
         this.setupTowerPanel();
         this.setupControls();
+        this.buildMapSelect();
+    }
+
+    buildMapSelect() {
+        const container = this.elMapSelect;
+        if (!container) return;
+        container.innerHTML = '';
+
+        for (const [id, def] of Object.entries(MAP_DEFS)) {
+            const card = document.createElement('div');
+            card.className = 'map-card';
+            card.dataset.mapId = id;
+
+            // Mini preview canvas
+            const preview = document.createElement('canvas');
+            preview.className = 'map-card-preview';
+            preview.width = 240;
+            preview.height = 160;
+            this.drawMapPreview(preview, def);
+
+            // Info section
+            const info = document.createElement('div');
+            info.className = 'map-card-info';
+
+            const header = document.createElement('div');
+            header.className = 'map-card-header';
+
+            const name = document.createElement('span');
+            name.className = 'map-card-name';
+            name.textContent = def.name;
+
+            const badge = document.createElement('span');
+            badge.className = 'map-card-difficulty';
+            badge.style.background = def.color;
+            badge.textContent = def.difficulty;
+
+            header.appendChild(name);
+            header.appendChild(badge);
+
+            const desc = document.createElement('div');
+            desc.className = 'map-card-desc';
+            desc.textContent = def.description;
+
+            const record = document.createElement('div');
+            record.className = 'map-card-record';
+            record.dataset.mapId = id;
+            const rec = Economy.getMapRecord(id);
+            record.textContent = rec > 0 ? `Record: ${rec}` : 'No record yet';
+
+            info.appendChild(header);
+            info.appendChild(desc);
+            info.appendChild(record);
+
+            card.appendChild(preview);
+            card.appendChild(info);
+
+            card.addEventListener('click', () => {
+                this.game.audio.ensureContext();
+                this.game.selectMap(id);
+                this.game.start();
+            });
+
+            container.appendChild(card);
+        }
+    }
+
+    drawMapPreview(canvas, def) {
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width;
+        const h = canvas.height;
+        const cellW = w / COLS;
+        const cellH = h / ROWS;
+
+        // Background
+        ctx.fillStyle = '#2a3a2a';
+        ctx.fillRect(0, 0, w, h);
+
+        // Build a temp grid to know which cells are path
+        const grid = Array.from({ length: ROWS }, () =>
+            Array.from({ length: COLS }, () => CELL_TYPE.BUILDABLE)
+        );
+
+        const carve = (x0, y0, x1, y1) => {
+            const dx = Math.sign(x1 - x0);
+            const dy = Math.sign(y1 - y0);
+            let x = x0, y = y0;
+            while (true) {
+                if (x >= 0 && x < COLS && y >= 0 && y < ROWS) {
+                    grid[y][x] = CELL_TYPE.PATH;
+                }
+                if (x === x1 && y === y1) break;
+                if (x !== x1) x += dx;
+                else y += dy;
+            }
+        };
+
+        // Carve all waypoint segments
+        if (def.paths) {
+            const prefix = def.waypoints;
+            for (let i = 0; i < prefix.length - 1; i++) carve(prefix[i].x, prefix[i].y, prefix[i + 1].x, prefix[i + 1].y);
+            const prefixEnd = prefix[prefix.length - 1];
+            carve(prefixEnd.x, prefixEnd.y, def.paths.upper[0].x, def.paths.upper[0].y);
+            for (let i = 0; i < def.paths.upper.length - 1; i++) carve(def.paths.upper[i].x, def.paths.upper[i].y, def.paths.upper[i + 1].x, def.paths.upper[i + 1].y);
+            carve(prefixEnd.x, prefixEnd.y, def.paths.lower[0].x, def.paths.lower[0].y);
+            for (let i = 0; i < def.paths.lower.length - 1; i++) carve(def.paths.lower[i].x, def.paths.lower[i].y, def.paths.lower[i + 1].x, def.paths.lower[i + 1].y);
+            const upperEnd = def.paths.upper[def.paths.upper.length - 1];
+            carve(upperEnd.x, upperEnd.y, def.paths.suffix[0].x, def.paths.suffix[0].y);
+            const lowerEnd = def.paths.lower[def.paths.lower.length - 1];
+            carve(lowerEnd.x, lowerEnd.y, def.paths.suffix[0].x, def.paths.suffix[0].y);
+            for (let i = 0; i < def.paths.suffix.length - 1; i++) carve(def.paths.suffix[i].x, def.paths.suffix[i].y, def.paths.suffix[i + 1].x, def.paths.suffix[i + 1].y);
+        } else {
+            for (let i = 0; i < def.waypoints.length - 1; i++) {
+                carve(def.waypoints[i].x, def.waypoints[i].y, def.waypoints[i + 1].x, def.waypoints[i + 1].y);
+            }
+        }
+
+        // Draw path cells
+        ctx.fillStyle = '#c8a96e';
+        for (let y = 0; y < ROWS; y++) {
+            for (let x = 0; x < COLS; x++) {
+                if (grid[y][x] === CELL_TYPE.PATH) {
+                    ctx.fillRect(x * cellW, y * cellH, cellW + 0.5, cellH + 0.5);
+                }
+            }
+        }
+
+        // Draw blocked cells
+        ctx.fillStyle = '#4a5a4a';
+        for (const c of def.blocked) {
+            if (c.x >= 0 && c.x < COLS && c.y >= 0 && c.y < ROWS && grid[c.y][c.x] !== CELL_TYPE.PATH) {
+                ctx.fillRect(c.x * cellW, c.y * cellH, cellW + 0.5, cellH + 0.5);
+            }
+        }
+
+        // Entry/exit markers
+        const entry = def.waypoints[0];
+        const exitPt = def.paths ? def.paths.suffix[def.paths.suffix.length - 1] : def.waypoints[def.waypoints.length - 1];
+        ctx.fillStyle = '#2ecc71';
+        ctx.fillRect(entry.x * cellW, entry.y * cellH, cellW + 0.5, cellH + 0.5);
+        ctx.fillStyle = '#e74c3c';
+        ctx.fillRect(exitPt.x * cellW, exitPt.y * cellH, cellW + 0.5, cellH + 0.5);
+    }
+
+    refreshMapRecords() {
+        const recordEls = document.querySelectorAll('.map-card-record');
+        for (const el of recordEls) {
+            const mapId = el.dataset.mapId;
+            const rec = Economy.getMapRecord(mapId);
+            el.textContent = rec > 0 ? `Record: ${rec}` : 'No record yet';
+        }
     }
 
     setupTowerPanel() {
@@ -80,10 +232,6 @@ export class UI {
         });
 
         // Screen buttons
-        document.getElementById('start-btn')?.addEventListener('click', () => {
-            this.game.audio.ensureContext();
-            this.game.start();
-        });
         document.getElementById('restart-btn')?.addEventListener('click', () => {
             this.game.restart();
         });
@@ -198,6 +346,11 @@ export class UI {
         // Show target
         const screen = document.getElementById(`${name}-screen`);
         if (screen) screen.classList.add('visible');
+
+        // Refresh map records when returning to menu
+        if (name === 'menu') {
+            this.refreshMapRecords();
+        }
 
         // Populate score on end screens
         const eco = this.game.economy;

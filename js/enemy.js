@@ -131,7 +131,7 @@ export class EnemyManager {
     }
 
     spawn(typeName, hpScale) {
-        const enemy = new Enemy(typeName, hpScale, this.game.map.path);
+        const enemy = new Enemy(typeName, hpScale, this.game.map.getEnemyPath());
         this.enemies.push(enemy);
         return enemy;
     }

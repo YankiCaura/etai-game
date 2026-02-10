@@ -19,6 +19,7 @@ export class Game {
         this.speed = 2;
         this.lastTime = 0;
         this.accumulator = 0;
+        this.selectedMapId = null;
 
         // Screen shake
         this.shakeTimer = 0;
@@ -43,7 +44,15 @@ export class Game {
         this.renderer.drawTerrain();
     }
 
+    selectMap(mapId) {
+        this.selectedMapId = mapId;
+        this.map = new GameMap(mapId);
+        this.economy.setMap(mapId);
+        this.renderer.drawTerrain();
+    }
+
     start() {
+        if (!this.selectedMapId) return;
         this.audio.ensureContext();
         this.state = STATE.PLAYING;
         this.ui.hideAllScreens();
@@ -79,6 +88,7 @@ export class Game {
 
     restart() {
         this.state = STATE.MENU;
+        this.selectedMapId = null;
         this.shakeTimer = 0;
         this.shakeIntensity = 0;
         this.shakeOffsetX = 0;

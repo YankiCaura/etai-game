@@ -1235,11 +1235,39 @@ export class Renderer {
                 if (canPlace) {
                     // Range preview
                     const range = def.levels[0].range * CELL;
+                    const cx = hx + CELL / 2;
+                    const cy = hy + CELL / 2;
                     ctx.strokeStyle = 'rgba(255,255,255,0.3)';
                     ctx.lineWidth = 1;
                     ctx.beginPath();
-                    ctx.arc(hx + CELL / 2, hy + CELL / 2, range, 0, Math.PI * 2);
+                    ctx.arc(cx, cy, range, 0, Math.PI * 2);
                     ctx.stroke();
+
+                    // Count and highlight path cells in range
+                    let coveredCount = 0;
+                    for (const key of this.game.map.pathCells) {
+                        const [px, py] = key.split(',').map(Number);
+                        const pcx = px * CELL + CELL / 2;
+                        const pcy = py * CELL + CELL / 2;
+                        const dx = pcx - cx;
+                        const dy = pcy - cy;
+                        if (dx * dx + dy * dy <= range * range) {
+                            coveredCount++;
+                            ctx.fillStyle = 'rgba(255,255,100,0.15)';
+                            ctx.fillRect(px * CELL, py * CELL, CELL, CELL);
+                        }
+                    }
+
+                    // Draw coverage count
+                    ctx.save();
+                    ctx.font = 'bold 20px monospace';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+                    ctx.fillText(coveredCount, cx + 1, cy + 1);
+                    ctx.fillStyle = coveredCount > 0 ? '#ffd700' : '#ff4444';
+                    ctx.fillText(coveredCount, cx, cy);
+                    ctx.restore();
                 }
             } else {
                 ctx.fillStyle = 'rgba(255,255,255,0.1)';

@@ -21,8 +21,7 @@ export const CELL_TYPE = {
     BLOCKED: 2,
 };
 
-// ── Map Waypoints (grid coords) ────────────────────────────
-// Serpentine path with 10+ turns
+// ── Map Waypoints (grid coords) — kept for back-compat ─────
 export const WAYPOINTS = [
     { x: 0, y: 2 },
     { x: 7, y: 2 },
@@ -57,6 +56,72 @@ export const BLOCKED_CELLS = [
     { x: 0, y: 15 }, { x: 14, y: 12 },
 ];
 
+// ── Map Definitions ─────────────────────────────────────────
+export const MAP_DEFS = {
+    serpentine: {
+        name: 'Serpentine Valley',
+        difficulty: 'Easy',
+        color: '#27ae60',
+        description: 'A long winding path gives you plenty of time to build defenses.',
+        waypoints: [
+            { x: 0, y: 2 }, { x: 7, y: 2 }, { x: 7, y: 6 }, { x: 2, y: 6 },
+            { x: 2, y: 10 }, { x: 10, y: 10 }, { x: 10, y: 4 }, { x: 15, y: 4 },
+            { x: 15, y: 14 }, { x: 6, y: 14 }, { x: 6, y: 18 }, { x: 20, y: 18 },
+            { x: 20, y: 12 }, { x: 25, y: 12 }, { x: 25, y: 6 }, { x: 29, y: 6 },
+        ],
+        blocked: [
+            { x: 4, y: 0 }, { x: 5, y: 0 }, { x: 12, y: 1 }, { x: 13, y: 1 },
+            { x: 22, y: 3 }, { x: 23, y: 3 }, { x: 0, y: 8 }, { x: 1, y: 8 },
+            { x: 18, y: 8 }, { x: 19, y: 8 }, { x: 27, y: 10 }, { x: 28, y: 10 },
+            { x: 12, y: 16 }, { x: 13, y: 16 }, { x: 24, y: 16 }, { x: 25, y: 16 },
+            { x: 3, y: 19 }, { x: 4, y: 19 }, { x: 16, y: 0 }, { x: 27, y: 2 },
+            { x: 0, y: 15 }, { x: 14, y: 12 },
+        ],
+        paths: null,
+    },
+    splitcreek: {
+        name: 'Split Creek',
+        difficulty: 'Medium',
+        color: '#f39c12',
+        description: 'The path forks midway — enemies randomly pick a branch.',
+        waypoints: [
+            { x: 0, y: 9 }, { x: 6, y: 9 }, { x: 6, y: 10 },
+        ],
+        paths: {
+            upper: [{ x: 6, y: 5 }, { x: 14, y: 5 }, { x: 14, y: 3 }, { x: 22, y: 3 }, { x: 22, y: 8 }],
+            lower: [{ x: 6, y: 15 }, { x: 14, y: 15 }, { x: 14, y: 17 }, { x: 22, y: 17 }, { x: 22, y: 12 }],
+            suffix: [{ x: 22, y: 10 }, { x: 26, y: 10 }, { x: 29, y: 10 }],
+        },
+        blocked: [
+            { x: 3, y: 0 }, { x: 4, y: 0 }, { x: 10, y: 1 }, { x: 11, y: 1 },
+            { x: 18, y: 0 }, { x: 19, y: 0 }, { x: 26, y: 1 }, { x: 27, y: 1 },
+            { x: 1, y: 5 }, { x: 2, y: 5 }, { x: 1, y: 15 }, { x: 2, y: 15 },
+            { x: 10, y: 9 }, { x: 11, y: 9 }, { x: 10, y: 11 }, { x: 11, y: 11 },
+            { x: 17, y: 9 }, { x: 18, y: 9 }, { x: 17, y: 11 }, { x: 18, y: 11 },
+            { x: 26, y: 6 }, { x: 27, y: 6 }, { x: 26, y: 14 }, { x: 27, y: 14 },
+            { x: 4, y: 19 }, { x: 5, y: 19 }, { x: 24, y: 19 }, { x: 25, y: 19 },
+        ],
+    },
+    gauntlet: {
+        name: 'The Gauntlet',
+        difficulty: 'Hard',
+        color: '#e74c3c',
+        description: 'A short direct path — enemies arrive fast, every tower counts.',
+        waypoints: [
+            { x: 0, y: 10 }, { x: 5, y: 10 }, { x: 5, y: 5 }, { x: 12, y: 5 },
+            { x: 12, y: 14 }, { x: 20, y: 14 }, { x: 20, y: 8 }, { x: 29, y: 8 },
+        ],
+        blocked: [
+            { x: 2, y: 2 }, { x: 3, y: 2 }, { x: 8, y: 1 }, { x: 9, y: 1 },
+            { x: 15, y: 2 }, { x: 16, y: 2 }, { x: 24, y: 3 }, { x: 25, y: 3 },
+            { x: 2, y: 17 }, { x: 3, y: 17 }, { x: 8, y: 18 }, { x: 9, y: 18 },
+            { x: 15, y: 17 }, { x: 16, y: 17 }, { x: 24, y: 17 }, { x: 25, y: 17 },
+            { x: 0, y: 0 }, { x: 28, y: 0 }, { x: 0, y: 19 }, { x: 28, y: 19 },
+        ],
+        paths: null,
+    },
+};
+
 // ── Economy ────────────────────────────────────────────────
 export const STARTING_GOLD = 200;
 export const STARTING_LIVES = 20;
@@ -73,8 +138,8 @@ export const TOWER_TYPES = {
         color: '#4a7c3f',
         levels: [
             { damage: 12, range: 3.5, fireRate: 0.4, projSpeed: 300 },
-            { damage: 18, range: 4.0, fireRate: 0.33, projSpeed: 340, upgradeCost: 40 },
-            { damage: 28, range: 4.5, fireRate: 0.25, projSpeed: 380, upgradeCost: 80 },
+            { damage: 18, range: 4.0, fireRate: 0.33, projSpeed: 340, upgradeCost: 35 },
+            { damage: 28, range: 4.5, fireRate: 0.25, projSpeed: 380, upgradeCost: 70 },
         ],
     },
     cannon: {
@@ -84,8 +149,8 @@ export const TOWER_TYPES = {
         splash: true,
         levels: [
             { damage: 30, range: 3.0, fireRate: 1.2, projSpeed: 200, splashRadius: 1.2 },
-            { damage: 50, range: 3.5, fireRate: 1.0, projSpeed: 220, splashRadius: 1.5, upgradeCost: 75 },
-            { damage: 80, range: 4.0, fireRate: 0.85, projSpeed: 240, splashRadius: 1.8, upgradeCost: 140 },
+            { damage: 50, range: 3.5, fireRate: 1.0, projSpeed: 220, splashRadius: 1.5, upgradeCost: 65 },
+            { damage: 80, range: 4.0, fireRate: 0.85, projSpeed: 240, splashRadius: 1.8, upgradeCost: 125 },
         ],
     },
     frost: {
@@ -95,8 +160,8 @@ export const TOWER_TYPES = {
         slow: true,
         levels: [
             { damage: 5, range: 3.0, fireRate: 0.8, projSpeed: 250, slowFactor: 0.5, slowDuration: 2.0 },
-            { damage: 8, range: 3.5, fireRate: 0.7, projSpeed: 270, slowFactor: 0.4, slowDuration: 2.5, upgradeCost: 60 },
-            { damage: 12, range: 4.0, fireRate: 0.6, projSpeed: 290, slowFactor: 0.3, slowDuration: 3.0, upgradeCost: 110 },
+            { damage: 8, range: 3.5, fireRate: 0.7, projSpeed: 270, slowFactor: 0.4, slowDuration: 2.5, upgradeCost: 55 },
+            { damage: 12, range: 4.0, fireRate: 0.6, projSpeed: 290, slowFactor: 0.3, slowDuration: 3.0, upgradeCost: 100 },
         ],
     },
     lightning: {
@@ -106,8 +171,8 @@ export const TOWER_TYPES = {
         chain: true,
         levels: [
             { damage: 15, range: 3.5, fireRate: 1.0, projSpeed: 500, chainCount: 3, chainRange: 2.0, chainDecay: 0.7 },
-            { damage: 22, range: 4.0, fireRate: 0.85, projSpeed: 550, chainCount: 4, chainRange: 2.5, chainDecay: 0.7, upgradeCost: 90 },
-            { damage: 32, range: 4.5, fireRate: 0.7, projSpeed: 600, chainCount: 5, chainRange: 3.0, chainDecay: 0.75, upgradeCost: 160 },
+            { damage: 22, range: 4.0, fireRate: 0.85, projSpeed: 550, chainCount: 4, chainRange: 2.5, chainDecay: 0.7, upgradeCost: 80 },
+            { damage: 32, range: 4.5, fireRate: 0.7, projSpeed: 600, chainCount: 5, chainRange: 3.0, chainDecay: 0.75, upgradeCost: 145 },
         ],
     },
     sniper: {
@@ -117,8 +182,8 @@ export const TOWER_TYPES = {
         crit: true,
         levels: [
             { damage: 60, range: 6.0, fireRate: 2.0, projSpeed: 600, critChance: 0.10, critMulti: 2.5 },
-            { damage: 90, range: 7.0, fireRate: 1.7, projSpeed: 650, critChance: 0.15, critMulti: 2.8, upgradeCost: 120 },
-            { damage: 140, range: 8.0, fireRate: 1.5, projSpeed: 700, critChance: 0.20, critMulti: 3.0, upgradeCost: 200 },
+            { damage: 90, range: 7.0, fireRate: 1.7, projSpeed: 650, critChance: 0.15, critMulti: 2.8, upgradeCost: 110 },
+            { damage: 140, range: 8.0, fireRate: 1.5, projSpeed: 700, critChance: 0.20, critMulti: 3.0, upgradeCost: 180 },
         ],
     },
 };
@@ -129,7 +194,7 @@ export const ENEMY_TYPES = {
         name: 'Grunt',
         baseHP: 30,
         speed: 60,     // px per second
-        reward: 5,
+        reward: 6,
         livesCost: 1,
         color: '#e74c3c',
         radius: 8,
@@ -139,7 +204,7 @@ export const ENEMY_TYPES = {
         name: 'Runner',
         baseHP: 15,
         speed: 110,
-        reward: 4,
+        reward: 5,
         livesCost: 1,
         color: '#f39c12',
         radius: 6,
@@ -149,7 +214,7 @@ export const ENEMY_TYPES = {
         name: 'Tank',
         baseHP: 120,
         speed: 35,
-        reward: 15,
+        reward: 16,
         livesCost: 2,
         color: '#2c3e50',
         radius: 12,
@@ -159,29 +224,29 @@ export const ENEMY_TYPES = {
         name: 'Healer',
         baseHP: 50,
         speed: 55,
-        reward: 10,
+        reward: 11,
         livesCost: 1,
         color: '#2ecc71',
         radius: 8,
         armor: 0,
-        healRadius: 2.0,  // grid cells
-        healRate: 5,       // HP per second to nearby allies
+        healRadius: 1.5,  // grid cells
+        healRate: 3,       // HP per second to nearby allies
     },
     boss: {
         name: 'Boss',
-        baseHP: 500,
-        speed: 25,
-        reward: 50,
+        baseHP: 400,
+        speed: 22,
+        reward: 53,
         livesCost: 5,
         color: '#8e44ad',
         radius: 16,
-        armor: 0.25,
+        armor: 0.20,
     },
     swarm: {
         name: 'Swarm',
         baseHP: 8,
         speed: 90,
-        reward: 2,
+        reward: 3,
         livesCost: 1,
         color: '#e67e22',
         radius: 5,
@@ -209,7 +274,7 @@ export const WAVES = [
     [{ type: 'tank', count: 6, interval: 1.2, delay: 0 }, { type: 'healer', count: 3, interval: 2.0, delay: 2 }],
     [{ type: 'runner', count: 15, interval: 0.35, delay: 0 }, { type: 'tank', count: 3, interval: 1.5, delay: 3 }],
     [{ type: 'grunt', count: 15, interval: 0.5, delay: 0 }, { type: 'runner', count: 10, interval: 0.3, delay: 3 }, { type: 'healer', count: 2, interval: 2.0, delay: 5 }],
-    [{ type: 'boss', count: 2, interval: 8.0, delay: 0 }, { type: 'tank', count: 2, interval: 2.0, delay: 4 }],
+    [{ type: 'boss', count: 2, interval: 12.0, delay: 0 }, { type: 'tank', count: 1, interval: 2.0, delay: 4 }],
     // Wave 16-20: Endgame
     [{ type: 'swarm', count: 40, interval: 0.15, delay: 0 }, { type: 'tank', count: 4, interval: 1.0, delay: 2 }],
     [{ type: 'tank', count: 8, interval: 1.0, delay: 0 }, { type: 'healer', count: 4, interval: 1.5, delay: 2 }],

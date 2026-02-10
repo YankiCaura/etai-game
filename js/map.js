@@ -1,4 +1,4 @@
-import { COLS, ROWS, CELL, CELL_TYPE, WAYPOINTS, BLOCKED_CELLS } from './constants.js';
+import { COLS, ROWS, CELL, CELL_TYPE, MAP_DEFS } from './constants.js';
 import { gridToWorld } from './utils.js';
 
 // Simple deterministic hash for procedural decoration
@@ -11,37 +11,97 @@ function seedRand(x, y, i) {
 }
 
 export class GameMap {
-    constructor() {
+    constructor(mapId = 'serpentine') {
+        this.mapId = mapId;
+        this.def = MAP_DEFS[mapId];
         this.grid = [];
-        this.path = [];        // world-coordinate waypoints
+        this.path = [];        // world-coordinate waypoints (single path or prefix for split)
         this.pathCells = new Set(); // "x,y" strings for fast lookup
+
+        // Split path data (null for non-split maps)
+        this.pathUpper = null;
+        this.pathLower = null;
+
         this.buildGrid();
     }
 
     buildGrid() {
+        const def = this.def;
+
         // Initialize all cells as buildable
         this.grid = Array.from({ length: ROWS }, () =>
             Array.from({ length: COLS }, () => CELL_TYPE.BUILDABLE)
         );
 
-        // Carve path between waypoints
-        for (let i = 0; i < WAYPOINTS.length - 1; i++) {
-            const a = WAYPOINTS[i];
-            const b = WAYPOINTS[i + 1];
-            this.carveLine(a.x, a.y, b.x, b.y);
+        if (def.paths) {
+            // Split map: carve prefix, upper, lower, suffix
+            const prefix = def.waypoints;
+            const upper = def.paths.upper;
+            const lower = def.paths.lower;
+            const suffix = def.paths.suffix;
+
+            // Carve prefix
+            for (let i = 0; i < prefix.length - 1; i++) {
+                this.carveLine(prefix[i].x, prefix[i].y, prefix[i + 1].x, prefix[i + 1].y);
+            }
+            // Carve prefix-to-upper connection
+            const prefixEnd = prefix[prefix.length - 1];
+            this.carveLine(prefixEnd.x, prefixEnd.y, upper[0].x, upper[0].y);
+            // Carve upper branch
+            for (let i = 0; i < upper.length - 1; i++) {
+                this.carveLine(upper[i].x, upper[i].y, upper[i + 1].x, upper[i + 1].y);
+            }
+            // Carve prefix-to-lower connection
+            this.carveLine(prefixEnd.x, prefixEnd.y, lower[0].x, lower[0].y);
+            // Carve lower branch
+            for (let i = 0; i < lower.length - 1; i++) {
+                this.carveLine(lower[i].x, lower[i].y, lower[i + 1].x, lower[i + 1].y);
+            }
+            // Carve upper-to-suffix connection
+            const upperEnd = upper[upper.length - 1];
+            this.carveLine(upperEnd.x, upperEnd.y, suffix[0].x, suffix[0].y);
+            // Carve lower-to-suffix connection
+            const lowerEnd = lower[lower.length - 1];
+            this.carveLine(lowerEnd.x, lowerEnd.y, suffix[0].x, suffix[0].y);
+            // Carve suffix
+            for (let i = 0; i < suffix.length - 1; i++) {
+                this.carveLine(suffix[i].x, suffix[i].y, suffix[i + 1].x, suffix[i + 1].y);
+            }
+
+            // Build world-coordinate paths for each branch
+            const prefixWorld = prefix.map(wp => gridToWorld(wp.x, wp.y));
+            const upperWorld = upper.map(wp => gridToWorld(wp.x, wp.y));
+            const lowerWorld = lower.map(wp => gridToWorld(wp.x, wp.y));
+            const suffixWorld = suffix.map(wp => gridToWorld(wp.x, wp.y));
+
+            this.pathUpper = [...prefixWorld, ...upperWorld, ...suffixWorld];
+            this.pathLower = [...prefixWorld, ...lowerWorld, ...suffixWorld];
+            // Default path (used for preview/fallback)
+            this.path = this.pathUpper;
+        } else {
+            // Single path map
+            const waypoints = def.waypoints;
+            for (let i = 0; i < waypoints.length - 1; i++) {
+                this.carveLine(waypoints[i].x, waypoints[i].y, waypoints[i + 1].x, waypoints[i + 1].y);
+            }
+            this.path = waypoints.map(wp => gridToWorld(wp.x, wp.y));
         }
 
         // Mark blocked cells
-        for (const c of BLOCKED_CELLS) {
+        for (const c of def.blocked) {
             if (c.x >= 0 && c.x < COLS && c.y >= 0 && c.y < ROWS) {
                 if (this.grid[c.y][c.x] !== CELL_TYPE.PATH) {
                     this.grid[c.y][c.x] = CELL_TYPE.BLOCKED;
                 }
             }
         }
+    }
 
-        // Build world-coordinate path
-        this.path = WAYPOINTS.map(wp => gridToWorld(wp.x, wp.y));
+    getEnemyPath() {
+        if (this.pathUpper && this.pathLower) {
+            return Math.random() < 0.5 ? this.pathUpper : this.pathLower;
+        }
+        return this.path;
     }
 
     carveLine(x0, y0, x1, y1) {

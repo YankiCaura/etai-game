@@ -128,7 +128,7 @@ body {
     cursor: crosshair;
 }
 
-#canvas-wrapper canvas {
+#canvas-wrapper > canvas {
     position: absolute;
     top: 0;
     left: 0;
@@ -336,6 +336,77 @@ body {
 #menu-screen .screen-title { color: #3498db; }
 #game-over-screen .screen-title { color: #e74c3c; }
 #victory-screen .screen-title { color: #2ecc71; }
+
+/* ── Map Selection ─────────────────────────────────────── */
+#map-select {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.map-card {
+    width: 240px;
+    background: rgba(15, 52, 96, 0.9);
+    border: 2px solid #1a4a8a;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    overflow: hidden;
+}
+
+.map-card:hover {
+    transform: translateY(-4px);
+    border-color: #3498db;
+    box-shadow: 0 8px 24px rgba(52, 152, 219, 0.3);
+}
+
+.map-card-preview {
+    width: 100%;
+    height: 160px;
+    display: block;
+    border-bottom: 1px solid #1a4a8a;
+}
+
+.map-card-info {
+    padding: 12px;
+}
+
+.map-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.map-card-name {
+    font-weight: 700;
+    font-size: 15px;
+}
+
+.map-card-difficulty {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 10px;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.map-card-desc {
+    font-size: 12px;
+    color: #999;
+    line-height: 1.4;
+    margin-bottom: 8px;
+}
+
+.map-card-record {
+    font-size: 12px;
+    color: #e67e22;
+    font-weight: 600;
+}
 
 /* ── Keyboard Hints ────────────────────────────────────── */
 .key-hints {
