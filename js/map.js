@@ -136,6 +136,7 @@ export class GameMap {
 
     drawTerrain(ctx) {
         ctx.clearRect(0, 0, COLS * CELL, ROWS * CELL);
+        const isDesert = this.def.environment === 'desert';
 
         for (let y = 0; y < ROWS; y++) {
             for (let x = 0; x < COLS; x++) {
@@ -144,15 +145,22 @@ export class GameMap {
                 const type = this.grid[y][x];
 
                 if (type === CELL_TYPE.PATH) {
-                    this.drawPathCell(ctx, px, py, x, y);
+                    isDesert ? this.drawDesertPathCell(ctx, px, py, x, y)
+                             : this.drawPathCell(ctx, px, py, x, y);
                 } else if (type === CELL_TYPE.BLOCKED) {
-                    this.drawGrassCell(ctx, px, py, x, y);
-                    this.drawObstacle(ctx, px, py, x, y);
+                    isDesert ? this.drawDesertCell(ctx, px, py, x, y)
+                             : this.drawGrassCell(ctx, px, py, x, y);
+                    isDesert ? this.drawDesertObstacle(ctx, px, py, x, y)
+                             : this.drawObstacle(ctx, px, py, x, y);
                 } else {
-                    this.drawGrassCell(ctx, px, py, x, y);
+                    isDesert ? this.drawDesertCell(ctx, px, py, x, y)
+                             : this.drawGrassCell(ctx, px, py, x, y);
                 }
             }
         }
+
+        // Draw castle at path exit
+        this.drawCastle(ctx);
 
         // Grid lines
         ctx.strokeStyle = 'rgba(0,0,0,0.08)';
@@ -170,6 +178,205 @@ export class GameMap {
             ctx.stroke();
         }
     }
+
+    drawCastle(ctx) {
+        const def = this.def;
+        const exitPt = def.paths
+            ? def.paths.suffix[def.paths.suffix.length - 1]
+            : def.waypoints[def.waypoints.length - 1];
+        const cx = exitPt.x * CELL + CELL / 2;
+        const cy = exitPt.y * CELL + CELL / 2;
+        const s = 1.8; // scale factor
+
+        // Castle base
+        ctx.fillStyle = '#5a5a6a';
+        ctx.fillRect(cx - 18 * s, cy - 14 * s, 36 * s, 28 * s);
+
+        // Lighter front face
+        ctx.fillStyle = '#7a7a8a';
+        ctx.fillRect(cx - 16 * s, cy - 12 * s, 32 * s, 24 * s);
+
+        // Gate (dark arch)
+        ctx.fillStyle = '#2a2a3a';
+        ctx.beginPath();
+        ctx.moveTo(cx - 8 * s, cy + 14 * s);
+        ctx.lineTo(cx - 8 * s, cy);
+        ctx.arc(cx, cy, 8 * s, Math.PI, 0);
+        ctx.lineTo(cx + 8 * s, cy + 14 * s);
+        ctx.closePath();
+        ctx.fill();
+
+        // Battlements (crenellations)
+        ctx.fillStyle = '#5a5a6a';
+        const bw = 8 * s, bh = 6 * s, gap = 4 * s;
+        for (let i = -2; i <= 2; i++) {
+            ctx.fillRect(cx + i * (bw + gap) - bw / 2, cy - 14 * s - bh, bw, bh);
+        }
+
+        // Left tower
+        ctx.fillStyle = '#6a6a7a';
+        ctx.fillRect(cx - 24 * s, cy - 22 * s, 12 * s, 44 * s);
+        ctx.fillStyle = '#5a5a6a';
+        ctx.fillRect(cx - 26 * s, cy - 26 * s, 16 * s, 6 * s);
+        // Tower top crenellations
+        ctx.fillRect(cx - 26 * s, cy - 30 * s, 5 * s, 4 * s);
+        ctx.fillRect(cx - 16 * s, cy - 30 * s, 5 * s, 4 * s);
+
+        // Right tower
+        ctx.fillStyle = '#6a6a7a';
+        ctx.fillRect(cx + 12 * s, cy - 22 * s, 12 * s, 44 * s);
+        ctx.fillStyle = '#5a5a6a';
+        ctx.fillRect(cx + 10 * s, cy - 26 * s, 16 * s, 6 * s);
+        ctx.fillRect(cx + 10 * s, cy - 30 * s, 5 * s, 4 * s);
+        ctx.fillRect(cx + 20 * s, cy - 30 * s, 5 * s, 4 * s);
+
+        // Flag on right tower
+        ctx.fillStyle = '#e74c3c';
+        ctx.beginPath();
+        ctx.moveTo(cx + 19 * s, cy - 30 * s);
+        ctx.lineTo(cx + 32 * s, cy - 25 * s);
+        ctx.lineTo(cx + 19 * s, cy - 20 * s);
+        ctx.closePath();
+        ctx.fill();
+        // Flagpole
+        ctx.strokeStyle = '#aaa';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(cx + 19 * s, cy - 36 * s);
+        ctx.lineTo(cx + 19 * s, cy - 20 * s);
+        ctx.stroke();
+    }
+
+    // ── Desert environment cells ─────────────────────────────
+
+    drawDesertCell(ctx, px, py, gx, gy) {
+        const shade = seedRand(gx, gy, 0);
+        const r = Math.floor(210 + shade * 20 - 10);
+        const g = Math.floor(180 + shade * 15 - 7);
+        const b = Math.floor(120 + shade * 10 - 5);
+        ctx.fillStyle = `rgb(${r},${g},${b})`;
+        ctx.fillRect(px, py, CELL, CELL);
+
+        // Sand speckles
+        const speckleCount = 2 + Math.floor(seedRand(gx, gy, 1) * 3);
+        for (let i = 0; i < speckleCount; i++) {
+            const sx = px + seedRand(gx, gy, 10 + i) * (CELL - 4) + 2;
+            const sy = py + seedRand(gx, gy, 20 + i) * (CELL - 4) + 2;
+            ctx.fillStyle = seedRand(gx, gy, 30 + i) > 0.5
+                ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)';
+            const sw = 1 + seedRand(gx, gy, 40 + i) * 2;
+            ctx.fillRect(sx, sy, sw, sw);
+        }
+
+        // Occasional small pebble
+        if (seedRand(gx, gy, 50) > 0.8) {
+            const px2 = px + seedRand(gx, gy, 51) * (CELL - 8) + 4;
+            const py2 = py + seedRand(gx, gy, 52) * (CELL - 8) + 4;
+            ctx.fillStyle = '#b8a080';
+            ctx.beginPath();
+            ctx.ellipse(px2, py2, 2, 1.5, seedRand(gx, gy, 53) * Math.PI, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    drawDesertPathCell(ctx, px, py, gx, gy) {
+        // Packed sandstone path — darker than surrounding sand
+        ctx.fillStyle = '#b8943c';
+        ctx.fillRect(px, py, CELL, CELL);
+
+        // Cracked texture
+        const crackCount = 2 + Math.floor(seedRand(gx, gy, 0) * 3);
+        ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+        ctx.lineWidth = 0.6;
+        for (let i = 0; i < crackCount; i++) {
+            const sx = px + seedRand(gx, gy, 60 + i) * CELL;
+            const sy = py + seedRand(gx, gy, 70 + i) * CELL;
+            const ex = sx + (seedRand(gx, gy, 80 + i) - 0.5) * 14;
+            const ey = sy + (seedRand(gx, gy, 90 + i) - 0.5) * 14;
+            ctx.beginPath();
+            ctx.moveTo(sx, sy);
+            ctx.lineTo(ex, ey);
+            ctx.stroke();
+        }
+
+        // Edge borders
+        const edgeW = 3;
+        ctx.fillStyle = 'rgba(0,0,0,0.1)';
+        if (!this.isPath(gx, gy - 1)) ctx.fillRect(px, py, CELL, edgeW);
+        if (!this.isPath(gx, gy + 1)) ctx.fillRect(px, py + CELL - edgeW, CELL, edgeW);
+        if (!this.isPath(gx - 1, gy)) ctx.fillRect(px, py, edgeW, CELL);
+        if (!this.isPath(gx + 1, gy)) ctx.fillRect(px + CELL - edgeW, py, edgeW, CELL);
+    }
+
+    drawDesertObstacle(ctx, px, py, gx, gy) {
+        const cx = px + CELL / 2;
+        const cy = py + CELL / 2;
+        const seed = gx + gy;
+
+        if (seed % 2 === 0) {
+            // Sandstone rock — warm tones
+            const baseRadius = 9;
+            ctx.fillStyle = '#a08060';
+            ctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+                const a = (Math.PI * 2 * i) / 6;
+                const r = baseRadius * (0.7 + seedRand(gx, gy, i) * 0.5);
+                const rx = cx + Math.cos(a) * r;
+                const ry = cy + 2 + Math.sin(a) * r * 0.75;
+                if (i === 0) ctx.moveTo(rx, ry);
+                else ctx.lineTo(rx, ry);
+            }
+            ctx.closePath();
+            ctx.fill();
+
+            // Highlight
+            ctx.fillStyle = 'rgba(255,255,255,0.12)';
+            ctx.beginPath();
+            const ha = 0;
+            const ha2 = (Math.PI * 2) / 6;
+            const r0 = baseRadius * (0.7 + seedRand(gx, gy, 0) * 0.5);
+            const r1 = baseRadius * (0.7 + seedRand(gx, gy, 1) * 0.5);
+            ctx.moveTo(cx, cy + 2);
+            ctx.lineTo(cx + Math.cos(ha) * r0, cy + 2 + Math.sin(ha) * r0 * 0.75);
+            ctx.lineTo(cx + Math.cos(ha2) * r1, cy + 2 + Math.sin(ha2) * r1 * 0.75);
+            ctx.closePath();
+            ctx.fill();
+        } else {
+            // Cactus — shadow
+            ctx.fillStyle = 'rgba(0,0,0,0.12)';
+            ctx.beginPath();
+            ctx.ellipse(cx + 1, cy + 11, 6, 3, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Main trunk
+            ctx.fillStyle = '#2d8a4e';
+            ctx.fillRect(cx - 3, cy - 8, 6, 20);
+            // Trunk ridges
+            ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+            ctx.lineWidth = 0.5;
+            ctx.beginPath();
+            ctx.moveTo(cx - 1, cy - 7);
+            ctx.lineTo(cx - 1, cy + 11);
+            ctx.moveTo(cx + 1, cy - 7);
+            ctx.lineTo(cx + 1, cy + 11);
+            ctx.stroke();
+
+            // Left arm
+            ctx.fillStyle = '#2d8a4e';
+            ctx.fillRect(cx - 9, cy - 3, 6, 4);
+            ctx.fillRect(cx - 9, cy - 8, 4, 6);
+
+            // Right arm
+            ctx.fillRect(cx + 3, cy - 1, 6, 4);
+            ctx.fillRect(cx + 6, cy - 6, 4, 6);
+
+            // Cactus top highlight
+            ctx.fillStyle = '#3aa862';
+            ctx.fillRect(cx - 2, cy - 8, 4, 3);
+        }
+    }
+
+    // ── Forest environment cells ──────────────────────────────
 
     drawGrassCell(ctx, px, py, gx, gy) {
         // Base grass with deterministic shade variation

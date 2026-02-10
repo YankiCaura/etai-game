@@ -125,6 +125,20 @@ export class ParticleSystem {
         });
     }
 
+    spawnBigFloatingText(x, y, text, color) {
+        this.acquire({
+            x,
+            y,
+            vx: 0,
+            vy: -50,
+            life: 1.8,
+            color,
+            type: 'text',
+            text,
+            size: 32,
+        });
+    }
+
     spawnLightning(x1, y1, x2, y2) {
         this.acquire({
             x: x1,

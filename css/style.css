@@ -49,6 +49,22 @@ body {
 #gold-info { color: #f1c40f; }
 #wave-info { color: #3498db; }
 
+.gold-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #4a3800;
+    color: #f1c40f;
+    border: 2px solid #f39c12;
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-size: 20px;
+    font-weight: 700;
+    min-width: 50px;
+    text-align: center;
+    box-shadow: 0 0 10px rgba(241, 196, 15, 0.3);
+}
+
 .lives-badge {
     display: inline-flex;
     align-items: center;
@@ -267,8 +283,16 @@ body {
 
 .action-btn:hover { background: #1a4a8a; }
 
-.upgrade-btn { border-color: #27ae60; color: #2ecc71; }
-.upgrade-btn:hover { background: #1a5c3a; }
+.upgrade-btn {
+    border-color: #27ae60;
+    color: #fff;
+    background: #1a7a3a;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 6px 10px;
+    border-width: 2px;
+}
+.upgrade-btn:hover { background: #22994a; }
 
 .sell-btn { border-color: #e74c3c; color: #e74c3c; }
 .sell-btn:hover { background: #5c1a1a; }

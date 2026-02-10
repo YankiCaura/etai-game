@@ -95,7 +95,8 @@ export class UI {
         const cellH = h / ROWS;
 
         // Background
-        ctx.fillStyle = '#2a3a2a';
+        const isDesert = def.environment === 'desert';
+        ctx.fillStyle = isDesert ? '#c8a878' : '#2a3a2a';
         ctx.fillRect(0, 0, w, h);
 
         // Build a temp grid to know which cells are path
@@ -138,7 +139,7 @@ export class UI {
         }
 
         // Draw path cells
-        ctx.fillStyle = '#c8a96e';
+        ctx.fillStyle = isDesert ? '#b8943c' : '#c8a96e';
         for (let y = 0; y < ROWS; y++) {
             for (let x = 0; x < COLS; x++) {
                 if (grid[y][x] === CELL_TYPE.PATH) {
@@ -148,7 +149,7 @@ export class UI {
         }
 
         // Draw blocked cells
-        ctx.fillStyle = '#4a5a4a';
+        ctx.fillStyle = isDesert ? '#a08060' : '#4a5a4a';
         for (const c of def.blocked) {
             if (c.x >= 0 && c.x < COLS && c.y >= 0 && c.y < ROWS && grid[c.y][c.x] !== CELL_TYPE.PATH) {
                 ctx.fillRect(c.x * cellW, c.y * cellH, cellW + 0.5, cellH + 0.5);
@@ -258,7 +259,7 @@ export class UI {
         // Top bar info
         this.elWave.textContent = `Wave: ${waves.currentWave}/20`;
         this.elLives.innerHTML = `&#9829; ${eco.lives}`;
-        this.elGold.textContent = `Gold: ${eco.gold}`;
+        this.elGold.textContent = `\u{1FA99} ${eco.gold}`;
         this.elScore.textContent = `Score: ${eco.score}`;
         this.elRecord.textContent = `Record: ${eco.record}`;
 
@@ -278,6 +279,18 @@ export class UI {
             this.elNextWaveBtn.style.display = 'none';
         }
 
+        // Refresh upgrade button affordability if tower info is open
+        if (game.input.selectedTower) {
+            const upgradeBtn = document.getElementById('upgrade-btn');
+            if (upgradeBtn) {
+                const cost = game.input.selectedTower.getUpgradeCost();
+                if (cost !== null) {
+                    const canAfford = eco.canAfford(cost);
+                    upgradeBtn.classList.toggle('disabled', !canAfford);
+                }
+            }
+        }
+
         // Tower buttons affordability + unlock
         const towerBtns = this.elTowerPanel.querySelectorAll('.tower-btn');
         towerBtns.forEach(btn => {
@@ -288,6 +301,11 @@ export class UI {
             btn.classList.toggle('disabled', locked || !canAfford);
             btn.classList.toggle('locked', locked);
             btn.classList.toggle('selected', game.input.selectedTowerType === type);
+            // Show/hide lock label
+            const costEl = btn.querySelector('.tower-cost');
+            if (costEl) {
+                costEl.textContent = locked ? `LVL ${def.unlockWave}` : `$${def.cost}`;
+            }
         });
     }
 

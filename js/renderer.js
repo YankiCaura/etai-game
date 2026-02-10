@@ -28,6 +28,7 @@ export class Renderer {
         const cx = x + CELL / 2;
         const cy = y + CELL / 2;
 
+        const maxed = tower.level >= 2;
         const accentColors = {
             arrow: '#4a7c3f',
             cannon: '#8b5e3c',
@@ -35,29 +36,37 @@ export class Renderer {
             lightning: '#9b59b6',
             sniper: '#c0392b',
         };
-        const accent = accentColors[tower.type] || '#888';
+        const maxedAccentColors = {
+            arrow: '#7fff00',
+            cannon: '#ff8c00',
+            frost: '#00e5ff',
+            lightning: '#e040fb',
+            sniper: '#ff1744',
+        };
+        const accent = maxed ? (maxedAccentColors[tower.type] || '#ffd700') : (accentColors[tower.type] || '#888');
 
         // Outer platform with beveled edges
-        ctx.fillStyle = '#4a4a4a';
+        ctx.fillStyle = maxed ? '#5a5a3a' : '#4a4a4a';
         ctx.fillRect(x + 1, y + 1, CELL - 2, CELL - 2);
         // Top/left highlight
-        ctx.fillStyle = '#606060';
+        ctx.fillStyle = maxed ? '#808050' : '#606060';
         ctx.fillRect(x + 1, y + 1, CELL - 2, 2);
         ctx.fillRect(x + 1, y + 1, 2, CELL - 2);
         // Bottom/right shadow
-        ctx.fillStyle = '#333';
+        ctx.fillStyle = maxed ? '#3a3a20' : '#333';
         ctx.fillRect(x + 1, y + CELL - 3, CELL - 2, 2);
         ctx.fillRect(x + CELL - 3, y + 1, 2, CELL - 2);
-        // Inner platform — brighter for higher levels
-        const lvlBright = tower.level * 12;
-        const baseR = 88 + lvlBright;
-        const baseG = 88 + lvlBright;
-        const baseB = 88 + lvlBright;
-        ctx.fillStyle = `rgb(${baseR},${baseG},${baseB})`;
+        // Inner platform — brighter for higher levels, golden tint for maxed
+        if (maxed) {
+            ctx.fillStyle = '#c0a850';
+        } else {
+            const lvlBright = tower.level * 12;
+            ctx.fillStyle = `rgb(${88 + lvlBright},${88 + lvlBright},${88 + lvlBright})`;
+        }
         ctx.fillRect(x + 4, y + 4, CELL - 8, CELL - 8);
 
         // Color accent ring — thicker and brighter for upgrades
-        const ringWidth = 2 + tower.level;
+        const ringWidth = maxed ? 5 : 2 + tower.level;
         ctx.strokeStyle = accent;
         ctx.lineWidth = ringWidth;
         ctx.beginPath();
@@ -66,14 +75,14 @@ export class Renderer {
 
         // Inner ring
         if (tower.level > 0) {
-            ctx.strokeStyle = '#ffd700';
-            ctx.lineWidth = 1;
+            ctx.strokeStyle = maxed ? '#fff' : '#ffd700';
+            ctx.lineWidth = maxed ? 1.5 : 1;
             ctx.beginPath();
             ctx.arc(cx, cy, 14 - ringWidth, 0, Math.PI * 2);
             ctx.stroke();
         }
 
-        // Corner bolt details — gold for upgraded towers
+        // Corner bolt details — gold for upgraded, bright white for maxed
         const boltOffset = 6;
         const corners = [
             [x + boltOffset, y + boltOffset],
@@ -81,36 +90,36 @@ export class Renderer {
             [x + boltOffset, y + CELL - boltOffset],
             [x + CELL - boltOffset, y + CELL - boltOffset],
         ];
-        const boltColor = tower.level > 0 ? '#ffd700' : '#777';
-        const boltHighlight = tower.level > 0 ? '#ffe566' : '#999';
+        const boltColor = maxed ? '#fff' : tower.level > 0 ? '#ffd700' : '#777';
+        const boltHighlight = maxed ? '#ffffcc' : tower.level > 0 ? '#ffe566' : '#999';
         for (const [bx, by] of corners) {
             ctx.fillStyle = boltColor;
             ctx.beginPath();
-            ctx.arc(bx, by, 2.5, 0, Math.PI * 2);
+            ctx.arc(bx, by, maxed ? 3 : 2.5, 0, Math.PI * 2);
             ctx.fill();
             ctx.fillStyle = boltHighlight;
             ctx.beginPath();
-            ctx.arc(bx - 0.5, by - 0.5, 1.2, 0, Math.PI * 2);
+            ctx.arc(bx - 0.5, by - 0.5, maxed ? 1.8 : 1.2, 0, Math.PI * 2);
             ctx.fill();
         }
 
         // Level stars on base — bigger, with glow
         if (tower.level > 0) {
             // Star glow background
-            ctx.fillStyle = 'rgba(255,215,0,0.25)';
+            ctx.fillStyle = maxed ? 'rgba(255,215,0,0.45)' : 'rgba(255,215,0,0.25)';
             ctx.beginPath();
             ctx.arc(cx, cy + 15, tower.level * 6, 0, Math.PI * 2);
             ctx.fill();
 
-            ctx.fillStyle = '#ffd700';
+            ctx.fillStyle = maxed ? '#fff' : '#ffd700';
             for (let i = 0; i < tower.level; i++) {
                 const sx = cx - (tower.level - 1) * 6 + i * 12;
                 const sy = cy + 15;
-                this.drawMiniStar(ctx, sx, sy, 4);
+                this.drawMiniStar(ctx, sx, sy, maxed ? 5 : 4);
                 // Star highlight
-                ctx.fillStyle = '#fff8dc';
-                this.drawMiniStar(ctx, sx - 0.5, sy - 0.5, 2);
-                ctx.fillStyle = '#ffd700';
+                ctx.fillStyle = maxed ? '#fffff0' : '#fff8dc';
+                this.drawMiniStar(ctx, sx - 0.5, sy - 0.5, maxed ? 2.5 : 2);
+                ctx.fillStyle = maxed ? '#fff' : '#ffd700';
             }
         }
     }
@@ -429,30 +438,43 @@ export class Renderer {
 
             // Upgrade glow — animated, scales with level
             if (tower.level > 0) {
-                const glowPulse = 0.12 + Math.sin(tower.glowPhase * 1.5) * 0.06;
-                const glowRadius = 18 + tower.level * 4;
+                const maxed = tower.level >= 2;
+                const glowPulse = maxed
+                    ? 0.25 + Math.sin(tower.glowPhase * 2) * 0.12
+                    : 0.12 + Math.sin(tower.glowPhase * 1.5) * 0.06;
+                const glowRadius = maxed ? 28 : 18 + tower.level * 4;
 
-                // Outer glow ring
-                ctx.strokeStyle = `rgba(255,215,0,${glowPulse * 0.7})`;
-                ctx.lineWidth = 1 + tower.level * 0.5;
+                // Outer glow ring — type-colored for maxed
+                const maxedGlowColors = {
+                    arrow: '127,255,0',
+                    cannon: '255,140,0',
+                    frost: '0,229,255',
+                    lightning: '224,64,251',
+                    sniper: '255,23,68',
+                };
+                const glowRGB = maxed ? (maxedGlowColors[tower.type] || '255,215,0') : '255,215,0';
+
+                ctx.strokeStyle = `rgba(${glowRGB},${glowPulse * (maxed ? 1.0 : 0.7)})`;
+                ctx.lineWidth = maxed ? 3 : 1 + tower.level * 0.5;
                 ctx.beginPath();
                 ctx.arc(cx, cy, glowRadius, 0, Math.PI * 2);
                 ctx.stroke();
 
                 // Soft radial glow
-                ctx.fillStyle = `rgba(255,215,0,${glowPulse * 0.3})`;
+                ctx.fillStyle = `rgba(${glowRGB},${glowPulse * (maxed ? 0.5 : 0.3)})`;
                 ctx.beginPath();
                 ctx.arc(cx, cy, glowRadius - 2, 0, Math.PI * 2);
                 ctx.fill();
 
-                // Rotating sparkle dots for level 2
+                // Rotating sparkle dots for level 2 — more and brighter when maxed
                 if (tower.level >= 2) {
-                    ctx.fillStyle = `rgba(255,250,200,${0.3 + Math.sin(tower.glowPhase * 2) * 0.2})`;
-                    for (let i = 0; i < 4; i++) {
-                        const a = tower.spinPhase * 0.6 + (Math.PI * 2 * i) / 4;
+                    const sparkleCount = 6;
+                    ctx.fillStyle = `rgba(255,255,220,${0.5 + Math.sin(tower.glowPhase * 2.5) * 0.3})`;
+                    for (let i = 0; i < sparkleCount; i++) {
+                        const a = tower.spinPhase * 0.8 + (Math.PI * 2 * i) / sparkleCount;
                         const sr = glowRadius - 1;
                         ctx.beginPath();
-                        ctx.arc(cx + Math.cos(a) * sr, cy + Math.sin(a) * sr, 1.5, 0, Math.PI * 2);
+                        ctx.arc(cx + Math.cos(a) * sr, cy + Math.sin(a) * sr, 2.5, 0, Math.PI * 2);
                         ctx.fill();
                     }
                 }
@@ -1196,24 +1218,24 @@ export class Renderer {
         const ctx = this.uiCtx;
         ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
 
-        // Big wave level number — top-right corner of canvas
+        // Big wave level number — top-left corner of canvas
         const waves = this.game.waves;
         if (waves.currentWave > 0) {
             const waveText = `${waves.currentWave}`;
             ctx.save();
             ctx.font = 'bold 72px monospace';
-            ctx.textAlign = 'right';
+            ctx.textAlign = 'left';
             ctx.textBaseline = 'top';
             // Shadow
             ctx.fillStyle = 'rgba(0,0,0,0.3)';
-            ctx.fillText(waveText, CANVAS_W - 18, 22);
+            ctx.fillText(waveText, 22, 22);
             // Main number
             ctx.fillStyle = 'rgba(52,152,219,0.35)';
-            ctx.fillText(waveText, CANVAS_W - 20, 20);
+            ctx.fillText(waveText, 20, 20);
             // Label
             ctx.font = 'bold 16px monospace';
             ctx.fillStyle = 'rgba(52,152,219,0.3)';
-            ctx.fillText('WAVE', CANVAS_W - 20, 92);
+            ctx.fillText('WAVE', 20, 92);
             ctx.restore();
         }
 

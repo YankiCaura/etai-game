@@ -50,6 +50,7 @@ export const MAP_DEFS = {
         difficulty: 'Medium',
         color: '#f39c12',
         hpMultiplier: 0.85,
+        environment: 'desert',
         description: 'The path forks midway — enemies randomly pick a branch.',
         waypoints: [
             { x: 0, y: 9 }, { x: 6, y: 9 }, { x: 6, y: 10 },
@@ -149,6 +150,7 @@ export const TOWER_TYPES = {
         cost: 150,
         color: '#c0392b',
         crit: true,
+        unlockWave: 4,
         levels: [
             { damage: 60, range: 6.0, fireRate: 2.0, projSpeed: 600, critChance: 0.10, critMulti: 2.5 },
             { damage: 90, range: 7.0, fireRate: 1.7, projSpeed: 650, critChance: 0.15, critMulti: 2.8, upgradeCost: 110 },
