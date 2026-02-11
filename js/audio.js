@@ -103,6 +103,11 @@ export class Audio {
                 // Sharp crack
                 this.playTone('square', 2000, 100, 0.06, 0.2);
                 break;
+            case 'firearrow':
+                // Crackling fire sound
+                this.playTone('sawtooth', 400, 150, 0.15, 0.12);
+                this.playTone('triangle', 600, 200, 0.1, 0.08);
+                break;
         }
     }
 

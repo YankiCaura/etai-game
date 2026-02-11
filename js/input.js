@@ -2,7 +2,7 @@ import { CELL, COLS, ROWS, STATE, TOWER_TYPES } from './constants.js';
 import { Economy } from './economy.js';
 import { worldToGrid } from './utils.js';
 
-const TOWER_KEYS = { '1': 'arrow', '2': 'cannon', '3': 'frost', '4': 'lightning', '5': 'sniper' };
+const TOWER_KEYS = { '1': 'arrow', '2': 'firearrow', '3': 'frost', '4': 'lightning', '5': 'cannon', '6': 'sniper' };
 
 export class InputHandler {
     constructor(canvas, game) {
@@ -209,6 +209,7 @@ export class InputHandler {
     selectTowerType(type) {
         const def = TOWER_TYPES[type];
         if (def.unlockWave && this.game.waves.currentWave < def.unlockWave) return;
+        if (def.unlockLevel && this.game.worldLevel < def.unlockLevel) return;
         if (this.game.economy.canAfford(def.cost)) {
             this.selectedTowerType = type;
             this.selectedTower = null;

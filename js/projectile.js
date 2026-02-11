@@ -23,6 +23,8 @@ export class Projectile {
         this.chainDecay = tower.chainDecay;
         this.critChance = tower.critChance;
         this.critMulti = tower.critMulti;
+        this.burnDamage = tower.burnDamage;
+        this.burnDuration = tower.burnDuration;
 
         // Visual
         this.angle = angle(this, target);
@@ -89,6 +91,9 @@ export class Projectile {
                 if (this.slowFactor > 0) {
                     this.target.applySlow(this.slowFactor, this.slowDuration);
                     game.particles.spawnSpark(this.x, this.y, '#5bbaff', 3);
+                }
+                if (this.burnDamage > 0) {
+                    this.target.applyBurn(this.burnDamage, this.burnDuration);
                 }
                 if (isCrit) {
                     game.particles.spawnFloatingText(this.x, this.y - 15, `CRIT!`, '#ff4444');
@@ -162,6 +167,7 @@ export class Projectile {
             frost: '#03a9f4',
             lightning: '#ba68c8',
             sniper: '#ef5350',
+            firearrow: '#ff4500',
         };
         return colors[this.towerType] || '#fff';
     }

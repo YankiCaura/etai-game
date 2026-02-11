@@ -35,6 +35,7 @@ export class Renderer {
             frost: '#5b9bd5',
             lightning: '#9b59b6',
             sniper: '#c0392b',
+            firearrow: '#8b1a1a',
         };
         const maxedAccentColors = {
             arrow: '#7fff00',
@@ -42,6 +43,7 @@ export class Renderer {
             frost: '#00e5ff',
             lightning: '#e040fb',
             sniper: '#ff1744',
+            firearrow: '#ff4500',
         };
         const accent = maxed ? (maxedAccentColors[tower.type] || '#ffd700') : (accentColors[tower.type] || '#888');
 
@@ -407,6 +409,28 @@ export class Renderer {
                 ctx.stroke();
             }
 
+            // Burn effect indicator
+            if (e.burnTimer > 0 && !isDying) {
+                // Orange glow ring
+                ctx.strokeStyle = 'rgba(255, 120, 0, 0.6)';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.arc(drawX, drawY, r + 4, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Flickering flame particles
+                for (let i = 0; i < 3; i++) {
+                    const fa = Math.random() * Math.PI * 2;
+                    const fr = r * (0.5 + Math.random() * 0.6);
+                    const fx = drawX + Math.cos(fa) * fr;
+                    const fy = drawY + Math.sin(fa) * fr - Math.random() * 3;
+                    ctx.fillStyle = `rgba(255,${100 + Math.random() * 100 | 0},0,${0.4 + Math.random() * 0.3})`;
+                    ctx.beginPath();
+                    ctx.arc(fx, fy, 1 + Math.random(), 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
             // Wave modifier glow (armored=gray, swift=orange, regen=green)
             if (e.waveModifier && !isDying && e.waveModifier !== 'horde') {
                 const modColors = { armored: 'rgba(149,165,166,0.4)', swift: 'rgba(230,126,34,0.4)', regen: 'rgba(46,204,113,0.4)' };
@@ -475,6 +499,7 @@ export class Renderer {
                     frost: '0,229,255',
                     lightning: '224,64,251',
                     sniper: '255,23,68',
+                    firearrow: '255,69,0',
                 };
                 const glowRGB = maxed ? (maxedGlowColors[tower.type] || '255,215,0') : '255,215,0';
 
@@ -531,6 +556,9 @@ export class Renderer {
                     break;
                 case 'sniper':
                     this.drawSniperTurret(ctx, recoilShift, tower);
+                    break;
+                case 'firearrow':
+                    this.drawFireArrowTurret(ctx, recoilShift, tower);
                     break;
                 default:
                     ctx.fillStyle = tower.color;
@@ -654,6 +682,25 @@ export class Renderer {
                     ctx.quadraticCurveTo(cx + wave, y - 2, cx + 8, y);
                     ctx.stroke();
                 }
+            }
+        } else if (tower.type === 'firearrow') {
+            // Fire arrow: flickering ember glow
+            const flicker = 0.1 + Math.sin(gp * 3) * 0.06 + Math.sin(gp * 7) * 0.03;
+            ctx.fillStyle = `rgba(255,100,0,${flicker})`;
+            ctx.beginPath();
+            ctx.arc(cx, cy, 18, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Orbiting embers
+            ctx.fillStyle = 'rgba(255,140,0,0.5)';
+            for (let i = 0; i < 3; i++) {
+                const a = sp * 1.2 + (Math.PI * 2 * i) / 3;
+                const r = 12 + Math.sin(gp + i * 2) * 2;
+                const px = cx + Math.cos(a) * r;
+                const py = cy + Math.sin(a) * r;
+                ctx.beginPath();
+                ctx.arc(px, py, 1.5, 0, Math.PI * 2);
+                ctx.fill();
             }
         }
     }
@@ -1030,6 +1077,74 @@ export class Renderer {
         }
     }
 
+    drawFireArrowTurret(ctx, recoil, tower) {
+        // Crossbow body — dark red wooden frame
+        ctx.fillStyle = '#5a2020';
+        ctx.fillRect(-6, -5, 12, 10);
+        ctx.fillStyle = '#8b1a1a';
+        ctx.fillRect(-5, -4, 10, 8);
+
+        // Crossbow arms — fiery orange
+        ctx.strokeStyle = '#e25822';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(0, 0, 9, -1.3, -0.2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(0, 0, 9, 0.2, 1.3);
+        ctx.stroke();
+
+        // Bowstring
+        const stringTension = tower.recoilTimer > 0 ? 1 : 3;
+        ctx.strokeStyle = '#ffa040';
+        ctx.lineWidth = 0.7;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(-1.3) * 9, Math.sin(-1.3) * 9);
+        ctx.quadraticCurveTo(-stringTension, 0, Math.cos(1.3) * 9, Math.sin(1.3) * 9);
+        ctx.stroke();
+
+        // Bolt rail — ember red
+        ctx.fillStyle = '#d44';
+        ctx.fillRect(3 + recoil, -1.5, 11, 3);
+
+        // Fire tip — bright orange
+        ctx.fillStyle = '#ff6600';
+        ctx.beginPath();
+        ctx.moveTo(15 + recoil, 0);
+        ctx.lineTo(11 + recoil, -3);
+        ctx.lineTo(11 + recoil, 3);
+        ctx.closePath();
+        ctx.fill();
+        // Tip edge highlight
+        ctx.strokeStyle = '#ffaa00';
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(15 + recoil, 0);
+        ctx.lineTo(11 + recoil, -3);
+        ctx.stroke();
+
+        // Flickering flame at tip
+        const flicker = Math.sin(tower.glowPhase * 6) * 2;
+        ctx.fillStyle = `rgba(255,150,0,${0.5 + Math.sin(tower.glowPhase * 8) * 0.3})`;
+        ctx.beginPath();
+        ctx.arc(15 + recoil + flicker * 0.3, flicker * 0.4, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = `rgba(255,220,50,${0.3 + Math.sin(tower.glowPhase * 10) * 0.2})`;
+        ctx.beginPath();
+        ctx.arc(16 + recoil, 0, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Center mechanism — dark red
+        ctx.fillStyle = '#aa3030';
+        ctx.beginPath();
+        ctx.arc(0, 0, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#cc5040';
+        ctx.beginPath();
+        ctx.arc(-0.5, -0.5, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
     drawProjectiles(ctx) {
         for (const p of this.game.projectiles.projectiles) {
             if (!p.alive) continue;
@@ -1041,6 +1156,7 @@ export class Renderer {
                 const trailWidth = p.towerType === 'cannon' ? 2
                     : p.towerType === 'lightning' ? 1.5
                     : p.towerType === 'sniper' ? 0.5
+                    : p.towerType === 'firearrow' ? 1
                     : 1;
 
                 ctx.strokeStyle = color;
@@ -1055,6 +1171,15 @@ export class Renderer {
                         const jx = (Math.random() - 0.5) * 4;
                         const jy = (Math.random() - 0.5) * 4;
                         ctx.lineTo(p.trail[i].x + jx, p.trail[i].y + jy);
+                    }
+                    ctx.stroke();
+                } else if (p.towerType === 'firearrow' && p.trail.length >= 2) {
+                    // Orange-to-red gradient trail
+                    ctx.strokeStyle = '#ff4500';
+                    ctx.beginPath();
+                    ctx.moveTo(p.trail[0].x, p.trail[0].y);
+                    for (let i = 1; i < p.trail.length; i++) {
+                        ctx.lineTo(p.trail[i].x, p.trail[i].y);
                     }
                     ctx.stroke();
                 } else {
@@ -1084,6 +1209,9 @@ export class Renderer {
                     break;
                 case 'sniper':
                     this.drawSniperProjectile(ctx, p, color);
+                    break;
+                case 'firearrow':
+                    this.drawFireArrowProjectile(ctx, p, color);
                     break;
                 default:
                     ctx.fillStyle = color;
@@ -1233,6 +1361,60 @@ export class Renderer {
         ctx.fillStyle = '#fff';
         ctx.beginPath();
         ctx.arc(3, 0, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+    }
+
+    drawFireArrowProjectile(ctx, p, color) {
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.angle);
+
+        // Fire glow behind
+        ctx.fillStyle = 'rgba(255,100,0,0.2)';
+        ctx.beginPath();
+        ctx.arc(0, 0, 5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Shaft — dark red
+        ctx.strokeStyle = '#8b1a1a';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(-6, 0);
+        ctx.lineTo(2, 0);
+        ctx.stroke();
+
+        // Arrowhead — bright orange
+        ctx.fillStyle = '#ff4500';
+        ctx.beginPath();
+        ctx.moveTo(5, 0);
+        ctx.lineTo(1, -2.5);
+        ctx.lineTo(1, 2.5);
+        ctx.closePath();
+        ctx.fill();
+
+        // Fletching — orange/red
+        ctx.fillStyle = '#e25822';
+        ctx.globalAlpha = 0.7;
+        ctx.beginPath();
+        ctx.moveTo(-6, 0);
+        ctx.lineTo(-4, -2);
+        ctx.lineTo(-4, 0);
+        ctx.closePath();
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(-6, 0);
+        ctx.lineTo(-4, 2);
+        ctx.lineTo(-4, 0);
+        ctx.closePath();
+        ctx.fill();
+        ctx.globalAlpha = 1;
+
+        // Fire glow at tip
+        ctx.fillStyle = 'rgba(255,200,50,0.6)';
+        ctx.beginPath();
+        ctx.arc(4, 0, 2, 0, Math.PI * 2);
         ctx.fill();
 
         ctx.restore();

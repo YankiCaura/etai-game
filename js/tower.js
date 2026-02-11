@@ -50,6 +50,8 @@ export class Tower {
         this.chainDecay = lvl.chainDecay || 0;
         this.critChance = lvl.critChance || 0;
         this.critMulti = lvl.critMulti || 1;
+        this.burnDamage = lvl.burnDamage || 0;
+        this.burnDuration = lvl.burnDuration || 0;
     }
 
     getUpgradeCost() {
@@ -142,6 +144,8 @@ export class Tower {
             game.particles.spawnMuzzleFlash(muzzleX, muzzleY, '#ffeb3b', 3);
         } else if (this.type === 'frost') {
             game.particles.spawnFrostBurst(muzzleX, muzzleY, 4);
+        } else if (this.type === 'firearrow') {
+            game.particles.spawnMuzzleFlash(muzzleX, muzzleY, '#ff6600', 4);
         }
     }
 }

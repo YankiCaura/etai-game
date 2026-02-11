@@ -34,6 +34,10 @@ export class Enemy {
         this.slowTimer = 0;
         this.slowFactor = 1;
 
+        // Burn effect (DoT)
+        this.burnTimer = 0;
+        this.burnDPS = 0;
+
         // Regen (from wave modifier)
         this.regenRate = 0; // HP per second
 
@@ -65,6 +69,14 @@ export class Enemy {
         if (factor < this.slowFactor || duration > this.slowTimer) {
             this.slowFactor = factor;
             this.slowTimer = duration;
+        }
+    }
+
+    applyBurn(dps, duration) {
+        // Take the stronger burn
+        if (dps > this.burnDPS || duration > this.burnTimer) {
+            this.burnDPS = dps;
+            this.burnTimer = duration;
         }
     }
 
@@ -110,6 +122,21 @@ export class Enemy {
             if (this.slowTimer <= 0) {
                 this.slowFactor = 1;
                 this.slowTimer = 0;
+            }
+        }
+
+        // Burn DoT (bypasses armor)
+        if (this.burnTimer > 0) {
+            this.hp -= this.burnDPS * dt;
+            this.damageFlashTimer = 0.05;
+            this.burnTimer -= dt;
+            if (this.burnTimer <= 0) {
+                this.burnDPS = 0;
+                this.burnTimer = 0;
+            }
+            if (this.hp <= 0) {
+                this.hp = 0;
+                this.alive = false;
             }
         }
 

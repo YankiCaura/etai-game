@@ -87,7 +87,7 @@ export const MAP_DEFS = {
     splitcreek: {
         name: 'Split Creek',
         themeColor: '#d4a026',
-        worldHpMultiplier: 0.80,
+        worldHpMultiplier: 0.60,
         environment: 'desert',
         description: 'The path forks midway — enemies randomly pick a branch.',
         layouts: [
@@ -208,7 +208,7 @@ export const MAP_DEFS = {
 };
 
 // ── Economy ────────────────────────────────────────────────
-export const STARTING_GOLD = 200;
+export const STARTING_GOLD = 300;
 export const STARTING_LIVES = 20;
 export const SELL_REFUND = 0.6;       // 60% back
 export const INTEREST_RATE = 0.02;    // 2% between waves
@@ -225,6 +225,18 @@ export const TOWER_TYPES = {
             { damage: 12, range: 3.5, fireRate: 0.4, projSpeed: 300 },
             { damage: 18, range: 4.0, fireRate: 0.33, projSpeed: 340, upgradeCost: 35 },
             { damage: 28, range: 4.5, fireRate: 0.25, projSpeed: 380, upgradeCost: 70 },
+        ],
+    },
+    firearrow: {
+        name: 'Fire Arrow',
+        cost: 300,
+        color: '#c0392b',
+        burn: true,
+        unlockLevel: 2,
+        levels: [
+            { damage: 22, range: 3.5, fireRate: 0.30, projSpeed: 320, burnDamage: 3, burnDuration: 3.0 },
+            { damage: 34, range: 4.0, fireRate: 0.25, projSpeed: 360, burnDamage: 5, burnDuration: 3.5, upgradeCost: 120 },
+            { damage: 50, range: 4.5, fireRate: 0.20, projSpeed: 400, burnDamage: 8, burnDuration: 4.0, upgradeCost: 200 },
         ],
     },
     frost: {
@@ -299,13 +311,13 @@ export const ENEMY_TYPES = {
     },
     tank: {
         name: 'Tank',
-        baseHP: 120,
+        baseHP: 108,
         speed: 40,     // (+15%)
-        reward: 16,
+        reward: 17,
         livesCost: 2,
         color: '#2c3e50',
         radius: 12,
-        armor: 0.30,
+        armor: 0.27,
     },
     healer: {
         name: 'Healer',

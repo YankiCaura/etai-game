@@ -249,6 +249,7 @@ export class UI {
             case 'frost': this.game.renderer.drawFrostTurret(ctx, 0, fake); break;
             case 'lightning': this.game.renderer.drawLightningTurret(ctx, 0, fake); break;
             case 'sniper': this.game.renderer.drawSniperTurret(ctx, 0, fake); break;
+            case 'firearrow': this.game.renderer.drawFireArrowTurret(ctx, 0, fake); break;
         }
 
         ctx.restore();
@@ -266,12 +267,17 @@ export class UI {
             lightning: `Chains to ${stats.chainCount} enemies`,
             cannon: `Splash radius ${stats.splashRadius}`,
             sniper: `${stats.critChance * 100}% crit for ${stats.critMulti}x dmg`,
+            firearrow: `Burns for ${stats.burnDamage} dmg/s (${stats.burnDuration}s)`,
         };
 
         let lockHTML = '';
         if (def.unlockWave) {
             const locked = this.game.waves.currentWave < def.unlockWave;
             if (locked) lockHTML = `<div class="tt-lock">Unlocks at wave ${def.unlockWave}</div>`;
+        }
+        if (def.unlockLevel) {
+            const levelLocked = this.game.worldLevel < def.unlockLevel;
+            if (levelLocked) lockHTML = `<div class="tt-lock">Requires Level ${def.unlockLevel}</div>`;
         }
 
         this.tooltip.innerHTML = `
@@ -434,7 +440,9 @@ export class UI {
         towerBtns.forEach(btn => {
             const type = btn.dataset.type;
             const def = TOWER_TYPES[type];
-            const locked = def.unlockWave > 0 && waves.currentWave < def.unlockWave;
+            const waveLocked = def.unlockWave > 0 && waves.currentWave < def.unlockWave;
+            const levelLocked = def.unlockLevel > 0 && game.worldLevel < def.unlockLevel;
+            const locked = waveLocked || levelLocked;
             const canAfford = eco.gold >= def.cost;
             btn.classList.toggle('disabled', locked || !canAfford);
             btn.classList.toggle('locked', locked);
@@ -442,7 +450,7 @@ export class UI {
             // Show/hide lock label
             const costEl = btn.querySelector('.tower-cost');
             if (costEl) {
-                costEl.textContent = locked ? `Wave ${def.unlockWave}` : `$${def.cost}`;
+                costEl.textContent = levelLocked ? `Level ${def.unlockLevel}` : waveLocked ? `Wave ${def.unlockWave}` : `$${def.cost}`;
             }
         });
     }
