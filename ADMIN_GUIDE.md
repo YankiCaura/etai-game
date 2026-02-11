@@ -114,7 +114,7 @@ Final HP = baseHP × getWaveHPScale(wave) × worldHpMultiplier × LEVEL_HP_MULTI
 |-------|-------|------------------|
 | **Wave** | `getWaveHPScale(wave)` + `WAVES[]` | Per-wave HP curve and enemy composition (global, same for all worlds) |
 | **World** | `worldHpMultiplier` on each `MAP_DEFS` entry | Per-world HP scaling (lower = easier world) |
-| **Level** | `LEVEL_HP_MULTIPLIER` (currently 1.4) | Per-level HP scaling (exponential, same for all worlds) |
+| **Level** | `LEVEL_HP_MULTIPLIER` (currently 1.1) | Per-level HP scaling (exponential, same for all worlds) |
 
 ---
 
@@ -212,21 +212,22 @@ This exponential curve determines how much base HP is multiplied per wave number
 ## 3. Tuning Levels
 
 ```js
-export const LEVEL_HP_MULTIPLIER = 1.4;
+export const LEVEL_HP_MULTIPLIER = 1.1;
 ```
 
 Each level multiplies enemy HP by this factor:
 - Level 1: x1.0
-- Level 2: x1.4
-- Level 3: x1.96
-- Level 4: x2.74
+- Level 2: x1.1
+- Level 3: x1.21
+- Level 4: x1.33
+- Level 5: x1.46
 
 On level-up, the player gets:
 - Lives reset to `STARTING_LIVES`
 - Gold bonus: `25 + worldLevel x 15`
 - A new map layout (cycles through 3 variants)
 
-To make level progression gentler, reduce `LEVEL_HP_MULTIPLIER` (e.g. 1.3). To make it steeper, increase it (e.g. 1.5).
+To make level progression steeper, increase `LEVEL_HP_MULTIPLIER` (e.g. 1.2). To make it gentler, reduce it (e.g. 1.05).
 
 ---
 

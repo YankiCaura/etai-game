@@ -12,7 +12,7 @@ Each world offers a different strategic challenge. Enemy HP is adjusted per worl
 | **Split Creek** | Split path | Path forks into two branches midway. Enemies randomly take upper or lower route, forcing you to defend both sides. |
 | **The Gauntlet** | Short path | Direct path with only 3 turns. Fewer tower slots — every placement counts. Concentrated killzones are essential. |
 
-Each world has its own infinite level progression. Beat 20 waves to level up. Enemies get 1.4x HP per level.
+Each world has its own infinite level progression. Beat 20 waves to level up. Enemies get 1.1x HP per level.
 
 ## Towers
 
