@@ -160,6 +160,12 @@ export class InputHandler {
                     }
                 }
                 break;
+            case 'd':
+            case 'D':
+                if (this.game.adminMode) {
+                    this.game.debug.downloadCSV();
+                }
+                break;
             case 'k':
             case 'K':
                 if (this.game.adminMode && this.game.state === STATE.PLAYING) {
@@ -185,11 +191,12 @@ export class InputHandler {
             case 'r':
             case 'R':
                 if (this.game.adminMode && this.game.selectedMapId) {
-                    if (confirm(`Clear record for ${this.game.selectedMapId}?`)) {
+                    if (confirm(`Clear record & reset level for ${this.game.selectedMapId}?`)) {
                         Economy.clearMapRecord(this.game.selectedMapId);
+                        Economy.clearWorldLevel(this.game.selectedMapId);
                         this.game.economy.record = 0;
                         this.game.economy.score = 0;
-                        this.game.ui.update();
+                        this.game.adminSetLevel(1);
                     }
                 }
                 break;

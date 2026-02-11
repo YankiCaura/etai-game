@@ -67,6 +67,10 @@ export class Economy {
         localStorage.removeItem(`${RECORD_PREFIX}_${mapId}`);
     }
 
+    static clearWorldLevel(mapId) {
+        localStorage.removeItem(`td_world_level_${mapId}`);
+    }
+
     static getWorldLevel(mapId) {
         return parseInt(localStorage.getItem(`td_world_level_${mapId}`)) || 0;
     }

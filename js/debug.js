@@ -167,4 +167,28 @@ export class WaveDebugger {
         return this.log.length > 0 ? this.log[this.log.length - 1] : null;
     }
 
+    downloadCSV() {
+        if (this.log.length === 0) return;
+        const cols = [
+            'timestamp','world','level','wave',
+            'worldHpMul','levelHpMul','waveHpScale','finalHpMul',
+            'duration','spawned','killed','leaked','livesLost',
+            'totalHP','dmgDealt','overkill','killRate',
+            'dpsActual','dpsTheory','efficiency',
+            'towers','goldStart','goldEnd','goldSpent','goldEarned',
+            'difficulty',
+        ];
+        const fmt = (v) => v == null ? '' : typeof v === 'number' ? +v.toFixed(2) : v;
+        const rows = this.log.map(r => cols.map(c => fmt(r[c])).join(','));
+        const csv = cols.join(',') + '\n' + rows.join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'wave_debug_log.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
 }

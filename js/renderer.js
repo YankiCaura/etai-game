@@ -1533,7 +1533,8 @@ export class Renderer {
   <div class="ap-row"><span class="ap-key">W</span><span style="color:#e67e22">Set Wave</span></div>
   <div class="ap-row"><span class="ap-key">L</span><span style="color:#e67e22">Set Level</span></div>
   <div class="ap-row"><span class="ap-key">C</span><span style="color:#888">Clear Log</span></div>
-  <div class="ap-row"><span class="ap-key">R</span><span style="color:#888">Clear Record</span></div>
+  <div class="ap-row"><span class="ap-key">R</span><span style="color:#888">Reset Progress</span></div>
+  <div class="ap-row"><span class="ap-key">D</span><span style="color:#888">Download CSV</span></div>
 </div>
 <div class="ap-section">
   <div class="ap-header" style="color:#9b59b6">Difficulty</div>
