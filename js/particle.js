@@ -207,6 +207,19 @@ export class ParticleSystem {
         }
     }
 
+    spawnAuraPulse(x, y, radius, color) {
+        this.acquire({
+            x,
+            y,
+            vx: 0,
+            vy: 0,
+            life: 0.4,
+            color,
+            size: radius,
+            type: 'ring',
+        });
+    }
+
     spawnShatter(x, y, color, count) {
         for (let i = 0; i < count; i++) {
             const ang = (Math.PI * 2 * i) / count + randRange(-0.3, 0.3);
@@ -308,6 +321,14 @@ export class ParticleSystem {
                 }
                 ctx.fill();
                 ctx.restore();
+            } else if (p.type === 'ring') {
+                const progress = 1 - (p.life / p.maxLife);
+                const radius = p.size * progress;
+                ctx.strokeStyle = p.color;
+                ctx.lineWidth = 2 * p.alpha;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+                ctx.stroke();
             } else {
                 ctx.fillStyle = p.color;
                 ctx.beginPath();

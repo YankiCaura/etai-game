@@ -108,6 +108,12 @@ export class Audio {
                 this.playTone('sawtooth', 400, 150, 0.15, 0.12);
                 this.playTone('triangle', 600, 200, 0.1, 0.08);
                 break;
+            case 'deepfrost':
+                // Deep resonant pulse — low sine sweep + noise burst
+                this.playTone('sine', 120, 60, 0.25, 0.15);
+                this.playTone('sine', 200, 100, 0.15, 0.08);
+                this.playNoise(0.1, 0.04);
+                break;
         }
     }
 

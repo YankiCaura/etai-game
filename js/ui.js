@@ -212,14 +212,23 @@ export class UI {
         const panel = this.elTowerPanel;
         panel.innerHTML = '';
 
-        // Pre-render tower previews and create tooltip
-        this.towerPreviews = {};
-        this.tooltip = document.createElement('div');
-        this.tooltip.id = 'tower-tooltip';
-        document.body.appendChild(this.tooltip);
+        // Pre-render tower previews and create tooltip (only once)
+        if (!this.towerPreviews) {
+            this.towerPreviews = {};
+            this.tooltip = document.createElement('div');
+            this.tooltip.id = 'tower-tooltip';
+            document.body.appendChild(this.tooltip);
+        }
+
+        const worldLevel = this.game.worldLevel || 0;
 
         for (const [key, def] of Object.entries(TOWER_TYPES)) {
-            this.towerPreviews[key] = this.renderTowerPreview(key);
+            // Hide towers that are outclassed at this level
+            if (def.maxLevel && worldLevel > def.maxLevel) continue;
+
+            if (!this.towerPreviews[key]) {
+                this.towerPreviews[key] = this.renderTowerPreview(key);
+            }
 
             const btn = document.createElement('button');
             btn.className = 'tower-btn';
@@ -273,6 +282,7 @@ export class UI {
             case 'lightning': this.game.renderer.drawLightningTurret(ctx, 0, fake); break;
             case 'sniper': this.game.renderer.drawSniperTurret(ctx, 0, fake); break;
             case 'firearrow': this.game.renderer.drawFireArrowTurret(ctx, 0, fake); break;
+            case 'deepfrost': this.game.renderer.drawDeepFrostTurret(ctx, 0, fake); break;
         }
 
         ctx.restore();
@@ -281,12 +291,18 @@ export class UI {
 
     showTowerTooltip(btn, key, def) {
         const stats = def.levels[0];
-        const hotkey = Object.keys(TOWER_TYPES).indexOf(key) + 1;
+        // Hotkey matches visible buttons order (skipping hidden towers)
+        const worldLevel = this.game.worldLevel || 0;
+        const visibleKeys = Object.entries(TOWER_TYPES)
+            .filter(([, d]) => !(d.maxLevel && worldLevel > d.maxLevel))
+            .map(([k]) => k);
+        const hotkey = visibleKeys.indexOf(key) + 1;
         const rate = (1 / stats.fireRate).toFixed(1);
 
         const specials = {
             arrow: 'Fast, cheap, reliable',
             frost: `Slows ${stats.slowFactor * 100}% for ${stats.slowDuration}s`,
+            deepfrost: `AoE pulse: slows + ${(stats.freezeChance * 100).toFixed(0)}% freeze`,
             lightning: `Chains to ${stats.chainCount} enemies`,
             cannon: `Splash radius ${stats.splashRadius}`,
             sniper: `${stats.critChance * 100}% crit for ${stats.critMulti}x dmg`,

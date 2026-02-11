@@ -2,7 +2,17 @@ import { CELL, COLS, ROWS, STATE, TOWER_TYPES } from './constants.js';
 import { Economy } from './economy.js';
 import { worldToGrid } from './utils.js';
 
-const TOWER_KEYS = { '1': 'arrow', '2': 'firearrow', '3': 'frost', '4': 'lightning', '5': 'cannon', '6': 'sniper' };
+function buildTowerKeys(game) {
+    const worldLevel = game.worldLevel || 0;
+    const keys = {};
+    let idx = 1;
+    for (const [type, def] of Object.entries(TOWER_TYPES)) {
+        if (def.maxLevel && worldLevel > def.maxLevel) continue;
+        keys[String(idx)] = type;
+        idx++;
+    }
+    return keys;
+}
 
 export class InputHandler {
     constructor(canvas, game) {
@@ -89,9 +99,10 @@ export class InputHandler {
     onKeyDown(e) {
         const key = e.key;
 
-        // Tower shortcuts
-        if (TOWER_KEYS[key]) {
-            this.selectTowerType(TOWER_KEYS[key]);
+        // Tower shortcuts (dynamic based on visible towers)
+        const towerKeys = buildTowerKeys(this.game);
+        if (towerKeys[key]) {
+            this.selectTowerType(towerKeys[key]);
             return;
         }
 

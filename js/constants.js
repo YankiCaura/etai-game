@@ -223,6 +223,7 @@ export const TOWER_TYPES = {
         name: 'Arrow',
         cost: 50,
         color: '#4a7c3f',
+        maxLevel: 1,
         levels: [
             { damage: 12, range: 3.5, fireRate: 0.4, projSpeed: 300 },
             { damage: 18, range: 4.0, fireRate: 0.33, projSpeed: 340, upgradeCost: 35 },
@@ -236,9 +237,9 @@ export const TOWER_TYPES = {
         burn: true,
         unlockLevel: 2,
         levels: [
-            { damage: 20, range: 3.5, fireRate: 0.30, projSpeed: 320, burnDamage: 3, burnDuration: 3.0 },
-            { damage: 31, range: 4.0, fireRate: 0.25, projSpeed: 360, burnDamage: 5, burnDuration: 3.5, upgradeCost: 120 },
-            { damage: 45, range: 4.5, fireRate: 0.20, projSpeed: 400, burnDamage: 8, burnDuration: 4.0, upgradeCost: 200 },
+            { damage: 21, range: 3.5, fireRate: 0.30, projSpeed: 320, burnDamage: 3, burnDuration: 3.0 },
+            { damage: 33, range: 4.0, fireRate: 0.25, projSpeed: 360, burnDamage: 5, burnDuration: 3.5, upgradeCost: 120 },
+            { damage: 47, range: 4.5, fireRate: 0.20, projSpeed: 400, burnDamage: 8, burnDuration: 4.0, upgradeCost: 200 },
         ],
     },
     frost: {
@@ -246,10 +247,23 @@ export const TOWER_TYPES = {
         cost: 75,
         color: '#5b9bd5',
         slow: true,
+        maxLevel: 1,
         levels: [
             { damage: 5, range: 3.0, fireRate: 0.8, projSpeed: 250, slowFactor: 0.5, slowDuration: 2.0 },
             { damage: 8, range: 3.5, fireRate: 0.7, projSpeed: 270, slowFactor: 0.4, slowDuration: 2.5, upgradeCost: 55 },
             { damage: 12, range: 4.0, fireRate: 0.6, projSpeed: 290, slowFactor: 0.3, slowDuration: 3.0, upgradeCost: 100 },
+        ],
+    },
+    deepfrost: {
+        name: 'Deep Frost',
+        cost: 150,
+        color: '#1a6b8a',
+        aura: true,
+        unlockLevel: 2,
+        levels: [
+            { damage: 4, range: 3.0, fireRate: 1.2, slowFactor: 0.6, slowDuration: 1.5, freezeChance: 0.05, freezeDuration: 0.8 },
+            { damage: 7, range: 3.5, fireRate: 0.85, slowFactor: 0.5, slowDuration: 2.0, freezeChance: 0.08, freezeDuration: 1.0, upgradeCost: 100 },
+            { damage: 11, range: 4.0, fireRate: 0.7, slowFactor: 0.4, slowDuration: 2.5, freezeChance: 0.12, freezeDuration: 1.2, upgradeCost: 175 },
         ],
     },
     lightning: {

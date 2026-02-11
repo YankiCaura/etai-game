@@ -165,6 +165,7 @@ export class Projectile {
             arrow: '#8bc34a',
             cannon: '#ff9800',
             frost: '#03a9f4',
+            deepfrost: '#00ffff',
             lightning: '#ba68c8',
             sniper: '#ef5350',
             firearrow: '#ff4500',

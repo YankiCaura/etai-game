@@ -38,6 +38,10 @@ export class Enemy {
         this.burnTimer = 0;
         this.burnDPS = 0;
 
+        // Freeze effect
+        this.freezeTimer = 0;
+        this.isFrozen = false;
+
         // Regen (from wave modifier)
         this.regenRate = 0; // HP per second
 
@@ -70,6 +74,11 @@ export class Enemy {
             this.slowFactor = factor;
             this.slowTimer = duration;
         }
+    }
+
+    applyFreeze(duration) {
+        this.freezeTimer = Math.max(this.freezeTimer, duration);
+        this.isFrozen = true;
     }
 
     applyBurn(dps, duration) {
@@ -125,6 +134,15 @@ export class Enemy {
             }
         }
 
+        // Update freeze
+        if (this.freezeTimer > 0) {
+            this.freezeTimer -= dt;
+            if (this.freezeTimer <= 0) {
+                this.freezeTimer = 0;
+                this.isFrozen = false;
+            }
+        }
+
         // Burn DoT (bypasses armor)
         if (this.burnTimer > 0) {
             this.hp -= this.burnDPS * dt;
@@ -145,7 +163,7 @@ export class Enemy {
             this.hp = Math.min(this.maxHP, this.hp + this.regenRate * dt);
         }
 
-        const currentSpeed = this.baseSpeed * this.slowFactor;
+        const currentSpeed = this.isFrozen ? 0 : this.baseSpeed * this.slowFactor;
 
         // Move toward next waypoint
         if (this.waypointIndex >= this.path.length - 1) {

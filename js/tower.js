@@ -52,6 +52,9 @@ export class Tower {
         this.critMulti = lvl.critMulti || 1;
         this.burnDamage = lvl.burnDamage || 0;
         this.burnDuration = lvl.burnDuration || 0;
+        this.freezeChance = lvl.freezeChance || 0;
+        this.freezeDuration = lvl.freezeDuration || 0;
+        this.aura = TOWER_TYPES[this.type].aura || false;
     }
 
     getUpgradeCost() {
@@ -120,7 +123,19 @@ export class Tower {
         }
         this.target = target;
 
-        if (target) {
+        if (this.aura) {
+            // Aura towers pulse all enemies in range
+            if (target) {
+                this.turretAngle = angle(this, target);
+            }
+            if (this.cooldown <= 0) {
+                const inRange = game.enemies.getEnemiesInRange(this.x, this.y, this.range);
+                if (inRange.length > 0) {
+                    this.cooldown = this.fireRate;
+                    this.pulseAura(game, inRange);
+                }
+            }
+        } else if (target) {
             this.turretAngle = angle(this, target);
 
             if (this.cooldown <= 0) {
@@ -135,7 +150,7 @@ export class Tower {
         game.projectiles.spawn(this, target);
         game.audio.playShoot(this.type);
 
-        // Muzzle flash particles
+        // Muzzle flash particles (non-aura towers)
         const muzzleX = this.x + Math.cos(this.turretAngle) * 14;
         const muzzleY = this.y + Math.sin(this.turretAngle) * 14;
         if (this.type === 'cannon') {
@@ -146,6 +161,32 @@ export class Tower {
             game.particles.spawnFrostBurst(muzzleX, muzzleY, 4);
         } else if (this.type === 'firearrow') {
             game.particles.spawnMuzzleFlash(muzzleX, muzzleY, '#ff6600', 4);
+        }
+    }
+
+    pulseAura(game, enemies) {
+        this.recoilTimer = 0.12;
+        game.audio.playShoot(this.type);
+
+        // Pulse ring visual
+        const rangePx = this.range * CELL;
+        game.particles.spawnAuraPulse(this.x, this.y, rangePx, '#00ddff');
+
+        for (const e of enemies) {
+            if (!e.alive) continue;
+            const dealt = e.takeDamage(this.damage);
+            game.debug.onDamageDealt(dealt);
+
+            // Apply slow
+            if (this.slowFactor > 0) {
+                e.applySlow(this.slowFactor, this.slowDuration);
+            }
+
+            // Roll freeze chance
+            if (this.freezeChance > 0 && Math.random() < this.freezeChance) {
+                e.applyFreeze(this.freezeDuration);
+                game.particles.spawnSpark(e.x, e.y, '#00ffff', 4);
+            }
         }
     }
 }

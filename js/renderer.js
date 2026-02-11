@@ -33,6 +33,7 @@ export class Renderer {
             arrow: '#4a7c3f',
             cannon: '#8b5e3c',
             frost: '#5b9bd5',
+            deepfrost: '#1a6b8a',
             lightning: '#9b59b6',
             sniper: '#c0392b',
             firearrow: '#8b1a1a',
@@ -41,6 +42,7 @@ export class Renderer {
             arrow: '#7fff00',
             cannon: '#ff8c00',
             frost: '#00e5ff',
+            deepfrost: '#00dcff',
             lightning: '#e040fb',
             sniper: '#ff1744',
             firearrow: '#ff4500',
@@ -409,6 +411,32 @@ export class Renderer {
                 ctx.stroke();
             }
 
+            // Freeze effect indicator
+            if (e.isFrozen && !isDying) {
+                // Cyan tinted overlay
+                ctx.fillStyle = 'rgba(0, 255, 255, 0.25)';
+                this.drawEnemyShape(ctx, e, drawX, drawY, r);
+                ctx.fill();
+
+                // Cyan ring
+                ctx.strokeStyle = 'rgba(0, 255, 255, 0.7)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(drawX, drawY, r + 3, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Ice diamond indicator above
+                ctx.fillStyle = '#00ffff';
+                const iy = drawY - r - 12;
+                ctx.beginPath();
+                ctx.moveTo(drawX, iy - 4);
+                ctx.lineTo(drawX + 3, iy);
+                ctx.lineTo(drawX, iy + 4);
+                ctx.lineTo(drawX - 3, iy);
+                ctx.closePath();
+                ctx.fill();
+            }
+
             // Burn effect indicator
             if (e.burnTimer > 0 && !isDying) {
                 // Orange glow ring
@@ -497,6 +525,7 @@ export class Renderer {
                     arrow: '127,255,0',
                     cannon: '255,140,0',
                     frost: '0,229,255',
+                    deepfrost: '0,220,255',
                     lightning: '224,64,251',
                     sniper: '255,23,68',
                     firearrow: '255,69,0',
@@ -559,6 +588,9 @@ export class Renderer {
                     break;
                 case 'firearrow':
                     this.drawFireArrowTurret(ctx, recoilShift, tower);
+                    break;
+                case 'deepfrost':
+                    this.drawDeepFrostTurret(ctx, recoilShift, tower);
                     break;
                 default:
                     ctx.fillStyle = tower.color;
@@ -682,6 +714,34 @@ export class Renderer {
                     ctx.quadraticCurveTo(cx + wave, y - 2, cx + 8, y);
                     ctx.stroke();
                 }
+            }
+        } else if (tower.type === 'deepfrost') {
+            // Deep frost: pulsing deep blue aura with orbiting ice shards
+            const pulse = 0.1 + Math.sin(gp * 1.2) * 0.06;
+            ctx.fillStyle = `rgba(26,107,138,${pulse})`;
+            ctx.beginPath();
+            ctx.arc(cx, cy, 22, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Orbiting ice crystals — more and larger than frost
+            ctx.fillStyle = 'rgba(0,220,255,0.5)';
+            for (let i = 0; i < 4; i++) {
+                const a = sp * 0.6 + (Math.PI * 2 * i) / 4;
+                const r = 16 + Math.sin(gp + i * 1.5) * 2;
+                const px = cx + Math.cos(a) * r;
+                const py = cy + Math.sin(a) * r;
+                ctx.save();
+                ctx.translate(px, py);
+                ctx.rotate(sp * 2.5 + i);
+                // Diamond shard
+                ctx.beginPath();
+                ctx.moveTo(0, -2.5);
+                ctx.lineTo(1.5, 0);
+                ctx.lineTo(0, 2.5);
+                ctx.lineTo(-1.5, 0);
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
             }
         } else if (tower.type === 'firearrow') {
             // Fire arrow: flickering ember glow
@@ -1143,6 +1203,89 @@ export class Renderer {
         ctx.beginPath();
         ctx.arc(-0.5, -0.5, 1.5, 0, Math.PI * 2);
         ctx.fill();
+    }
+
+    drawDeepFrostTurret(ctx, recoil, tower) {
+        const sp = tower.spinPhase;
+
+        // Rotating outer ice ring (world-space)
+        ctx.save();
+        ctx.rotate(-tower.turretAngle);
+        ctx.strokeStyle = 'rgba(0,220,255,0.35)';
+        ctx.lineWidth = 1.2;
+        for (let i = 0; i < 6; i++) {
+            const a = sp * 0.4 + (Math.PI * 2 * i) / 6;
+            const r1 = 10;
+            const r2 = 14;
+            ctx.beginPath();
+            ctx.moveTo(Math.cos(a) * r1, Math.sin(a) * r1);
+            ctx.lineTo(Math.cos(a) * r2, Math.sin(a) * r2);
+            ctx.stroke();
+        }
+        ctx.restore();
+
+        // Hexagonal body
+        ctx.fillStyle = '#145a70';
+        ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+            const a = (Math.PI * 2 * i) / 6 - Math.PI / 6;
+            const px = Math.cos(a) * 8;
+            const py = Math.sin(a) * 8;
+            if (i === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.fill();
+
+        // Bright facet (upper-right)
+        ctx.fillStyle = '#1a8aaa';
+        ctx.beginPath();
+        const a0 = -Math.PI / 6;
+        const a1 = a0 + Math.PI / 3;
+        ctx.moveTo(0, 0);
+        ctx.lineTo(Math.cos(a0) * 8, Math.sin(a0) * 8);
+        ctx.lineTo(Math.cos(a1) * 8, Math.sin(a1) * 8);
+        ctx.closePath();
+        ctx.fill();
+
+        // Inner crystal core
+        ctx.fillStyle = '#40c4e0';
+        ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+            const a = (Math.PI * 2 * i) / 6 - Math.PI / 6;
+            const px = Math.cos(a) * 4;
+            const py = Math.sin(a) * 4;
+            if (i === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.fill();
+
+        // Pulsing core glow
+        const corePulse = 0.5 + Math.sin(tower.glowPhase * 2.5) * 0.3;
+        ctx.fillStyle = `rgba(0,255,255,${corePulse})`;
+        ctx.beginPath();
+        ctx.arc(0, 0, 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Rotating ice shard spikes (3 spikes)
+        ctx.save();
+        ctx.rotate(-tower.turretAngle); // world-space
+        ctx.fillStyle = '#00ccee';
+        for (let i = 0; i < 3; i++) {
+            const a = sp * 0.7 + (Math.PI * 2 * i) / 3;
+            ctx.save();
+            ctx.rotate(a);
+            ctx.beginPath();
+            ctx.moveTo(6, 0);
+            ctx.lineTo(11, -1.5);
+            ctx.lineTo(13, 0);
+            ctx.lineTo(11, 1.5);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
+        ctx.restore();
     }
 
     drawProjectiles(ctx) {

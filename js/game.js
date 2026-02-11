@@ -65,6 +65,7 @@ export class Game {
         this.map = new GameMap(this.selectedMapId, (this.worldLevel - 1) % 3);
         this.renderer.drawTerrain();
         this.state = STATE.PLAYING;
+        this.ui.setupTowerPanel();
         this.ui.hideAllScreens();
         this.waves.startNextWave();
         this.ui.update();
@@ -115,6 +116,7 @@ export class Game {
         this.map = new GameMap(this.selectedMapId, (this.worldLevel - 1) % 3);
         this.renderer.drawTerrain();
         this.state = STATE.PLAYING;
+        this.ui.setupTowerPanel();
         this.ui.hideAllScreens();
         this.waves.startNextWave();
         this.ui.update();
@@ -139,6 +141,7 @@ export class Game {
         this.waves.reset();
         this.input.reset();
         this.renderer.drawTerrain();
+        this.ui.setupTowerPanel();
         this.ui.showScreen('menu');
         this.ui.update();
     }
@@ -211,6 +214,7 @@ export class Game {
         this.map = new GameMap(this.selectedMapId, (this.worldLevel - 1) % 3);
         this.renderer.drawTerrain();
         this.state = STATE.PLAYING;
+        this.ui.setupTowerPanel();
         this.waves.startNextWave();
         this.ui.update();
     }
