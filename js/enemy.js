@@ -42,6 +42,16 @@ export class Enemy {
         this.freezeTimer = 0;
         this.isFrozen = false;
 
+        // Shock effect (micro-stun)
+        this.shockTimer = 0;
+        this.isShocked = false;
+
+        // Armor shred (stacking debuff)
+        this.baseArmor = def.armor;
+        this.armorShredStacks = 0;
+        this.armorShredAmount = 0;
+        this.armorShredTimer = 0;
+
         // Regen (from wave modifier)
         this.regenRate = 0; // HP per second
 
@@ -81,6 +91,18 @@ export class Enemy {
         this.isFrozen = true;
     }
 
+    applyShock(duration) {
+        this.shockTimer = Math.max(this.shockTimer, duration);
+        this.isShocked = true;
+    }
+
+    applyArmorShred(amount, duration) {
+        this.armorShredAmount = amount;
+        this.armorShredStacks = Math.min(3, this.armorShredStacks + 1);
+        this.armorShredTimer = duration;
+        this.armor = Math.max(0, this.baseArmor - this.armorShredAmount * this.armorShredStacks);
+    }
+
     applyBurn(dps, duration) {
         // Take the stronger burn
         if (dps > this.burnDPS || duration > this.burnTimer) {
@@ -100,6 +122,7 @@ export class Enemy {
         if (!mod) return;
         if (mod.armorBonus) {
             this.armor = Math.min(0.75, this.armor + mod.armorBonus);
+            this.baseArmor = this.armor;
         }
         if (mod.speedMulti) {
             this.speed *= mod.speedMulti;
@@ -143,6 +166,25 @@ export class Enemy {
             }
         }
 
+        // Update shock
+        if (this.shockTimer > 0) {
+            this.shockTimer -= dt;
+            if (this.shockTimer <= 0) {
+                this.shockTimer = 0;
+                this.isShocked = false;
+            }
+        }
+
+        // Update armor shred
+        if (this.armorShredTimer > 0) {
+            this.armorShredTimer -= dt;
+            if (this.armorShredTimer <= 0) {
+                this.armorShredTimer = 0;
+                this.armorShredStacks = 0;
+                this.armor = this.baseArmor;
+            }
+        }
+
         // Burn DoT (bypasses armor)
         if (this.burnTimer > 0) {
             this.hp -= this.burnDPS * dt;
@@ -163,7 +205,7 @@ export class Enemy {
             this.hp = Math.min(this.maxHP, this.hp + this.regenRate * dt);
         }
 
-        const currentSpeed = this.isFrozen ? 0 : this.baseSpeed * this.slowFactor;
+        const currentSpeed = (this.isFrozen || this.isShocked) ? 0 : this.baseSpeed * this.slowFactor;
 
         // Move toward next waypoint
         if (this.waypointIndex >= this.path.length - 1) {

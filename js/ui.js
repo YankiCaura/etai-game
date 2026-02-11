@@ -251,28 +251,32 @@ export class UI {
     }
 
     renderTowerPreview(key) {
-        const size = 80;
+        const previewSize = 80;
         const canvas = document.createElement('canvas');
-        canvas.width = size;
-        canvas.height = size;
+        canvas.width = previewSize;
+        canvas.height = previewSize;
         const ctx = canvas.getContext('2d');
 
         ctx.fillStyle = '#0d1b2a';
-        ctx.fillRect(0, 0, size, size);
+        ctx.fillRect(0, 0, previewSize, previewSize);
 
-        const s = size / CELL;
+        const def = TOWER_TYPES[key];
+        const towerSize = def.size || 1;
+        const s = previewSize / (towerSize * CELL);
         ctx.save();
         ctx.scale(s, s);
 
         const fake = {
             type: key, level: 0, gx: 0, gy: 0,
+            size: towerSize,
             recoilTimer: 0, spinPhase: 0,
             turretAngle: Math.PI / 6, glowPhase: 0,
             idleTime: 0, target: null,
+            activeBarrel: 0, shotCount: 0, heavyEvery: 4,
         };
 
         this.game.renderer.drawTowerBase(ctx, fake);
-        ctx.translate(CELL / 2, CELL / 2);
+        ctx.translate(towerSize * CELL / 2, towerSize * CELL / 2);
         ctx.rotate(Math.PI / 6);
 
         switch (key) {
@@ -283,6 +287,9 @@ export class UI {
             case 'sniper': this.game.renderer.drawSniperTurret(ctx, 0, fake); break;
             case 'firearrow': this.game.renderer.drawFireArrowTurret(ctx, 0, fake); break;
             case 'deepfrost': this.game.renderer.drawDeepFrostTurret(ctx, 0, fake); break;
+            case 'superlightning': this.game.renderer.drawSuperLightningTurret(ctx, 0, fake); break;
+            case 'bicannon': this.game.renderer.drawBiCannonTurret(ctx, 0, fake); break;
+            case 'missilesniper': this.game.renderer.drawMissileSniperTurret(ctx, 0, fake); break;
         }
 
         ctx.restore();
@@ -304,9 +311,12 @@ export class UI {
             frost: `Slows ${stats.slowFactor * 100}% for ${stats.slowDuration}s`,
             deepfrost: `AoE pulse: slows + ${(stats.freezeChance * 100).toFixed(0)}% freeze`,
             lightning: `Chains to ${stats.chainCount} enemies`,
+            superlightning: `Fork chain ${stats.forkCount} targets, ${(stats.shockChance * 100).toFixed(0)}% shock`,
             cannon: `Splash radius ${stats.splashRadius}`,
+            bicannon: `Dual barrel, heavy round every ${stats.heavyEvery} shots`,
             sniper: `${stats.critChance * 100}% crit for ${stats.critMulti}x dmg`,
             firearrow: `Burns for ${stats.burnDamage} dmg/s (${stats.burnDuration}s)`,
+            missilesniper: `Homing missiles, splash ${stats.splashRadius}, ${(stats.critChance * 100).toFixed(0)}% crit ${stats.critMulti}x`,
         };
 
         let lockHTML = '';

@@ -33,6 +33,9 @@ export class Game {
         this.shakeOffsetX = 0;
         this.shakeOffsetY = 0;
 
+        // Scorch zones (from Bi-Cannon heavy rounds)
+        this.scorchZones = [];
+
         // Core systems
         this.map = new GameMap();
         this.economy = new Economy();
@@ -61,6 +64,8 @@ export class Game {
         if (!this.selectedMapId) return;
         this.audio.ensureContext();
         this.worldLevel = Economy.getPlayerLevel() + 1;
+        // Set starting gold based on world level
+        this.economy.levelUpReset(this.worldLevel);
         // Recreate map with the correct layout for this world level
         this.map = new GameMap(this.selectedMapId, (this.worldLevel - 1) % 3);
         this.renderer.drawTerrain();
@@ -110,6 +115,7 @@ export class Game {
         this.towers.reset();
         this.projectiles.reset();
         this.particles.reset();
+        this.scorchZones = [];
         this.waves.reset();
         this.input.reset();
         // Recreate map with the new layout for this world level
@@ -138,6 +144,7 @@ export class Game {
         this.towers.reset();
         this.projectiles.reset();
         this.particles.reset();
+        this.scorchZones = [];
         this.waves.reset();
         this.input.reset();
         this.renderer.drawTerrain();
@@ -209,6 +216,7 @@ export class Game {
         this.towers.reset();
         this.projectiles.reset();
         this.particles.reset();
+        this.scorchZones = [];
         this.waves.reset();
         this.input.reset();
         this.map = new GameMap(this.selectedMapId, (this.worldLevel - 1) % 3);
@@ -244,10 +252,39 @@ export class Game {
         this.towers.update(dt);
         this.projectiles.update(dt);
         this.particles.update(dt);
+        this.updateScorchZones(dt);
 
         // Check wave completion
         if (this.waves.isWaveComplete() && this.enemies.isEmpty()) {
             this.waves.onWaveComplete();
+        }
+    }
+
+    addScorchZone(x, y, radius, dps, duration) {
+        this.scorchZones.push({ x, y, radius, dps, timer: duration, maxTimer: duration });
+    }
+
+    updateScorchZones(dt) {
+        for (let i = this.scorchZones.length - 1; i >= 0; i--) {
+            const zone = this.scorchZones[i];
+            zone.timer -= dt;
+            if (zone.timer <= 0) {
+                this.scorchZones.splice(i, 1);
+                continue;
+            }
+            // Damage enemies in zone (bypasses armor like burn)
+            for (const e of this.enemies.enemies) {
+                if (!e.alive) continue;
+                const dx = e.x - zone.x;
+                const dy = e.y - zone.y;
+                if (dx * dx + dy * dy <= zone.radius * zone.radius) {
+                    e.hp -= zone.dps * dt;
+                    if (e.hp <= 0) {
+                        e.hp = 0;
+                        e.alive = false;
+                    }
+                }
+            }
         }
     }
 

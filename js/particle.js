@@ -207,6 +207,59 @@ export class ParticleSystem {
         }
     }
 
+    spawnShockRing(x, y) {
+        this.acquire({
+            x, y, vx: 0, vy: 0,
+            life: 0.2,
+            color: '#ffffff',
+            size: 15,
+            type: 'ring',
+        });
+    }
+
+    spawnArmorCrack(x, y) {
+        for (let i = 0; i < 3; i++) {
+            const ang = randRange(0, Math.PI * 2);
+            const spd = randRange(15, 35);
+            this.acquire({
+                x, y,
+                vx: Math.cos(ang) * spd,
+                vy: Math.sin(ang) * spd,
+                life: randRange(0.3, 0.5),
+                color: '#ffaa00',
+                size: randRange(1, 2),
+                type: 'shard',
+                gravity: 40,
+                rotation: randRange(0, Math.PI * 2),
+                rotSpeed: randRange(-8, 8),
+            });
+        }
+    }
+
+    spawnMissileExhaust(x, y, angle) {
+        const backAngle = angle + Math.PI;
+        // Orange flame dot
+        this.acquire({
+            x: x + Math.cos(backAngle) * 4,
+            y: y + Math.sin(backAngle) * 4,
+            vx: Math.cos(backAngle) * randRange(20, 50) + randRange(-8, 8),
+            vy: Math.sin(backAngle) * randRange(20, 50) + randRange(-8, 8),
+            life: randRange(0.15, 0.3),
+            color: '#ff8800',
+            size: randRange(1.5, 3),
+        });
+        // Gray smoke dot
+        this.acquire({
+            x: x + Math.cos(backAngle) * 6,
+            y: y + Math.sin(backAngle) * 6,
+            vx: Math.cos(backAngle) * randRange(10, 30) + randRange(-6, 6),
+            vy: Math.sin(backAngle) * randRange(10, 30) + randRange(-6, 6),
+            life: randRange(0.25, 0.5),
+            color: '#888',
+            size: randRange(2, 4),
+        });
+    }
+
     spawnAuraPulse(x, y, radius, color) {
         this.acquire({
             x,

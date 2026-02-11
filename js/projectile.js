@@ -2,7 +2,7 @@ import { CELL, TOWER_TYPES } from './constants.js';
 import { distance, angle } from './utils.js';
 
 export class Projectile {
-    constructor(tower, target) {
+    constructor(tower, target, isHeavy = false) {
         this.x = tower.x;
         this.y = tower.y;
         this.targetId = target.id;
@@ -25,6 +25,23 @@ export class Projectile {
         this.critMulti = tower.critMulti;
         this.burnDamage = tower.burnDamage;
         this.burnDuration = tower.burnDuration;
+
+        // Fork chain (super lightning)
+        this.forkCount = tower.forkCount;
+        this.forkDepth = tower.forkDepth;
+        this.overcharge = tower.overcharge;
+        this.shockChance = tower.shockChance;
+        this.shockDuration = tower.shockDuration;
+
+        // Missile (missile sniper)
+        this.missile = tower.missile || false;
+
+        // Bi-cannon heavy round
+        this.isHeavy = isHeavy;
+        this.armorShred = tower.armorShred;
+        this.shredDuration = tower.shredDuration;
+        this.scorchDPS = tower.scorchDPS;
+        this.scorchDuration = tower.scorchDuration;
 
         // Visual
         this.angle = angle(this, target);
@@ -60,7 +77,13 @@ export class Projectile {
 
         // Trail
         this.trail.push({ x: this.x, y: this.y });
-        if (this.trail.length > 5) this.trail.shift();
+        const maxTrail = this.missile ? 10 : 5;
+        if (this.trail.length > maxTrail) this.trail.shift();
+
+        // Missile exhaust particles during flight
+        if (this.missile && game && Math.random() < 0.3) {
+            game.particles.spawnMissileExhaust(this.x, this.y, this.angle);
+        }
     }
 
     onHit(game) {
@@ -76,10 +99,41 @@ export class Projectile {
 
         if (this.splashRadius > 0) {
             // Splash damage
-            this.doSplash(dmg, game);
+            let splashDmg = this.isHeavy ? dmg * 1.5 : dmg;
+            let splashRad = this.isHeavy ? this.splashRadius * 1.5 : this.splashRadius;
+
+            // Missile crit: bigger splash
+            if (this.missile && isCrit) {
+                splashRad *= 1.3;
+                game.particles.spawnFloatingText(this.x, this.y - 15, 'CRIT!', '#ff4444');
+                game.particles.spawnSpark(this.x, this.y, '#ff4444', 6);
+            }
+
+            this.doSplash(splashDmg, game, splashRad);
             game.audio.playExplosion();
-            game.particles.spawnExplosion(this.x, this.y, '#ff6600');
-            game.triggerShake(3, 0.15);
+
+            // Missile explosions are olive-colored
+            const explosionColor = this.missile ? '#aabb44' : (this.isHeavy ? '#ff3300' : '#ff6600');
+            game.particles.spawnExplosion(this.x, this.y, explosionColor);
+            game.triggerShake(this.isHeavy ? 5 : (this.missile ? 4 : 3), this.isHeavy ? 0.25 : (this.missile ? 0.2 : 0.15));
+
+            // Heavy round: armor shred + scorch zone
+            if (this.isHeavy && this.armorShred > 0) {
+                const splashPx = splashRad * CELL;
+                for (const e of game.enemies.enemies) {
+                    if (!e.alive) continue;
+                    if (distance(this, e) <= splashPx) {
+                        e.applyArmorShred(this.armorShred, this.shredDuration);
+                    }
+                }
+                // Spawn scorch zone
+                if (this.scorchDPS > 0) {
+                    game.addScorchZone(this.x, this.y, splashPx * 0.8, this.scorchDPS, this.scorchDuration);
+                }
+            }
+        } else if (this.forkCount > 0) {
+            // Fork chain lightning (super lightning)
+            this.doForkChain(dmg, game);
         } else if (this.chainCount > 0) {
             // Chain lightning
             this.doChain(dmg, game);
@@ -105,8 +159,8 @@ export class Projectile {
         game.particles.spawnSpark(this.x, this.y, this.getColor(), 3);
     }
 
-    doSplash(dmg, game) {
-        const splashPx = this.splashRadius * CELL;
+    doSplash(dmg, game, radius) {
+        const splashPx = (radius || this.splashRadius) * CELL;
         const enemies = game.enemies.enemies;
         for (const e of enemies) {
             if (!e.alive) continue;
@@ -144,6 +198,52 @@ export class Projectile {
         game.audio.playShoot('lightning');
     }
 
+    doForkChain(dmg, game) {
+        const hit = new Set();
+        let totalHits = 0;
+        const maxHits = this.forkCount;
+        const chainPx = this.chainRange * CELL;
+
+        // BFS: start from primary target, fork outward
+        let currentWave = [this.target];
+        let currentDmg = dmg;
+
+        for (let depth = 0; depth <= this.forkDepth && currentWave.length > 0 && totalHits < maxHits; depth++) {
+            const nextWave = [];
+            for (const enemy of currentWave) {
+                if (!enemy || !enemy.alive || hit.has(enemy.id)) continue;
+                if (totalHits >= maxHits) break;
+
+                hit.add(enemy.id);
+                totalHits++;
+
+                // Overcharge: damage increases per hit
+                const hitDmg = currentDmg * (1 + this.overcharge * (totalHits - 1));
+                const dealt = enemy.takeDamage(hitDmg);
+                game.debug.onDamageDealt(dealt);
+
+                // Roll shock
+                if (this.shockChance > 0 && Math.random() < this.shockChance) {
+                    enemy.applyShock(this.shockDuration);
+                    game.particles.spawnSpark(enemy.x, enemy.y, '#ffffff', 5);
+                }
+
+                // Find fork targets from this enemy
+                for (const e of game.enemies.enemies) {
+                    if (!e.alive || hit.has(e.id)) continue;
+                    if (distance(enemy, e) <= chainPx) {
+                        // Draw lightning arc
+                        game.particles.spawnLightning(enemy.x, enemy.y, e.x, e.y);
+                        nextWave.push(e);
+                    }
+                }
+            }
+            currentWave = nextWave;
+        }
+
+        game.audio.playShoot('superlightning');
+    }
+
     findChainTarget(from, hitSet, game) {
         const chainPx = this.chainRange * CELL;
         let best = null;
@@ -167,8 +267,11 @@ export class Projectile {
             frost: '#03a9f4',
             deepfrost: '#00ffff',
             lightning: '#ba68c8',
+            superlightning: '#b388ff',
             sniper: '#ef5350',
             firearrow: '#ff4500',
+            bicannon: '#ff8c00',
+            missilesniper: '#aabb44',
         };
         return colors[this.towerType] || '#fff';
     }
@@ -180,8 +283,8 @@ export class ProjectileManager {
         this.projectiles = [];
     }
 
-    spawn(tower, target) {
-        this.projectiles.push(new Projectile(tower, target));
+    spawn(tower, target, isHeavy = false) {
+        this.projectiles.push(new Projectile(tower, target, isHeavy));
     }
 
     update(dt) {

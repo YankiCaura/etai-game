@@ -80,7 +80,7 @@ export class Audio {
         source.start(now);
     }
 
-    playShoot(towerType) {
+    playShoot(towerType, isHeavy = false) {
         switch (towerType) {
             case 'arrow':
                 // Triangle wave pitch sweep
@@ -113,6 +113,28 @@ export class Audio {
                 this.playTone('sine', 120, 60, 0.25, 0.15);
                 this.playTone('sine', 200, 100, 0.15, 0.08);
                 this.playNoise(0.1, 0.04);
+                break;
+            case 'superlightning':
+                // Intense electric discharge — rapid LFO zap + high crackle
+                this.playSuperLightningZap();
+                break;
+            case 'missilesniper':
+                // Rocket whoosh + high sweep + exhaust noise
+                this.playTone('sawtooth', 200, 80, 0.25, 0.18);
+                this.playTone('triangle', 1000, 300, 0.15, 0.08);
+                this.playNoise(0.2, 0.06);
+                break;
+            case 'bicannon':
+                if (isHeavy) {
+                    // Heavy round: deep boom + armor crack
+                    this.playTone('sawtooth', 100, 20, 0.3, 0.25);
+                    this.playTone('square', 60, 25, 0.25, 0.15);
+                    this.playNoise(0.2, 0.12);
+                } else {
+                    // Normal dual shot: quick double thud
+                    this.playTone('sawtooth', 180, 40, 0.15, 0.18);
+                    this.playNoise(0.1, 0.06);
+                }
                 break;
         }
     }
@@ -147,6 +169,44 @@ export class Audio {
         lfo.start(now);
         osc.stop(now + 0.15);
         lfo.stop(now + 0.15);
+    }
+
+    playSuperLightningZap() {
+        this.ensureContext();
+        if (!this.ctx || this.muted) return;
+
+        const now = this.ctx.currentTime;
+
+        // Main discharge — sawtooth with fast LFO
+        const osc = this.ctx.createOscillator();
+        const lfo = this.ctx.createOscillator();
+        const lfoGain = this.ctx.createGain();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(1200, now);
+        osc.frequency.exponentialRampToValueAtTime(80, now + 0.2);
+
+        lfo.type = 'square';
+        lfo.frequency.value = 50;
+        lfoGain.gain.value = 600;
+
+        gain.gain.setValueAtTime(0.18, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+
+        lfo.connect(lfoGain);
+        lfoGain.connect(osc.frequency);
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+
+        osc.start(now);
+        lfo.start(now);
+        osc.stop(now + 0.2);
+        lfo.stop(now + 0.2);
+
+        // High crackle overlay
+        this.playTone('square', 3000, 500, 0.08, 0.08);
+        this.playNoise(0.1, 0.05);
     }
 
     playExplosion() {

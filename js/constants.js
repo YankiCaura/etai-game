@@ -261,9 +261,9 @@ export const TOWER_TYPES = {
         aura: true,
         unlockLevel: 2,
         levels: [
-            { damage: 4, range: 3.0, fireRate: 1.2, slowFactor: 0.6, slowDuration: 1.5, freezeChance: 0.05, freezeDuration: 0.8 },
-            { damage: 7, range: 3.5, fireRate: 0.85, slowFactor: 0.5, slowDuration: 2.0, freezeChance: 0.08, freezeDuration: 1.0, upgradeCost: 100 },
-            { damage: 11, range: 4.0, fireRate: 0.7, slowFactor: 0.4, slowDuration: 2.5, freezeChance: 0.12, freezeDuration: 1.2, upgradeCost: 175 },
+            { damage: 5, range: 3.0, fireRate: 1.2, slowFactor: 0.6, slowDuration: 1.5, freezeChance: 0.05, freezeDuration: 0.8 },
+            { damage: 8, range: 3.5, fireRate: 0.85, slowFactor: 0.5, slowDuration: 2.0, freezeChance: 0.08, freezeDuration: 1.0, upgradeCost: 100 },
+            { damage: 12, range: 4.0, fireRate: 0.7, slowFactor: 0.4, slowDuration: 2.5, freezeChance: 0.12, freezeDuration: 1.2, upgradeCost: 175 },
         ],
     },
     lightning: {
@@ -271,10 +271,23 @@ export const TOWER_TYPES = {
         cost: 125,
         color: '#9b59b6',
         chain: true,
+        maxLevel: 3,
         levels: [
             { damage: 15, range: 3.5, fireRate: 1.0, projSpeed: 500, chainCount: 3, chainRange: 2.0, chainDecay: 0.7 },
             { damage: 22, range: 4.0, fireRate: 0.85, projSpeed: 550, chainCount: 4, chainRange: 2.5, chainDecay: 0.7, upgradeCost: 80 },
             { damage: 32, range: 4.5, fireRate: 0.7, projSpeed: 600, chainCount: 5, chainRange: 3.0, chainDecay: 0.75, upgradeCost: 145 },
+        ],
+    },
+    superlightning: {
+        name: 'Super Lightning',
+        cost: 250,
+        color: '#7b3fff',
+        forkChain: true,
+        unlockLevel: 4,
+        levels: [
+            { damage: 18, range: 4.0, fireRate: 1.1, projSpeed: 600, forkCount: 4, forkDepth: 2, chainRange: 2.5, overcharge: 0.10, shockChance: 0.15, shockDuration: 0.3 },
+            { damage: 28, range: 4.5, fireRate: 0.9, projSpeed: 650, forkCount: 6, forkDepth: 2, chainRange: 3.0, overcharge: 0.10, shockChance: 0.20, shockDuration: 0.3, upgradeCost: 150 },
+            { damage: 42, range: 5.0, fireRate: 0.75, projSpeed: 700, forkCount: 8, forkDepth: 3, chainRange: 3.5, overcharge: 0.12, shockChance: 0.25, shockDuration: 0.4, upgradeCost: 250 },
         ],
     },
     cannon: {
@@ -282,6 +295,7 @@ export const TOWER_TYPES = {
         cost: 100,
         color: '#8b5e3c',
         splash: true,
+        maxLevel: 3,
         unlockWave: 2,
         levels: [
             { damage: 30, range: 3.0, fireRate: 1.2, projSpeed: 200, splashRadius: 1.2 },
@@ -289,16 +303,45 @@ export const TOWER_TYPES = {
             { damage: 80, range: 4.0, fireRate: 0.85, projSpeed: 240, splashRadius: 1.8, upgradeCost: 125 },
         ],
     },
+    bicannon: {
+        name: 'Bi-Cannon',
+        cost: 200,
+        color: '#6b4226',
+        splash: true,
+        dualBarrel: true,
+        unlockLevel: 4,
+        levels: [
+            { damage: 35, range: 3.5, fireRate: 0.6, projSpeed: 220, splashRadius: 1.4, heavyEvery: 4, armorShred: 0.10, shredDuration: 3.0, scorchDPS: 5, scorchDuration: 2.0 },
+            { damage: 55, range: 4.0, fireRate: 0.5, projSpeed: 240, splashRadius: 1.7, heavyEvery: 4, armorShred: 0.12, shredDuration: 3.5, scorchDPS: 8, scorchDuration: 2.5, upgradeCost: 120 },
+            { damage: 85, range: 4.5, fireRate: 0.4, projSpeed: 260, splashRadius: 2.0, heavyEvery: 3, armorShred: 0.15, shredDuration: 4.0, scorchDPS: 12, scorchDuration: 3.0, upgradeCost: 200 },
+        ],
+    },
     sniper: {
         name: 'Sniper',
         cost: 150,
         color: '#c0392b',
         crit: true,
+        maxLevel: 4,
         unlockWave: 5,
         levels: [
             { damage: 60, range: 6.0, fireRate: 2.0, projSpeed: 600, critChance: 0.10, critMulti: 2.5 },
             { damage: 90, range: 7.0, fireRate: 1.7, projSpeed: 650, critChance: 0.15, critMulti: 2.8, upgradeCost: 110 },
             { damage: 140, range: 8.0, fireRate: 1.5, projSpeed: 700, critChance: 0.20, critMulti: 3.0, upgradeCost: 180 },
+        ],
+    },
+    missilesniper: {
+        name: 'Missile Sniper',
+        cost: 325,
+        color: '#6b8e23',
+        splash: true,
+        crit: true,
+        missile: true,
+        size: 2,
+        unlockLevel: 5,
+        levels: [
+            { damage: 80, range: 7.0, fireRate: 2.5, projSpeed: 300, splashRadius: 1.2, critChance: 0.12, critMulti: 2.5 },
+            { damage: 120, range: 8.0, fireRate: 2.2, projSpeed: 320, splashRadius: 1.5, critChance: 0.16, critMulti: 2.8, upgradeCost: 200 },
+            { damage: 180, range: 9.0, fireRate: 1.8, projSpeed: 350, splashRadius: 1.8, critChance: 0.20, critMulti: 3.2, upgradeCost: 300 },
         ],
     },
 };

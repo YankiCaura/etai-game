@@ -1,5 +1,5 @@
 import { TOWER_TYPES, CELL, TARGET_MODES, SELL_REFUND } from './constants.js';
-import { distance, angle, gridToWorld } from './utils.js';
+import { distance, angle } from './utils.js';
 
 let nextTowerId = 0;
 
@@ -12,9 +12,10 @@ export class Tower {
         this.color = def.color;
         this.gx = gx;
         this.gy = gy;
-        const pos = gridToWorld(gx, gy);
-        this.x = pos.x;
-        this.y = pos.y;
+        this.size = def.size || 1;
+        // For size > 1, center in the NxN block; for size 1, center in the cell
+        this.x = gx * CELL + this.size * CELL / 2;
+        this.y = gy * CELL + this.size * CELL / 2;
         this.level = 0; // 0-indexed
         this.totalInvested = def.cost;
 
@@ -25,6 +26,10 @@ export class Tower {
         this.targetMode = 0; // index into TARGET_MODES
         this.turretAngle = 0;
         this.target = null;
+
+        // Dual barrel tracking (bi-cannon)
+        this.shotCount = 0;
+        this.activeBarrel = 0; // 0 or 1 for visual alternation
 
         // Visual animation
         this.recoilTimer = 0;
@@ -55,6 +60,24 @@ export class Tower {
         this.freezeChance = lvl.freezeChance || 0;
         this.freezeDuration = lvl.freezeDuration || 0;
         this.aura = TOWER_TYPES[this.type].aura || false;
+
+        // Fork chain (super lightning)
+        this.forkCount = lvl.forkCount || 0;
+        this.forkDepth = lvl.forkDepth || 0;
+        this.overcharge = lvl.overcharge || 0;
+        this.shockChance = lvl.shockChance || 0;
+        this.shockDuration = lvl.shockDuration || 0;
+
+        // Missile (missile sniper)
+        this.missile = TOWER_TYPES[this.type].missile || false;
+
+        // Dual barrel (bi-cannon)
+        this.dualBarrel = TOWER_TYPES[this.type].dualBarrel || false;
+        this.heavyEvery = lvl.heavyEvery || 0;
+        this.armorShred = lvl.armorShred || 0;
+        this.shredDuration = lvl.shredDuration || 0;
+        this.scorchDPS = lvl.scorchDPS || 0;
+        this.scorchDuration = lvl.scorchDuration || 0;
     }
 
     getUpgradeCost() {
@@ -147,20 +170,38 @@ export class Tower {
 
     shoot(target, game) {
         this.recoilTimer = 0.12;
-        game.projectiles.spawn(this, target);
-        game.audio.playShoot(this.type);
+
+        // Bi-cannon: track shots and determine if heavy round
+        let isHeavy = false;
+        if (this.dualBarrel) {
+            this.shotCount++;
+            this.activeBarrel = this.shotCount % 2;
+            isHeavy = (this.shotCount % this.heavyEvery) === 0;
+        }
+
+        game.projectiles.spawn(this, target, isHeavy);
+        game.audio.playShoot(this.type, isHeavy);
 
         // Muzzle flash particles (non-aura towers)
-        const muzzleX = this.x + Math.cos(this.turretAngle) * 14;
-        const muzzleY = this.y + Math.sin(this.turretAngle) * 14;
-        if (this.type === 'cannon') {
+        const muzzleDist = this.size > 1 ? 24 : 14;
+        const muzzleX = this.x + Math.cos(this.turretAngle) * muzzleDist;
+        const muzzleY = this.y + Math.sin(this.turretAngle) * muzzleDist;
+        if (this.type === 'missilesniper') {
+            game.particles.spawnMuzzleFlash(muzzleX, muzzleY, '#aabb44', 6);
+            game.triggerShake(3, 0.15);
+        } else if (this.type === 'cannon') {
             game.particles.spawnMuzzleFlash(muzzleX, muzzleY, '#ff9800', 5);
+        } else if (this.type === 'bicannon') {
+            game.particles.spawnMuzzleFlash(muzzleX, muzzleY, isHeavy ? '#ff4400' : '#ff9800', isHeavy ? 8 : 5);
+            if (isHeavy) game.triggerShake(4, 0.2);
         } else if (this.type === 'sniper') {
             game.particles.spawnMuzzleFlash(muzzleX, muzzleY, '#ffeb3b', 3);
         } else if (this.type === 'frost') {
             game.particles.spawnFrostBurst(muzzleX, muzzleY, 4);
         } else if (this.type === 'firearrow') {
             game.particles.spawnMuzzleFlash(muzzleX, muzzleY, '#ff6600', 4);
+        } else if (this.type === 'superlightning') {
+            game.particles.spawnMuzzleFlash(muzzleX, muzzleY, '#b388ff', 5);
         }
     }
 
@@ -198,19 +239,36 @@ export class TowerManager {
         this.towerGrid = new Map(); // "gx,gy" -> tower
     }
 
-    canPlace(gx, gy) {
-        return this.game.map.isBuildable(gx, gy) && !this.towerGrid.has(`${gx},${gy}`);
+    canPlace(gx, gy, typeName) {
+        const size = typeName ? (TOWER_TYPES[typeName].size || 1) : 1;
+        for (let dx = 0; dx < size; dx++) {
+            for (let dy = 0; dy < size; dy++) {
+                const cx = gx + dx;
+                const cy = gy + dy;
+                if (!this.game.map.isBuildable(cx, cy) || this.towerGrid.has(`${cx},${cy}`)) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     place(typeName, gx, gy) {
         const def = TOWER_TYPES[typeName];
-        if (!this.canPlace(gx, gy)) return null;
+        if (!this.canPlace(gx, gy, typeName)) return null;
         if (!this.game.economy.canAfford(def.cost)) return null;
 
         this.game.economy.spendGold(def.cost);
         const tower = new Tower(typeName, gx, gy);
         this.towers.push(tower);
-        this.towerGrid.set(`${gx},${gy}`, tower);
+
+        // Register all cells for size >= 1
+        const size = def.size || 1;
+        for (let dx = 0; dx < size; dx++) {
+            for (let dy = 0; dy < size; dy++) {
+                this.towerGrid.set(`${gx + dx},${gy + dy}`, tower);
+            }
+        }
 
         this.game.debug.onTowerBuilt(def.cost);
         this.game.renderer.drawTerrain();
@@ -222,7 +280,14 @@ export class TowerManager {
         const value = tower.getSellValue();
         this.game.debug.onTowerSold(value);
         this.game.economy.addGold(value);
-        this.towerGrid.delete(`${tower.gx},${tower.gy}`);
+
+        // Remove all cells for this tower
+        for (let dx = 0; dx < tower.size; dx++) {
+            for (let dy = 0; dy < tower.size; dy++) {
+                this.towerGrid.delete(`${tower.gx + dx},${tower.gy + dy}`);
+            }
+        }
+
         this.towers = this.towers.filter(t => t !== tower);
         this.game.renderer.drawTerrain();
         this.game.particles.spawnFloatingText(tower.x, tower.y - 10, `+${value}g`, '#ffd700');

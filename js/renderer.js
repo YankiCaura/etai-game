@@ -25,8 +25,10 @@ export class Renderer {
     drawTowerBase(ctx, tower) {
         const x = tower.gx * CELL;
         const y = tower.gy * CELL;
-        const cx = x + CELL / 2;
-        const cy = y + CELL / 2;
+        const sz = tower.size || 1;
+        const totalPx = sz * CELL;
+        const cx = x + totalPx / 2;
+        const cy = y + totalPx / 2;
 
         const maxed = tower.level >= 2;
         const accentColors = {
@@ -35,8 +37,11 @@ export class Renderer {
             frost: '#5b9bd5',
             deepfrost: '#1a6b8a',
             lightning: '#9b59b6',
+            superlightning: '#7b3fff',
             sniper: '#c0392b',
             firearrow: '#8b1a1a',
+            bicannon: '#6b4226',
+            missilesniper: '#6b8e23',
         };
         const maxedAccentColors = {
             arrow: '#7fff00',
@@ -44,22 +49,25 @@ export class Renderer {
             frost: '#00e5ff',
             deepfrost: '#00dcff',
             lightning: '#e040fb',
+            superlightning: '#b388ff',
             sniper: '#ff1744',
             firearrow: '#ff4500',
+            bicannon: '#ff6b00',
+            missilesniper: '#b5d43b',
         };
         const accent = maxed ? (maxedAccentColors[tower.type] || '#ffd700') : (accentColors[tower.type] || '#888');
 
         // Outer platform with beveled edges
         ctx.fillStyle = maxed ? '#5a5a3a' : '#4a4a4a';
-        ctx.fillRect(x + 1, y + 1, CELL - 2, CELL - 2);
+        ctx.fillRect(x + 1, y + 1, totalPx - 2, totalPx - 2);
         // Top/left highlight
         ctx.fillStyle = maxed ? '#808050' : '#606060';
-        ctx.fillRect(x + 1, y + 1, CELL - 2, 2);
-        ctx.fillRect(x + 1, y + 1, 2, CELL - 2);
+        ctx.fillRect(x + 1, y + 1, totalPx - 2, 2);
+        ctx.fillRect(x + 1, y + 1, 2, totalPx - 2);
         // Bottom/right shadow
         ctx.fillStyle = maxed ? '#3a3a20' : '#333';
-        ctx.fillRect(x + 1, y + CELL - 3, CELL - 2, 2);
-        ctx.fillRect(x + CELL - 3, y + 1, 2, CELL - 2);
+        ctx.fillRect(x + 1, y + totalPx - 3, totalPx - 2, 2);
+        ctx.fillRect(x + totalPx - 3, y + 1, 2, totalPx - 2);
         // Inner platform — brighter for higher levels, golden tint for maxed
         if (maxed) {
             ctx.fillStyle = '#c0a850';
@@ -67,14 +75,15 @@ export class Renderer {
             const lvlBright = tower.level * 12;
             ctx.fillStyle = `rgb(${88 + lvlBright},${88 + lvlBright},${88 + lvlBright})`;
         }
-        ctx.fillRect(x + 4, y + 4, CELL - 8, CELL - 8);
+        ctx.fillRect(x + 4, y + 4, totalPx - 8, totalPx - 8);
 
         // Color accent ring — thicker and brighter for upgrades
+        const ringRadius = sz > 1 ? 28 : 14;
         const ringWidth = maxed ? 5 : 2 + tower.level;
         ctx.strokeStyle = accent;
         ctx.lineWidth = ringWidth;
         ctx.beginPath();
-        ctx.arc(cx, cy, 14, 0, Math.PI * 2);
+        ctx.arc(cx, cy, ringRadius, 0, Math.PI * 2);
         ctx.stroke();
 
         // Inner ring
@@ -82,7 +91,7 @@ export class Renderer {
             ctx.strokeStyle = maxed ? '#fff' : '#ffd700';
             ctx.lineWidth = maxed ? 1.5 : 1;
             ctx.beginPath();
-            ctx.arc(cx, cy, 14 - ringWidth, 0, Math.PI * 2);
+            ctx.arc(cx, cy, ringRadius - ringWidth, 0, Math.PI * 2);
             ctx.stroke();
         }
 
@@ -90,9 +99,9 @@ export class Renderer {
         const boltOffset = 6;
         const corners = [
             [x + boltOffset, y + boltOffset],
-            [x + CELL - boltOffset, y + boltOffset],
-            [x + boltOffset, y + CELL - boltOffset],
-            [x + CELL - boltOffset, y + CELL - boltOffset],
+            [x + totalPx - boltOffset, y + boltOffset],
+            [x + boltOffset, y + totalPx - boltOffset],
+            [x + totalPx - boltOffset, y + totalPx - boltOffset],
         ];
         const boltColor = maxed ? '#fff' : tower.level > 0 ? '#ffd700' : '#777';
         const boltHighlight = maxed ? '#ffffcc' : tower.level > 0 ? '#ffe566' : '#999';
@@ -109,16 +118,17 @@ export class Renderer {
 
         // Level stars on base — bigger, with glow
         if (tower.level > 0) {
+            const starY = cy + totalPx * 0.31;
             // Star glow background
             ctx.fillStyle = maxed ? 'rgba(255,215,0,0.45)' : 'rgba(255,215,0,0.25)';
             ctx.beginPath();
-            ctx.arc(cx, cy + 15, tower.level * 6, 0, Math.PI * 2);
+            ctx.arc(cx, starY, tower.level * 6, 0, Math.PI * 2);
             ctx.fill();
 
             ctx.fillStyle = maxed ? '#fff' : '#ffd700';
             for (let i = 0; i < tower.level; i++) {
                 const sx = cx - (tower.level - 1) * 6 + i * 12;
-                const sy = cy + 15;
+                const sy = starY;
                 this.drawMiniStar(ctx, sx, sy, maxed ? 5 : 4);
                 // Star highlight
                 ctx.fillStyle = maxed ? '#fffff0' : '#fff8dc';
@@ -154,6 +164,9 @@ export class Renderer {
             ctx.save();
             ctx.translate(shakeX, shakeY);
         }
+
+        // Draw scorch zones (ground layer, below enemies)
+        this.drawScorchZones(ctx);
 
         // Draw enemies
         this.drawEnemies(ctx);
@@ -437,6 +450,55 @@ export class Renderer {
                 ctx.fill();
             }
 
+            // Shock effect indicator
+            if (e.isShocked && !isDying) {
+                // White flash overlay
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                this.drawEnemyShape(ctx, e, drawX, drawY, r);
+                ctx.fill();
+
+                // Electric ring
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(drawX, drawY, r + 3, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Mini lightning bolts
+                ctx.strokeStyle = '#b388ff';
+                ctx.lineWidth = 1;
+                for (let i = 0; i < 3; i++) {
+                    const a = Math.random() * Math.PI * 2;
+                    const sr = r * 0.8;
+                    ctx.beginPath();
+                    ctx.moveTo(drawX + Math.cos(a) * sr * 0.3, drawY + Math.sin(a) * sr * 0.3);
+                    ctx.lineTo(drawX + Math.cos(a) * sr + (Math.random() - 0.5) * 4, drawY + Math.sin(a) * sr + (Math.random() - 0.5) * 4);
+                    ctx.stroke();
+                }
+            }
+
+            // Armor shred indicator
+            if (e.armorShredStacks > 0 && !isDying) {
+                const stacks = e.armorShredStacks;
+                // Orange-red crack lines radiating from center
+                ctx.strokeStyle = `rgba(255,${140 - stacks * 30},0,${0.4 + stacks * 0.15})`;
+                ctx.lineWidth = 1 + stacks * 0.3;
+                for (let i = 0; i < 3 + stacks; i++) {
+                    const a = (Math.PI * 2 * i) / (3 + stacks);
+                    const cr = r * (0.4 + Math.random() * 0.4);
+                    ctx.beginPath();
+                    ctx.moveTo(drawX, drawY);
+                    ctx.lineTo(drawX + Math.cos(a) * cr, drawY + Math.sin(a) * cr);
+                    ctx.stroke();
+                }
+                // Broken armor icon above
+                ctx.fillStyle = '#ff8800';
+                const sy = drawY - r - (e.isFrozen ? 18 : 12);
+                ctx.font = 'bold 8px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(`-${stacks}`, drawX, sy);
+            }
+
             // Burn effect indicator
             if (e.burnTimer > 0 && !isDying) {
                 // Orange glow ring
@@ -527,8 +589,11 @@ export class Renderer {
                     frost: '0,229,255',
                     deepfrost: '0,220,255',
                     lightning: '224,64,251',
+                    superlightning: '179,136,255',
                     sniper: '255,23,68',
                     firearrow: '255,69,0',
+                    bicannon: '255,107,0',
+                    missilesniper: '181,212,59',
                 };
                 const glowRGB = maxed ? (maxedGlowColors[tower.type] || '255,215,0') : '255,215,0';
 
@@ -592,6 +657,15 @@ export class Renderer {
                 case 'deepfrost':
                     this.drawDeepFrostTurret(ctx, recoilShift, tower);
                     break;
+                case 'superlightning':
+                    this.drawSuperLightningTurret(ctx, recoilShift, tower);
+                    break;
+                case 'bicannon':
+                    this.drawBiCannonTurret(ctx, recoilShift, tower);
+                    break;
+                case 'missilesniper':
+                    this.drawMissileSniperTurret(ctx, recoilShift, tower);
+                    break;
                 default:
                     ctx.fillStyle = tower.color;
                     ctx.fillRect(-6, -4, 12, 8);
@@ -615,7 +689,7 @@ export class Renderer {
             const pillW = tw + 6;
             const pillH = 12;
             const pillX = cx - pillW / 2;
-            const pillY = cy - CELL / 2 - pillH - 1;
+            const pillY = cy - (tower.size || 1) * CELL / 2 - pillH - 1;
             ctx.beginPath();
             ctx.roundRect(pillX, pillY, pillW, pillH, 3);
             ctx.fill();
@@ -743,6 +817,53 @@ export class Renderer {
                 ctx.fill();
                 ctx.restore();
             }
+        } else if (tower.type === 'superlightning') {
+            // Super lightning: intense electric storm field
+            const pulse = 0.1 + Math.sin(gp * 2) * 0.07;
+            ctx.fillStyle = `rgba(123,63,255,${pulse})`;
+            ctx.beginPath();
+            ctx.arc(cx, cy, 22, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Crawling arcs — more intense than regular lightning
+            ctx.strokeStyle = `rgba(179,136,255,${0.4 + Math.sin(gp * 4) * 0.2})`;
+            ctx.lineWidth = 1.2;
+            for (let i = 0; i < 5; i++) {
+                const a = sp * 1.3 + (Math.PI * 2 * i) / 5;
+                const r = 15;
+                ctx.beginPath();
+                ctx.moveTo(cx + Math.cos(a) * 6, cy + Math.sin(a) * 6);
+                const jx = (Math.random() - 0.5) * 6;
+                const jy = (Math.random() - 0.5) * 6;
+                ctx.lineTo(cx + Math.cos(a) * r + jx, cy + Math.sin(a) * r + jy);
+                ctx.stroke();
+            }
+
+            // Orbiting plasma orbs
+            ctx.fillStyle = `rgba(200,170,255,${0.5 + Math.sin(gp * 3) * 0.2})`;
+            for (let i = 0; i < 3; i++) {
+                const a = sp * 0.9 + (Math.PI * 2 * i) / 3;
+                const r = 14 + Math.sin(gp + i * 2) * 2;
+                ctx.beginPath();
+                ctx.arc(cx + Math.cos(a) * r, cy + Math.sin(a) * r, 2.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        } else if (tower.type === 'bicannon') {
+            // Bi-cannon: heat shimmer + shell casings
+            if (tower.recoilTimer > 0) {
+                const heat = tower.recoilTimer / 0.12;
+                ctx.fillStyle = `rgba(255,120,30,${heat * 0.15})`;
+                ctx.beginPath();
+                ctx.arc(cx, cy, 18, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            // Barrel glow when warmed up (recent fire)
+            if (tower.shotCount > 0 && tower.cooldown > 0) {
+                ctx.fillStyle = 'rgba(255,140,50,0.08)';
+                ctx.beginPath();
+                ctx.arc(cx, cy, 14, 0, Math.PI * 2);
+                ctx.fill();
+            }
         } else if (tower.type === 'firearrow') {
             // Fire arrow: flickering ember glow
             const flicker = 0.1 + Math.sin(gp * 3) * 0.06 + Math.sin(gp * 7) * 0.03;
@@ -761,6 +882,42 @@ export class Renderer {
                 ctx.beginPath();
                 ctx.arc(px, py, 1.5, 0, Math.PI * 2);
                 ctx.fill();
+            }
+        } else if (tower.type === 'missilesniper') {
+            // Green dashed laser sight to target + crosshair circle
+            if (tower.target && tower.target.alive) {
+                ctx.strokeStyle = 'rgba(107,142,35,0.2)';
+                ctx.lineWidth = 0.8;
+                ctx.setLineDash([4, 5]);
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.lineTo(tower.target.x, tower.target.y);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Crosshair circle on target
+                ctx.strokeStyle = 'rgba(107,142,35,0.35)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(tower.target.x, tower.target.y, 8, 0, Math.PI * 2);
+                ctx.stroke();
+                // Crosshair lines
+                for (let i = 0; i < 4; i++) {
+                    const a = (Math.PI / 2) * i;
+                    ctx.beginPath();
+                    ctx.moveTo(tower.target.x + Math.cos(a) * 5, tower.target.y + Math.sin(a) * 5);
+                    ctx.lineTo(tower.target.x + Math.cos(a) * 11, tower.target.y + Math.sin(a) * 11);
+                    ctx.stroke();
+                }
+            } else {
+                // Idle radar sweep
+                const sweepAngle = sp * 1.5;
+                ctx.strokeStyle = `rgba(107,142,35,${0.15 + Math.sin(gp) * 0.08})`;
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.lineTo(cx + Math.cos(sweepAngle) * 30, cy + Math.sin(sweepAngle) * 30);
+                ctx.stroke();
             }
         }
     }
@@ -1288,6 +1445,384 @@ export class Renderer {
         ctx.restore();
     }
 
+    drawSuperLightningTurret(ctx, recoil, tower) {
+        const sp = tower.spinPhase;
+
+        // Outer capacitor ring (world-space rotation)
+        ctx.save();
+        ctx.rotate(-tower.turretAngle);
+        ctx.strokeStyle = `rgba(179,136,255,${0.3 + Math.sin(tower.glowPhase * 2.5) * 0.15})`;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(0, 0, 12, sp, sp + Math.PI * 0.6);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(0, 0, 12, sp + Math.PI * 0.8, sp + Math.PI * 1.4);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(0, 0, 12, sp + Math.PI * 1.6, sp + Math.PI * 2.2);
+        ctx.stroke();
+        ctx.restore();
+
+        // Tesla coil body — octagonal
+        const orbPulse = 1 + Math.sin(tower.glowPhase * 2.5) * 0.12;
+        ctx.fillStyle = '#4a1a8a';
+        ctx.beginPath();
+        for (let i = 0; i < 8; i++) {
+            const a = (Math.PI * 2 * i) / 8;
+            const px = Math.cos(a) * 7;
+            const py = Math.sin(a) * 7;
+            if (i === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.fill();
+
+        // Inner glow layer
+        ctx.fillStyle = '#7b3fff';
+        ctx.beginPath();
+        for (let i = 0; i < 8; i++) {
+            const a = (Math.PI * 2 * i) / 8;
+            const px = Math.cos(a) * 5;
+            const py = Math.sin(a) * 5;
+            if (i === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.fill();
+
+        // Bright plasma core
+        ctx.fillStyle = '#c4a0ff';
+        ctx.beginPath();
+        ctx.arc(0, 0, 3.5 * orbPulse, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Hot white center
+        ctx.fillStyle = `rgba(255,255,255,${0.5 + Math.sin(tower.glowPhase * 3.5) * 0.3})`;
+        ctx.beginPath();
+        ctx.arc(0, 0, 1.8, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Conductor rods — five-pronged fork
+        ctx.fillStyle = '#3a1070';
+        // Top outer prong
+        ctx.beginPath();
+        ctx.moveTo(4 + recoil, -7);
+        ctx.lineTo(15 + recoil, -6);
+        ctx.lineTo(15 + recoil, -4);
+        ctx.lineTo(4 + recoil, -4);
+        ctx.closePath();
+        ctx.fill();
+        // Upper-mid prong
+        ctx.beginPath();
+        ctx.moveTo(5 + recoil, -3);
+        ctx.lineTo(13 + recoil, -2.5);
+        ctx.lineTo(13 + recoil, -1);
+        ctx.lineTo(5 + recoil, -1);
+        ctx.closePath();
+        ctx.fill();
+        // Center prong
+        ctx.fillStyle = '#5a2aaa';
+        ctx.fillRect(5 + recoil, -1, 11, 2);
+        // Lower-mid prong
+        ctx.fillStyle = '#3a1070';
+        ctx.beginPath();
+        ctx.moveTo(5 + recoil, 1);
+        ctx.lineTo(13 + recoil, 1);
+        ctx.lineTo(13 + recoil, 2.5);
+        ctx.lineTo(5 + recoil, 3);
+        ctx.closePath();
+        ctx.fill();
+        // Bottom outer prong
+        ctx.beginPath();
+        ctx.moveTo(4 + recoil, 4);
+        ctx.lineTo(15 + recoil, 4);
+        ctx.lineTo(15 + recoil, 6);
+        ctx.lineTo(4 + recoil, 7);
+        ctx.closePath();
+        ctx.fill();
+
+        // Prong tip caps — metallic
+        ctx.fillStyle = '#ddd';
+        const tipPositions = [[-5, 15], [-1.5, 13], [0, 16], [1.5, 13], [5, 15]];
+        for (const [ty, tx] of tipPositions) {
+            ctx.beginPath();
+            ctx.arc(tx + recoil, ty, 1.3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Electric arcs between prongs
+        ctx.strokeStyle = '#d4aaff';
+        ctx.lineWidth = 1.2;
+        for (let i = 0; i < 4; i++) {
+            const sx = 7 + recoil + i * 2;
+            const jx = (Math.random() - 0.5) * 5;
+            ctx.beginPath();
+            ctx.moveTo(sx, -5);
+            ctx.lineTo(sx + jx, -1);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(sx, 5);
+            ctx.lineTo(sx + jx, 1);
+            ctx.stroke();
+        }
+        // Cross-arcs between outer and inner prongs
+        ctx.strokeStyle = '#b388ff';
+        ctx.lineWidth = 0.8;
+        const arcX = 10 + recoil;
+        ctx.beginPath();
+        ctx.moveTo(arcX, -5.5);
+        ctx.lineTo(arcX + (Math.random() - 0.5) * 3, -2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(arcX, 5.5);
+        ctx.lineTo(arcX + (Math.random() - 0.5) * 3, 2);
+        ctx.stroke();
+    }
+
+    drawBiCannonTurret(ctx, recoil, tower) {
+        const activeBarrel = tower.activeBarrel || 0;
+        const heavyRecoil = tower.recoilTimer > 0 && tower.shotCount > 0 && (tower.shotCount % (tower.heavyEvery || 4)) === 0;
+        const recoilTop = activeBarrel === 0 ? recoil : 0;
+        const recoilBot = activeBarrel === 1 ? recoil : 0;
+
+        // Armored chassis body
+        ctx.fillStyle = '#4a2e16';
+        ctx.beginPath();
+        ctx.moveTo(-9, -7);
+        ctx.lineTo(4, -8);
+        ctx.lineTo(4, 8);
+        ctx.lineTo(-9, 7);
+        ctx.closePath();
+        ctx.fill();
+
+        // Inner plate
+        ctx.fillStyle = '#6b4226';
+        ctx.fillRect(-7, -6, 10, 12);
+
+        // Armor plate highlight
+        ctx.fillStyle = '#8b6240';
+        ctx.fillRect(-6, -5, 8, 4);
+
+        // Top barrel
+        ctx.fillStyle = '#5a3a1c';
+        ctx.beginPath();
+        ctx.moveTo(2 + recoilTop, -7);
+        ctx.lineTo(15 + recoilTop, -5.5);
+        ctx.lineTo(15 + recoilTop, -2.5);
+        ctx.lineTo(2 + recoilTop, -2);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = '#7a5a3c';
+        ctx.fillRect(4 + recoilTop, -5, 9, 1);
+
+        // Bottom barrel
+        ctx.fillStyle = '#5a3a1c';
+        ctx.beginPath();
+        ctx.moveTo(2 + recoilBot, 2);
+        ctx.lineTo(15 + recoilBot, 2.5);
+        ctx.lineTo(15 + recoilBot, 5.5);
+        ctx.lineTo(2 + recoilBot, 7);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = '#7a5a3c';
+        ctx.fillRect(4 + recoilBot, 4, 9, 1);
+
+        // Muzzle rings
+        ctx.strokeStyle = '#3a2010';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(15 + recoilTop, -4, 3, -Math.PI / 2, Math.PI / 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(15 + recoilBot, 4, 3, -Math.PI / 2, Math.PI / 2);
+        ctx.stroke();
+
+        // Muzzle openings
+        ctx.fillStyle = '#222';
+        ctx.beginPath();
+        ctx.arc(15 + recoilTop, -4, 1.8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(15 + recoilBot, 4, 1.8, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Central connector bar
+        ctx.fillStyle = '#4a2e16';
+        ctx.fillRect(3, -2, 4, 4);
+
+        // Rivets
+        ctx.fillStyle = '#bbb';
+        const rivets = [[-5, -5], [-5, 5], [-2, -5], [-2, 5], [1, -5], [1, 5]];
+        for (const [rx, ry] of rivets) {
+            ctx.beginPath();
+            ctx.arc(rx, ry, 1, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Heavy round glow on active muzzle
+        if (heavyRecoil && tower.recoilTimer > 0.04) {
+            const t = tower.recoilTimer / 0.12;
+            const my = activeBarrel === 0 ? -4 : 4;
+            const mr = activeBarrel === 0 ? recoilTop : recoilBot;
+            ctx.fillStyle = `rgba(255,60,0,${t * 0.7})`;
+            ctx.beginPath();
+            ctx.arc(17 + mr, my, 3 + t * 3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = `rgba(255,200,50,${t * 0.5})`;
+            ctx.beginPath();
+            ctx.arc(17 + mr, my, 1.5 + t * 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Smoke wisps
+        if (tower.recoilTimer > 0) {
+            const t = tower.recoilTimer / 0.12;
+            ctx.globalAlpha = t * 0.3;
+            ctx.fillStyle = '#aaa';
+            ctx.beginPath();
+            ctx.arc(17 + recoilTop + (1 - t) * 5, -4 + (Math.random() - 0.5) * 3, 1.5 + (1 - t) * 2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(17 + recoilBot + (1 - t) * 5, 4 + (Math.random() - 0.5) * 3, 1.5 + (1 - t) * 2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1;
+        }
+    }
+
+    drawMissileSniperTurret(ctx, recoil, tower) {
+        // Armored launcher body — wider for 2x2
+        ctx.fillStyle = '#4a5a20';
+        ctx.beginPath();
+        ctx.moveTo(-14, -12);
+        ctx.lineTo(6, -14);
+        ctx.lineTo(6, 14);
+        ctx.lineTo(-14, 12);
+        ctx.closePath();
+        ctx.fill();
+
+        // Inner armor plate
+        ctx.fillStyle = '#6b8e23';
+        ctx.fillRect(-12, -11, 16, 22);
+
+        // Armor highlight
+        ctx.fillStyle = '#8aaa40';
+        ctx.fillRect(-10, -9, 12, 8);
+
+        // 4-tube missile pod (2x2 arrangement)
+        const tubes = [[-5, -7], [5, -7], [-5, 3], [5, 3]];
+        for (const [ty, tx] of tubes) {
+            // Tube body
+            ctx.fillStyle = '#3a4a15';
+            ctx.beginPath();
+            ctx.moveTo(tx + recoil, ty - 3);
+            ctx.lineTo(tx + 18 + recoil, ty - 2.5);
+            ctx.lineTo(tx + 18 + recoil, ty + 2.5);
+            ctx.lineTo(tx + recoil, ty + 3);
+            ctx.closePath();
+            ctx.fill();
+
+            // Tube inner highlight
+            ctx.fillStyle = '#5a6a2a';
+            ctx.fillRect(tx + 2 + recoil, ty - 1, 14, 2);
+
+            // Muzzle opening
+            ctx.fillStyle = '#222';
+            ctx.beginPath();
+            ctx.arc(tx + 18 + recoil, ty, 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Targeting scope on top
+        ctx.fillStyle = '#555';
+        ctx.fillRect(-4, -16, 12, 4);
+        ctx.strokeStyle = '#777';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(-2, -14, 2.5, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(6, -14, 2, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Scope lens glow — green
+        const lensGlow = 0.5 + Math.sin(tower.glowPhase * 2) * 0.3;
+        ctx.fillStyle = `rgba(107,142,35,${lensGlow})`;
+        ctx.beginPath();
+        ctx.arc(-2, -14, 1.8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = `rgba(107,142,35,${lensGlow * 0.6})`;
+        ctx.beginPath();
+        ctx.arc(6, -14, 1.3, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Rotating radar dish behind (world-space)
+        ctx.save();
+        ctx.rotate(-tower.turretAngle);
+        ctx.strokeStyle = `rgba(107,142,35,${0.2 + Math.sin(tower.glowPhase * 2) * 0.1})`;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(0, 0, 18, tower.spinPhase * 0.6, tower.spinPhase * 0.6 + Math.PI * 0.4);
+        ctx.stroke();
+        ctx.restore();
+
+        // Rivets
+        ctx.fillStyle = '#bbb';
+        const rivets = [[-10, -10], [-10, 10], [-3, -10], [-3, 10], [3, -10], [3, 10]];
+        for (const [rx, ry] of rivets) {
+            ctx.beginPath();
+            ctx.arc(rx, ry, 1.2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Exhaust smoke on recoil
+        if (tower.recoilTimer > 0) {
+            const t = tower.recoilTimer / 0.12;
+            ctx.globalAlpha = t * 0.35;
+            ctx.fillStyle = '#999';
+            for (const [ty, tx] of tubes) {
+                ctx.beginPath();
+                ctx.arc(tx + 20 + recoil + (1 - t) * 6, ty + (Math.random() - 0.5) * 3, 2 + (1 - t) * 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+        }
+    }
+
+    drawScorchZones(ctx) {
+        for (const zone of this.game.scorchZones) {
+            const fade = zone.timer / zone.maxTimer;
+            // Outer glow
+            ctx.fillStyle = `rgba(255,80,0,${fade * 0.12})`;
+            ctx.beginPath();
+            ctx.arc(zone.x, zone.y, zone.radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Inner scorch
+            ctx.fillStyle = `rgba(200,50,0,${fade * 0.18})`;
+            ctx.beginPath();
+            ctx.arc(zone.x, zone.y, zone.radius * 0.6, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Flickering embers
+            ctx.fillStyle = `rgba(255,150,0,${fade * 0.3})`;
+            for (let i = 0; i < 4; i++) {
+                const a = Math.random() * Math.PI * 2;
+                const r = Math.random() * zone.radius * 0.8;
+                ctx.beginPath();
+                ctx.arc(zone.x + Math.cos(a) * r, zone.y + Math.sin(a) * r, 1 + Math.random(), 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Edge ring
+            ctx.strokeStyle = `rgba(255,100,0,${fade * 0.25})`;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.arc(zone.x, zone.y, zone.radius, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+    }
+
     drawProjectiles(ctx) {
         for (const p of this.game.projectiles.projectiles) {
             if (!p.alive) continue;
@@ -1297,7 +1832,10 @@ export class Renderer {
             // Trail
             if (p.trail.length > 1) {
                 const trailWidth = p.towerType === 'cannon' ? 2
+                    : p.towerType === 'bicannon' ? (p.isHeavy ? 3 : 2)
+                    : p.towerType === 'missilesniper' ? 2
                     : p.towerType === 'lightning' ? 1.5
+                    : p.towerType === 'superlightning' ? 2
                     : p.towerType === 'sniper' ? 0.5
                     : p.towerType === 'firearrow' ? 1
                     : 1;
@@ -1306,16 +1844,29 @@ export class Renderer {
                 ctx.lineWidth = trailWidth;
                 ctx.globalAlpha = 0.4;
 
-                if (p.towerType === 'lightning') {
-                    // Jittery trail
+                if (p.towerType === 'lightning' || p.towerType === 'superlightning') {
+                    // Jittery electric trail
+                    const jitter = p.towerType === 'superlightning' ? 6 : 4;
                     ctx.beginPath();
                     ctx.moveTo(p.trail[0].x, p.trail[0].y);
                     for (let i = 1; i < p.trail.length; i++) {
-                        const jx = (Math.random() - 0.5) * 4;
-                        const jy = (Math.random() - 0.5) * 4;
+                        const jx = (Math.random() - 0.5) * jitter;
+                        const jy = (Math.random() - 0.5) * jitter;
                         ctx.lineTo(p.trail[i].x + jx, p.trail[i].y + jy);
                     }
                     ctx.stroke();
+                    // Super lightning: second faint trail layer
+                    if (p.towerType === 'superlightning') {
+                        ctx.strokeStyle = '#d4aaff';
+                        ctx.globalAlpha = 0.2;
+                        ctx.lineWidth = 3;
+                        ctx.beginPath();
+                        ctx.moveTo(p.trail[0].x, p.trail[0].y);
+                        for (let i = 1; i < p.trail.length; i++) {
+                            ctx.lineTo(p.trail[i].x + (Math.random() - 0.5) * 8, p.trail[i].y + (Math.random() - 0.5) * 8);
+                        }
+                        ctx.stroke();
+                    }
                 } else if (p.towerType === 'firearrow' && p.trail.length >= 2) {
                     // Orange-to-red gradient trail
                     ctx.strokeStyle = '#ff4500';
@@ -1323,6 +1874,17 @@ export class Renderer {
                     ctx.moveTo(p.trail[0].x, p.trail[0].y);
                     for (let i = 1; i < p.trail.length; i++) {
                         ctx.lineTo(p.trail[i].x, p.trail[i].y);
+                    }
+                    ctx.stroke();
+                } else if (p.towerType === 'missilesniper' && p.trail.length >= 2) {
+                    // Smoke-gray trail with slight jitter
+                    ctx.strokeStyle = '#999';
+                    ctx.beginPath();
+                    ctx.moveTo(p.trail[0].x, p.trail[0].y);
+                    for (let i = 1; i < p.trail.length; i++) {
+                        const jx = (Math.random() - 0.5) * 3;
+                        const jy = (Math.random() - 0.5) * 3;
+                        ctx.lineTo(p.trail[i].x + jx, p.trail[i].y + jy);
                     }
                     ctx.stroke();
                 } else {
@@ -1355,6 +1917,15 @@ export class Renderer {
                     break;
                 case 'firearrow':
                     this.drawFireArrowProjectile(ctx, p, color);
+                    break;
+                case 'superlightning':
+                    this.drawSuperLightningProjectile(ctx, p, color);
+                    break;
+                case 'bicannon':
+                    this.drawBiCannonProjectile(ctx, p, color);
+                    break;
+                case 'missilesniper':
+                    this.drawMissileSniperProjectile(ctx, p, color);
                     break;
                 default:
                     ctx.fillStyle = color;
@@ -1563,6 +2134,170 @@ export class Renderer {
         ctx.restore();
     }
 
+    drawSuperLightningProjectile(ctx, p, color) {
+        // Electric glow halo — larger and brighter
+        ctx.fillStyle = 'rgba(123,63,255,0.3)';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Zigzag bolt shape — larger
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.angle);
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(6, 0);
+        ctx.lineTo(2, -4);
+        ctx.lineTo(3, -1.5);
+        ctx.lineTo(-2, -3);
+        ctx.lineTo(-1, 1.5);
+        ctx.lineTo(-5, 0);
+        ctx.lineTo(-1, 4);
+        ctx.lineTo(-3, 1.5);
+        ctx.lineTo(2, 3);
+        ctx.lineTo(1, -1);
+        ctx.closePath();
+        ctx.fill();
+
+        // White-hot core
+        ctx.fillStyle = `rgba(255,255,255,0.7)`;
+        ctx.beginPath();
+        ctx.arc(0, 0, 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // Mini sparks orbiting
+        ctx.fillStyle = '#d4aaff';
+        for (let i = 0; i < 2; i++) {
+            const a = Math.random() * Math.PI * 2;
+            const r = 4 + Math.random() * 3;
+            ctx.beginPath();
+            ctx.arc(p.x + Math.cos(a) * r, p.y + Math.sin(a) * r, 1, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    drawBiCannonProjectile(ctx, p, color) {
+        if (p.isHeavy) {
+            // Heavy round — larger, glowing
+            // Outer glow
+            ctx.fillStyle = 'rgba(255,60,0,0.25)';
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Motion blur
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.angle);
+            ctx.fillStyle = 'rgba(100,40,10,0.3)';
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 8, 4, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            // Dark ball — bigger
+            ctx.fillStyle = '#3a1a08';
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Orange-red highlight
+            ctx.fillStyle = '#ff4400';
+            ctx.beginPath();
+            ctx.arc(p.x - 1, p.y - 1, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Hot core
+            ctx.fillStyle = '#ffcc00';
+            ctx.beginPath();
+            ctx.arc(p.x - 0.5, p.y - 0.5, 1.2, 0, Math.PI * 2);
+            ctx.fill();
+        } else {
+            // Normal round — like cannon but slightly different color
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.angle);
+            ctx.fillStyle = 'rgba(80,40,15,0.3)';
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 6, 3, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            ctx.fillStyle = '#4a2a10';
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(p.x - 1, p.y - 1, 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    drawMissileSniperProjectile(ctx, p, color) {
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.angle);
+
+        // Exhaust flame behind
+        ctx.fillStyle = 'rgba(255,140,0,0.5)';
+        ctx.beginPath();
+        ctx.moveTo(-6, 0);
+        ctx.lineTo(-10, -3);
+        ctx.lineTo(-12, 0);
+        ctx.lineTo(-10, 3);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = 'rgba(255,200,50,0.4)';
+        ctx.beginPath();
+        ctx.arc(-8, 0, 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Missile body — elongated olive
+        ctx.fillStyle = '#5a7020';
+        ctx.beginPath();
+        ctx.moveTo(8, 0);
+        ctx.lineTo(4, -3);
+        ctx.lineTo(-6, -2.5);
+        ctx.lineTo(-6, 2.5);
+        ctx.lineTo(4, 3);
+        ctx.closePath();
+        ctx.fill();
+
+        // Body highlight
+        ctx.fillStyle = '#7a9a30';
+        ctx.fillRect(-4, -1.5, 8, 1.5);
+
+        // Nose cone
+        ctx.fillStyle = '#888';
+        ctx.beginPath();
+        ctx.moveTo(10, 0);
+        ctx.lineTo(7, -2);
+        ctx.lineTo(7, 2);
+        ctx.closePath();
+        ctx.fill();
+
+        // Tail fins
+        ctx.fillStyle = '#4a5a18';
+        ctx.beginPath();
+        ctx.moveTo(-6, -2.5);
+        ctx.lineTo(-8, -5);
+        ctx.lineTo(-5, -2.5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(-6, 2.5);
+        ctx.lineTo(-8, 5);
+        ctx.lineTo(-5, 2.5);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.restore();
+    }
+
     drawAvatar(ctx, level, themeColor) {
         const w = ctx.canvas.width;
         const h = ctx.canvas.height;
@@ -1734,16 +2469,27 @@ export class Renderer {
 
             if (input.selectedTowerType) {
                 // Placement preview
-                const canPlace = this.game.towers.canPlace(input.hoverGx, input.hoverGy);
                 const def = TOWER_TYPES[input.selectedTowerType];
-                ctx.fillStyle = canPlace ? 'rgba(0,255,0,0.2)' : 'rgba(255,0,0,0.2)';
-                ctx.fillRect(hx, hy, CELL, CELL);
+                const sz = def.size || 1;
+                const canPlace = this.game.towers.canPlace(input.hoverGx, input.hoverGy, input.selectedTowerType);
+
+                // Highlight all cells in the size x size block
+                for (let dx = 0; dx < sz; dx++) {
+                    for (let dy = 0; dy < sz; dy++) {
+                        const cellGx = input.hoverGx + dx;
+                        const cellGy = input.hoverGy + dy;
+                        const cellOk = this.game.map.isBuildable(cellGx, cellGy)
+                            && !this.game.towers.towerGrid.has(`${cellGx},${cellGy}`);
+                        ctx.fillStyle = cellOk ? 'rgba(0,255,0,0.2)' : 'rgba(255,0,0,0.2)';
+                        ctx.fillRect(cellGx * CELL, cellGy * CELL, CELL, CELL);
+                    }
+                }
 
                 if (canPlace) {
-                    // Range preview
+                    // Range preview — centered on block center
                     const range = def.levels[0].range * CELL;
-                    const cx = hx + CELL / 2;
-                    const cy = hy + CELL / 2;
+                    const cx = hx + sz * CELL / 2;
+                    const cy = hy + sz * CELL / 2;
                     ctx.strokeStyle = 'rgba(255,255,255,0.3)';
                     ctx.lineWidth = 1;
                     ctx.beginPath();
@@ -1787,11 +2533,12 @@ export class Renderer {
             const tower = input.selectedTower;
             const tx = tower.gx * CELL;
             const ty = tower.gy * CELL;
+            const tSz = (tower.size || 1) * CELL;
 
             // Selection box
             ctx.strokeStyle = '#ffd700';
             ctx.lineWidth = 2;
-            ctx.strokeRect(tx, ty, CELL, CELL);
+            ctx.strokeRect(tx, ty, tSz, tSz);
 
             // Range circle
             ctx.strokeStyle = 'rgba(255,215,0,0.4)';
