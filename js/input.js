@@ -1,4 +1,5 @@
 import { CELL, COLS, ROWS, STATE, TOWER_TYPES } from './constants.js';
+import { Economy } from './economy.js';
 import { worldToGrid } from './utils.js';
 
 const TOWER_KEYS = { '1': 'arrow', '2': 'cannon', '3': 'frost', '4': 'lightning', '5': 'sniper' };
@@ -150,6 +151,49 @@ export class InputHandler {
                 if (this.game.state === STATE.PLAYING) {
                     this.game.blowThemAll();
                 }
+                break;
+            case 'c':
+            case 'C':
+                if (this.game.adminMode) {
+                    if (confirm('Clear entire wave log?')) {
+                        this.game.debug.clearLog();
+                    }
+                }
+                break;
+            case 'k':
+            case 'K':
+                if (this.game.adminMode && this.game.state === STATE.PLAYING) {
+                    this.game.blowThemAll();
+                }
+                break;
+            case 'w':
+            case 'W':
+                if (this.game.adminMode && this.game.state === STATE.PLAYING) {
+                    const w = prompt(`Set wave (current: ${this.game.waves.currentWave}):`);
+                    const wn = parseInt(w);
+                    if (wn > 0) this.game.adminSetWave(wn);
+                }
+                break;
+            case 'l':
+            case 'L':
+                if (this.game.adminMode && this.game.state === STATE.PLAYING) {
+                    const l = prompt(`Set level (current: ${this.game.worldLevel}):`);
+                    const ln = parseInt(l);
+                    if (ln > 0) this.game.adminSetLevel(ln);
+                }
+                break;
+            case 'r':
+            case 'R':
+                if (this.game.adminMode && this.game.selectedMapId) {
+                    if (confirm(`Clear record for ${this.game.selectedMapId}?`)) {
+                        Economy.clearMapRecord(this.game.selectedMapId);
+                        this.game.economy.record = 0;
+                        this.game.ui.update();
+                    }
+                }
+                break;
+            case '`':
+                this.game.toggleAdmin();
                 break;
         }
     }

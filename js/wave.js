@@ -1,4 +1,4 @@
-import { WAVES, TOTAL_WAVES, WAVES_PER_LEVEL, LEVEL_HP_MULTIPLIER, WAVE_BONUS_BASE, WAVE_BONUS_PER, INTEREST_RATE, CANVAS_W, CANVAS_H, getHPScale } from './constants.js';
+import { WAVES, TOTAL_WAVES, WAVES_PER_LEVEL, LEVEL_HP_MULTIPLIER, WAVE_BONUS_BASE, WAVE_BONUS_PER, INTEREST_RATE, CANVAS_W, CANVAS_H, getWaveHPScale } from './constants.js';
 
 export class WaveManager {
     constructor(game) {
@@ -20,12 +20,14 @@ export class WaveManager {
         this.spawning = true;
         this.waveComplete = false;
         this.betweenWaves = false;
+        this.game.waveElapsed = 0;
 
         const waveDef = this.getWaveDefinition(this.currentWave);
         this.spawnGroups = waveDef;
         this.groupTimers = waveDef.map(g => g.delay || 0);
         this.groupIndices = waveDef.map(() => 0);
 
+        this.game.debug.onWaveStart(this.game);
         this.game.audio.playWaveStart();
     }
 
@@ -66,9 +68,9 @@ export class WaveManager {
     update(dt) {
         if (!this.spawning) return;
 
-        const mapMul = this.game.map.def.hpMultiplier || 1;
+        const mapMul = this.game.map.def.worldHpMultiplier || 1;
         const levelMultiplier = Math.pow(LEVEL_HP_MULTIPLIER, this.game.worldLevel - 1);
-        const hpScale = getHPScale(this.currentWave) * mapMul * levelMultiplier;
+        const hpScale = getWaveHPScale(this.currentWave) * mapMul * levelMultiplier;
         let allDone = true;
 
         for (let g = 0; g < this.spawnGroups.length; g++) {
@@ -97,6 +99,8 @@ export class WaveManager {
     onWaveComplete() {
         this.waveComplete = true;
         this.betweenWaves = true;
+
+        this.game.debug.onWaveEnd(this.game);
 
         // Rewards
         const bonus = WAVE_BONUS_BASE + this.currentWave * WAVE_BONUS_PER;

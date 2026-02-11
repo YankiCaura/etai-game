@@ -23,15 +23,15 @@
                 <span id="gold-info" class="gold-badge">&#x1FA99; 200</span>
                 <span id="lives-info" class="lives-badge">20</span>
                 <button id="next-wave-btn">Next Wave</button>
-                <button class="speed-btn" data-speed="1">1x</button>
-                <button class="speed-btn active" data-speed="2">2x</button>
-                <button class="speed-btn" data-speed="3">3x</button>
+                <button id="speed-btn" class="speed-btn active">2x</button>
                 <button id="pause-btn">Start</button>
                 <button id="mute-btn">Mute</button>
                 <button id="exit-btn">Quit</button>
             </div>
         </div>
 
+        <!-- Canvas + Admin Sidebar Row -->
+        <div id="canvas-row">
         <!-- 3-Layer Canvas Stack -->
         <div id="canvas-wrapper">
             <canvas id="terrain-canvas"></canvas>
@@ -234,6 +234,9 @@
                 <canvas id="level-up-avatar" width="80" height="80"></canvas>
                 <button id="level-up-btn" class="screen-btn">Continue</button>
             </div>
+        </div>
+        <!-- Admin Sidebar -->
+        <div id="admin-panel"></div>
         </div>
 
         <!-- Bottom Tower Panel -->

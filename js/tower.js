@@ -167,6 +167,7 @@ export class TowerManager {
         this.towers.push(tower);
         this.towerGrid.set(`${gx},${gy}`, tower);
 
+        this.game.debug.onTowerBuilt(def.cost);
         this.game.renderer.drawTerrain();
         this.game.audio.playPlace();
         return tower;
@@ -174,6 +175,7 @@ export class TowerManager {
 
     sell(tower) {
         const value = tower.getSellValue();
+        this.game.debug.onTowerSold(value);
         this.game.economy.addGold(value);
         this.towerGrid.delete(`${tower.gx},${tower.gy}`);
         this.towers = this.towers.filter(t => t !== tower);
@@ -186,6 +188,7 @@ export class TowerManager {
         if (cost === null) return false;
         if (!this.game.economy.canAfford(cost)) return false;
         this.game.economy.spendGold(cost);
+        this.game.debug.onTowerUpgraded(cost);
         tower.upgrade();
         this.game.renderer.drawTerrain();
         return true;

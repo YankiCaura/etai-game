@@ -85,6 +85,7 @@ export class Projectile {
             // Single target
             if (this.target && this.target.alive) {
                 const dealt = this.target.takeDamage(dmg);
+                game.debug.onDamageDealt(dealt);
                 if (this.slowFactor > 0) {
                     this.target.applySlow(this.slowFactor, this.slowDuration);
                     game.particles.spawnSpark(this.x, this.y, '#5bbaff', 3);
@@ -108,7 +109,8 @@ export class Projectile {
             if (dist <= splashPx) {
                 // Falloff: 100% at center, 50% at edge
                 const falloff = 1 - 0.5 * (dist / splashPx);
-                e.takeDamage(dmg * falloff);
+                const dealt = e.takeDamage(dmg * falloff);
+                game.debug.onDamageDealt(dealt);
             }
         }
     }
@@ -121,7 +123,8 @@ export class Projectile {
         for (let i = 0; i < this.chainCount; i++) {
             if (!current || !current.alive) break;
             hit.add(current.id);
-            current.takeDamage(currentDmg);
+            const dealt = current.takeDamage(currentDmg);
+            game.debug.onDamageDealt(dealt);
 
             // Visual chain
             const nextTarget = this.findChainTarget(current, hit, game);

@@ -20,7 +20,7 @@ body {
 /* ── Game Container ────────────────────────────────────── */
 #game-container {
     position: relative;
-    width: 1440px;
+    max-width: max-content;
 }
 
 /* ── Top Bar ───────────────────────────────────────────── */
@@ -239,13 +239,78 @@ body {
     box-shadow: 0 0 20px rgba(46, 204, 113, 0.8);
 }
 
+/* ── Canvas Row (canvas + admin sidebar) ──────────────── */
+#canvas-row {
+    display: flex;
+    align-items: stretch;
+}
+
 /* ── Canvas Stack ──────────────────────────────────────── */
 #canvas-wrapper {
     position: relative;
     width: 1440px;
+    min-width: 1440px;
     height: 960px;
     border: 1px solid #0f3460;
     cursor: crosshair;
+}
+
+/* ── Admin Sidebar ────────────────────────────────────── */
+#admin-panel {
+    display: none;
+    width: 230px;
+    min-width: 230px;
+    height: 960px;
+    background: #0d1b2a;
+    border: 1px solid #0f3460;
+    border-left: none;
+    padding: 10px 12px;
+    font: 12px/1.5 monospace;
+    color: #ccc;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+#admin-panel.visible { display: block; }
+
+#admin-panel .ap-section { margin-bottom: 8px; }
+
+#admin-panel .ap-header {
+    font-weight: 700;
+    font-size: 13px;
+    margin-bottom: 4px;
+}
+
+#admin-panel .ap-row {
+    white-space: nowrap;
+    line-height: 1.6;
+}
+
+#admin-panel .ap-key {
+    display: inline-block;
+    background: #1a3050;
+    border: 1px solid #2a4a6a;
+    border-radius: 3px;
+    padding: 0 5px;
+    font-size: 11px;
+    color: #eee;
+    margin-right: 4px;
+    min-width: 16px;
+    text-align: center;
+}
+
+#admin-panel .ap-divider {
+    border: none;
+    border-top: 2px solid rgba(255,255,255,0.3);
+    margin: 8px 0;
+}
+
+#admin-panel .ap-report-badge {
+    background: rgba(255,255,255,0.06);
+    border-left: 3px solid #ccc;
+    border-radius: 0 4px 4px 0;
+    padding: 6px 8px;
+    margin-bottom: 6px;
 }
 
 #canvas-wrapper > canvas {
@@ -331,12 +396,82 @@ body {
     font-size: 15px;
 }
 
+/* ── Tower Hover Tooltip ──────────────────────────────── */
+#tower-tooltip {
+    display: none;
+    position: fixed;
+    transform: translateX(-50%);
+    background: rgba(13, 27, 42, 0.97);
+    border: 2px solid #1a4a8a;
+    border-radius: 10px;
+    padding: 10px;
+    z-index: 100;
+    gap: 12px;
+    pointer-events: none;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+}
+
+.tt-preview {
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+    flex-shrink: 0;
+}
+
+.tt-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 120px;
+}
+
+.tt-name {
+    font-weight: 700;
+    font-size: 15px;
+}
+
+.tt-name kbd {
+    background: #333;
+    padding: 0 5px;
+    border-radius: 3px;
+    border: 1px solid #555;
+    font-size: 11px;
+    color: #aaa;
+    margin-left: 4px;
+}
+
+.tt-cost {
+    color: #f1c40f;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.tt-stats {
+    font-size: 12px;
+    color: #999;
+    line-height: 1.6;
+}
+
+.tt-special {
+    font-size: 11px;
+    color: #aaa;
+    font-style: italic;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding-top: 4px;
+    margin-top: 2px;
+}
+
+.tt-lock {
+    color: #e74c3c;
+    font-size: 11px;
+    font-weight: 600;
+}
+
 /* ── Tower Info Panel ──────────────────────────────────── */
 #tower-info {
     display: none;
     position: absolute;
     top: 50px;
-    right: 10px;
+    right: 40px;
     background: rgba(22, 33, 62, 0.95);
     border: 1px solid #0f3460;
     border-radius: 8px;
@@ -749,8 +884,12 @@ body {
     }
     #canvas-wrapper {
         width: 100%;
+        min-width: 0;
         height: auto;
         aspect-ratio: 1440 / 960;
+    }
+    #admin-panel {
+        height: auto;
     }
     #top-bar, #bottom-bar {
         padding: 6px 8px;

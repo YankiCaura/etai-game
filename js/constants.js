@@ -27,7 +27,7 @@ export const MAP_DEFS = {
     serpentine: {
         name: 'Serpentine Valley',
         themeColor: '#27ae60',
-        hpMultiplier: 1.0,
+        worldHpMultiplier: 1.0,
         description: 'A long winding path gives you plenty of time to build defenses.',
         layouts: [
             // Layout 0: Original winding path
@@ -87,7 +87,7 @@ export const MAP_DEFS = {
     splitcreek: {
         name: 'Split Creek',
         themeColor: '#d4a026',
-        hpMultiplier: 0.80,
+        worldHpMultiplier: 0.80,
         environment: 'desert',
         description: 'The path forks midway — enemies randomly pick a branch.',
         layouts: [
@@ -154,7 +154,7 @@ export const MAP_DEFS = {
     gauntlet: {
         name: 'The Gauntlet',
         themeColor: '#c0392b',
-        hpMultiplier: 0.65,
+        worldHpMultiplier: 0.65,
         environment: 'lava',
         description: 'A short direct path — enemies arrive fast, every tower counts.',
         layouts: [
@@ -266,7 +266,7 @@ export const TOWER_TYPES = {
         cost: 150,
         color: '#c0392b',
         crit: true,
-        unlockWave: 4,
+        unlockWave: 5,
         levels: [
             { damage: 60, range: 6.0, fireRate: 2.0, projSpeed: 600, critChance: 0.10, critMulti: 2.5 },
             { damage: 90, range: 7.0, fireRate: 1.7, projSpeed: 650, critChance: 0.15, critMulti: 2.8, upgradeCost: 110 },
@@ -381,6 +381,6 @@ export const TARGET_MODES = ['First', 'Closest', 'Strongest', 'Weakest'];
 export const MAX_PARTICLES = 500;
 
 // ── HP Scaling ─────────────────────────────────────────────
-export function getHPScale(wave) {
+export function getWaveHPScale(wave) {
     return wave * Math.pow(1.10, wave) * 0.9;
 }

@@ -1,4 +1,4 @@
-import { TOWER_TYPES, TARGET_MODES, STATE, MAP_DEFS, COLS, ROWS, CELL_TYPE, WAVES_PER_LEVEL } from './constants.js';
+import { TOWER_TYPES, TARGET_MODES, STATE, MAP_DEFS, COLS, ROWS, CELL, CELL_TYPE, WAVES_PER_LEVEL } from './constants.js';
 import { Economy } from './economy.js';
 
 export class UI {
@@ -15,7 +15,7 @@ export class UI {
         this.elAvatarCanvas = document.getElementById('avatar-canvas');
         this.elTowerPanel = document.getElementById('tower-panel');
         this.elTowerInfo = document.getElementById('tower-info');
-        this.elSpeedBtns = document.querySelectorAll('.speed-btn');
+        this.elSpeedBtn = document.getElementById('speed-btn');
         this.elPauseBtn = document.getElementById('pause-btn');
         this.elMuteBtn = document.getElementById('mute-btn');
         this.elNextWaveBtn = document.getElementById('next-wave-btn');
@@ -189,7 +189,15 @@ export class UI {
         const panel = this.elTowerPanel;
         panel.innerHTML = '';
 
+        // Pre-render tower previews and create tooltip
+        this.towerPreviews = {};
+        this.tooltip = document.createElement('div');
+        this.tooltip.id = 'tower-tooltip';
+        document.body.appendChild(this.tooltip);
+
         for (const [key, def] of Object.entries(TOWER_TYPES)) {
+            this.towerPreviews[key] = this.renderTowerPreview(key);
+
             const btn = document.createElement('button');
             btn.className = 'tower-btn';
             btn.dataset.type = key;
@@ -198,25 +206,106 @@ export class UI {
                 <span class="tower-name">${def.name}</span>
                 <span class="tower-cost">$${def.cost}</span>
             `;
-            const hotkey = Object.keys(TOWER_TYPES).indexOf(key) + 1;
-            const lockNote = def.unlockWave ? ` [Unlocks wave ${def.unlockWave}]` : '';
-            btn.title = `${def.name} Tower ($${def.cost}) - Press ${hotkey}${lockNote}`;
             btn.addEventListener('click', () => {
                 this.game.audio.ensureContext();
                 this.game.input.selectTowerType(key);
+                this.hideTowerTooltip();
                 this.update();
             });
+            btn.addEventListener('mouseenter', () => this.showTowerTooltip(btn, key, def));
+            btn.addEventListener('mouseleave', () => this.hideTowerTooltip());
             panel.appendChild(btn);
         }
     }
 
+    renderTowerPreview(key) {
+        const size = 80;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+
+        ctx.fillStyle = '#0d1b2a';
+        ctx.fillRect(0, 0, size, size);
+
+        const s = size / CELL;
+        ctx.save();
+        ctx.scale(s, s);
+
+        const fake = {
+            type: key, level: 0, gx: 0, gy: 0,
+            recoilTimer: 0, spinPhase: 0,
+            turretAngle: Math.PI / 6, glowPhase: 0,
+            idleTime: 0, target: null,
+        };
+
+        this.game.renderer.drawTowerBase(ctx, fake);
+        ctx.translate(CELL / 2, CELL / 2);
+        ctx.rotate(Math.PI / 6);
+
+        switch (key) {
+            case 'arrow': this.game.renderer.drawArrowTurret(ctx, 0, fake); break;
+            case 'cannon': this.game.renderer.drawCannonTurret(ctx, 0, fake); break;
+            case 'frost': this.game.renderer.drawFrostTurret(ctx, 0, fake); break;
+            case 'lightning': this.game.renderer.drawLightningTurret(ctx, 0, fake); break;
+            case 'sniper': this.game.renderer.drawSniperTurret(ctx, 0, fake); break;
+        }
+
+        ctx.restore();
+        return canvas.toDataURL();
+    }
+
+    showTowerTooltip(btn, key, def) {
+        const stats = def.levels[0];
+        const hotkey = Object.keys(TOWER_TYPES).indexOf(key) + 1;
+        const rate = (1 / stats.fireRate).toFixed(1);
+
+        const specials = {
+            arrow: 'Fast, cheap, reliable',
+            frost: `Slows ${stats.slowFactor * 100}% for ${stats.slowDuration}s`,
+            lightning: `Chains to ${stats.chainCount} enemies`,
+            cannon: `Splash radius ${stats.splashRadius}`,
+            sniper: `${stats.critChance * 100}% crit for ${stats.critMulti}x dmg`,
+        };
+
+        let lockHTML = '';
+        if (def.unlockWave) {
+            const locked = this.game.waves.currentWave < def.unlockWave;
+            if (locked) lockHTML = `<div class="tt-lock">Unlocks at wave ${def.unlockWave}</div>`;
+        }
+
+        this.tooltip.innerHTML = `
+            <img class="tt-preview" src="${this.towerPreviews[key]}" width="80" height="80">
+            <div class="tt-info">
+                <div class="tt-name" style="color:${def.color}">${def.name} <kbd>${hotkey}</kbd></div>
+                <div class="tt-cost">$${def.cost}</div>
+                <div class="tt-stats">
+                    <div>Dmg <span style="color:#e74c3c">${stats.damage}</span></div>
+                    <div>Range <span style="color:#3498db">${stats.range}</span></div>
+                    <div>Rate <span style="color:#f1c40f">${rate}/s</span></div>
+                </div>
+                <div class="tt-special">${specials[key]}</div>
+                ${lockHTML}
+            </div>
+        `;
+
+        this.tooltip.style.display = 'flex';
+        const rect = btn.getBoundingClientRect();
+        const ttRect = this.tooltip.getBoundingClientRect();
+        this.tooltip.style.left = (rect.left + rect.width / 2 + 40) + 'px';
+        this.tooltip.style.top = (rect.top - ttRect.height - 10) + 'px';
+    }
+
+    hideTowerTooltip() {
+        this.tooltip.style.display = 'none';
+    }
+
     setupControls() {
-        // Speed buttons
-        this.elSpeedBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                this.game.audio.ensureContext();
-                this.game.setSpeed(parseInt(btn.dataset.speed));
-            });
+        // Speed button — cycles 1→2→3→1
+        this.elSpeedBtn.addEventListener('click', () => {
+            this.game.audio.ensureContext();
+            const next = this.game.speed % 3 + 1;
+            this.game.setSpeed(next);
         });
 
         // Pause button
@@ -300,10 +389,8 @@ export class UI {
             }
         }
 
-        // Speed buttons
-        this.elSpeedBtns.forEach(btn => {
-            btn.classList.toggle('active', parseInt(btn.dataset.speed) === game.speed);
-        });
+        // Speed button
+        this.elSpeedBtn.textContent = `${game.speed}x`;
 
         // Pause button
         this.elPauseBtn.textContent = game.state === STATE.PAUSED ? 'Resume' : 'Pause';
@@ -345,7 +432,7 @@ export class UI {
             // Show/hide lock label
             const costEl = btn.querySelector('.tower-cost');
             if (costEl) {
-                costEl.textContent = locked ? `LVL ${def.unlockWave}` : `$${def.cost}`;
+                costEl.textContent = locked ? `Wave ${def.unlockWave}` : `$${def.cost}`;
             }
         });
     }

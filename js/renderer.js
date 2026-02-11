@@ -1,4 +1,4 @@
-import { CANVAS_W, CANVAS_H, CELL, COLS, ROWS, TOWER_TYPES, TARGET_MODES } from './constants.js';
+import { CANVAS_W, CANVAS_H, CELL, COLS, ROWS, TOWER_TYPES, TARGET_MODES, LEVEL_HP_MULTIPLIER, WAVES_PER_LEVEL, getWaveHPScale } from './constants.js';
 
 export class Renderer {
     constructor(canvases, game) {
@@ -165,6 +165,15 @@ export class Renderer {
 
         // Restore screen shake
         if (shakeX !== 0 || shakeY !== 0) {
+            ctx.restore();
+        }
+
+        // Screen flash overlay
+        if (this.game.screenFlash > 0) {
+            ctx.save();
+            ctx.globalAlpha = Math.min(this.game.screenFlash, 1);
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
             ctx.restore();
         }
 
@@ -1453,5 +1462,94 @@ export class Renderer {
             ctx.stroke();
             ctx.setLineDash([]);
         }
+
+        // Admin sidebar
+        this.updateAdminPanel();
+    }
+
+    updateAdminPanel() {
+        const el = document.getElementById('admin-panel');
+        if (!el) return;
+        if (!this.game.adminMode) {
+            el.classList.remove('visible');
+            return;
+        }
+        el.classList.add('visible');
+
+        const fmtTime = (s) => {
+            const m = Math.floor(s / 60);
+            const sec = Math.floor(s % 60);
+            return `${m}:${sec.toString().padStart(2, '0')}`;
+        };
+
+        const mapDef = this.game.map.def;
+        const worldName = mapDef ? mapDef.name : '—';
+        const worldHpMul = mapDef ? mapDef.worldHpMultiplier : 1;
+        const level = this.game.worldLevel;
+        const levelHpMul = Math.pow(LEVEL_HP_MULTIPLIER, Math.max(0, level - 1));
+        const wave = this.game.waves.currentWave;
+        const totalWaves = WAVES_PER_LEVEL;
+        const waveHpScale = wave > 0 ? getWaveHPScale(wave) : 0;
+        const finalMul = worldHpMul * levelHpMul * waveHpScale;
+
+        const spawning = this.game.waves.spawning;
+        const between = this.game.waves.betweenWaves;
+        const status = spawning ? 'Spawning' : between ? 'Between' : 'Fighting';
+
+        const diffColors = {
+            TRIVIAL: '#3498db', EASY: '#2ecc71', FAIR: '#f1c40f',
+            HARD: '#e67e22', BRUTAL: '#e74c3c',
+        };
+
+        const report = this.game.debug.getLastReport();
+        let reportHTML;
+        if (!report) {
+            reportHTML = `<div class="ap-row" style="color:#555;font-style:italic">No report yet</div>`;
+        } else {
+            const ts = report.timestamp ? new Date(report.timestamp).toLocaleTimeString() : '';
+            const dc = diffColors[report.difficulty] || '#ccc';
+            reportHTML = `
+<div class="ap-report-badge" style="border-color:${dc}">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <span style="color:${dc};font-weight:700;font-size:14px">${report.difficulty}</span>
+    <span style="color:#888;font-size:10px">${ts}</span>
+  </div>
+  <div style="color:#fff;font-size:13px;font-weight:600;margin:4px 0">${report.world} L${report.level} W${report.wave}</div>
+</div>
+<div class="ap-row">Time: <span style="color:#fff">${fmtTime(report.duration)}</span> (${report.duration.toFixed(1)}s)</div>
+<div class="ap-row">Spawned: <span style="color:#fff">${report.spawned}</span> Killed: <span style="color:#2ecc71">${report.killed}</span></div>
+<div class="ap-row">Leaked: <span style="color:${report.leaked > 0 ? '#e74c3c' : '#2ecc71'}">${report.leaked}</span> Lives-: <span style="color:${report.livesLost > 0 ? '#e74c3c' : '#2ecc71'}">${report.livesLost}</span></div>
+<div class="ap-row">Overkill: <span style="color:#f1c40f">${report.overkill.toFixed(2)}x</span> Kill: <span style="color:#fff">${(report.killRate * 100).toFixed(0)}%</span></div>
+<div class="ap-row">DPS: <span style="color:#fff">${report.dpsActual.toFixed(1)}</span> / ${report.dpsTheory.toFixed(1)} (<span style="color:#3498db">${(report.efficiency * 100).toFixed(0)}%</span>)</div>
+<div class="ap-row">Towers: <span style="color:#fff">${report.towers}</span></div>
+<div class="ap-row">Gold: <span style="color:#f1c40f">${report.goldStart}</span> → <span style="color:#f1c40f">${report.goldEnd}</span></div>
+<div class="ap-row">Spent: ${report.goldSpent} Earned: ${report.goldEarned}</div>`;
+        }
+
+        el.innerHTML = `
+<div class="ap-section">
+  <div class="ap-header" style="color:#f1c40f">Actions</div>
+  <div class="ap-row"><span class="ap-key">K</span><span style="color:#e74c3c">Kill All</span></div>
+  <div class="ap-row"><span class="ap-key">W</span><span style="color:#e67e22">Set Wave</span></div>
+  <div class="ap-row"><span class="ap-key">L</span><span style="color:#e67e22">Set Level</span></div>
+  <div class="ap-row"><span class="ap-key">C</span><span style="color:#888">Clear Log</span></div>
+  <div class="ap-row"><span class="ap-key">R</span><span style="color:#888">Clear Record</span></div>
+</div>
+<div class="ap-section">
+  <div class="ap-header" style="color:#9b59b6">Difficulty</div>
+  <div class="ap-row" style="color:#fff">${worldName} L${level} W${wave}/${totalWaves}</div>
+  <div class="ap-row" style="color:#f1c40f">HP: ${worldHpMul}×${levelHpMul.toFixed(1)}×${waveHpScale.toFixed(1)} = ${finalMul.toFixed(1)}</div>
+</div>
+<div class="ap-section">
+  <div class="ap-header" style="color:#e0e0e0">Realtime</div>
+  <div class="ap-row">Game: ${fmtTime(this.game.elapsedTime)}</div>
+  <div class="ap-row">Wave: ${fmtTime(this.game.waveElapsed)}</div>
+  <div class="ap-row">Speed: ${this.game.speed}x  ${status}</div>
+</div>
+<hr class="ap-divider">
+<div class="ap-section">
+  <div class="ap-header" style="color:#e67e22">Wave Report</div>
+  ${reportHTML}
+</div>`;
     }
 }

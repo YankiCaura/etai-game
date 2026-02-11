@@ -133,6 +133,7 @@ export class EnemyManager {
     spawn(typeName, hpScale) {
         const enemy = new Enemy(typeName, hpScale, this.game.map.getEnemyPath());
         this.enemies.push(enemy);
+        this.game.debug.onEnemySpawn(enemy);
         return enemy;
     }
 
@@ -142,6 +143,7 @@ export class EnemyManager {
             e.update(dt);
 
             if (e.reached) {
+                this.game.debug.onEnemyLeaked(e);
                 this.game.economy.loseLives(e.livesCost);
                 this.game.particles.spawnBigFloatingText(e.x, e.y - 10, `-${e.livesCost}`, '#ffffff');
                 if (this.game.economy.lives <= 0) {
@@ -160,6 +162,7 @@ export class EnemyManager {
             if (!e.alive && e.deathTimer < 0) {
                 // Just died — start death animation
                 e.deathTimer = 0;
+                this.game.debug.onEnemyKilled(e);
                 this.game.economy.addGold(Math.round(e.reward * 1.10));
                 this.game.economy.addScore(e.reward);
                 this.game.particles.spawnFloatingText(e.x, e.y - 10, `+${e.reward}`, '#ffd700');

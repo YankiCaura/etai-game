@@ -10,6 +10,7 @@ import { Renderer } from './renderer.js';
 import { InputHandler } from './input.js';
 import { UI } from './ui.js';
 import { Audio } from './audio.js';
+import { WaveDebugger } from './debug.js';
 
 const FIXED_DT = 1 / 60; // 60 Hz physics
 
@@ -21,8 +22,12 @@ export class Game {
         this.accumulator = 0;
         this.selectedMapId = null;
         this.worldLevel = 0;
+        this.adminMode = false;
+        this.elapsedTime = 0;
+        this.waveElapsed = 0;
 
-        // Screen shake
+        // Screen shake & flash
+        this.screenFlash = 0;
         this.shakeTimer = 0;
         this.shakeIntensity = 0;
         this.shakeOffsetX = 0;
@@ -40,6 +45,7 @@ export class Game {
         this.input = new InputHandler(canvases.ui, this);
         this.ui = new UI(this);
         this.audio = new Audio();
+        this.debug = new WaveDebugger();
 
         // Initial terrain render
         this.renderer.drawTerrain();
@@ -63,6 +69,10 @@ export class Game {
         this.ui.hideAllScreens();
         this.waves.startNextWave();
         this.ui.update();
+    }
+
+    toggleAdmin() {
+        this.adminMode = !this.adminMode;
     }
 
     togglePause() {
@@ -101,6 +111,7 @@ export class Game {
     continueNextLevel() {
         this.worldLevel++;
         const bonus = 25 + this.worldLevel * 15;
+        this.debug.reset();
         this.economy.levelUpReset(bonus);
         this.enemies.reset();
         this.towers.reset();
@@ -121,10 +132,13 @@ export class Game {
         this.state = STATE.MENU;
         this.selectedMapId = null;
         this.worldLevel = 0;
+        this.elapsedTime = 0;
+        this.waveElapsed = 0;
         this.shakeTimer = 0;
         this.shakeIntensity = 0;
         this.shakeOffsetX = 0;
         this.shakeOffsetY = 0;
+        this.debug.reset();
         this.economy.reset();
         this.enemies.reset();
         this.towers.reset();
@@ -162,16 +176,57 @@ export class Game {
 
     blowThemAll() {
         const enemies = this.enemies.enemies;
+        let count = 0;
         for (const e of enemies) {
             if (e.alive && e.deathTimer < 0) {
                 e.hp = 0;
                 e.alive = false;
+                this.particles.spawnExplosion(e.x, e.y, e.color);
+                count++;
             }
         }
-        this.triggerShake(10, 0.5);
+        if (count > 0) {
+            this.triggerShake(12, 0.6);
+            this.audio.playExplosion();
+            this.screenFlash = 0.3;
+        }
+    }
+
+    adminSetWave(waveNum) {
+        // Clear field and jump to specific wave
+        this.enemies.reset();
+        this.projectiles.reset();
+        this.waves.currentWave = waveNum - 1;
+        this.waves.spawning = false;
+        this.waves.waveComplete = false;
+        this.waves.betweenWaves = false;
+        this.waves.startNextWave();
+    }
+
+    adminSetLevel(level) {
+        // Full restart at a specific world level
+        this.worldLevel = level;
+        this.elapsedTime = 0;
+        this.waveElapsed = 0;
+        this.debug.reset();
+        this.economy.reset();
+        this.enemies.reset();
+        this.towers.reset();
+        this.projectiles.reset();
+        this.particles.reset();
+        this.waves.reset();
+        this.input.reset();
+        this.map = new GameMap(this.selectedMapId, (this.worldLevel - 1) % 3);
+        this.renderer.drawTerrain();
+        this.state = STATE.PLAYING;
+        this.waves.startNextWave();
+        this.ui.update();
     }
 
     update(dt) {
+        // Update screen flash
+        if (this.screenFlash > 0) this.screenFlash -= dt;
+
         // Update screen shake
         if (this.shakeTimer > 0) {
             this.shakeTimer -= dt;
@@ -184,6 +239,9 @@ export class Game {
                 this.shakeOffsetY = 0;
             }
         }
+
+        this.elapsedTime += dt;
+        this.waveElapsed += dt;
 
         this.waves.update(dt);
         this.enemies.update(dt);
