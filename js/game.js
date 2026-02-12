@@ -81,7 +81,7 @@ export class Game {
         // Set starting gold based on world level
         this.economy.levelUpReset(this.worldLevel);
         // Recreate map with the correct layout for this world level
-        this.map = new GameMap(this.selectedMapId, (this.worldLevel - 1) % 3);
+        this.map = new GameMap(this.selectedMapId, (this.worldLevel - 1) % 3, this.worldLevel);
         this.renderer.drawTerrain();
         if (this.worldLevel >= HERO_STATS.unlockLevel) this.hero.init(this.map);
         else this.hero.reset();
@@ -136,7 +136,7 @@ export class Game {
         this.waves.reset();
         this.input.reset();
         // Recreate map with the new layout for this world level
-        this.map = new GameMap(this.selectedMapId, (this.worldLevel - 1) % 3);
+        this.map = new GameMap(this.selectedMapId, (this.worldLevel - 1) % 3, this.worldLevel);
         this.renderer.drawTerrain();
         if (this.worldLevel >= HERO_STATS.unlockLevel) this.hero.init(this.map);
         else this.hero.reset();
@@ -246,7 +246,7 @@ export class Game {
         this.waves.reset();
         this.input.reset();
         if (this.selectedMapId) {
-            this.map = new GameMap(this.selectedMapId, (this.worldLevel - 1) % 3);
+            this.map = new GameMap(this.selectedMapId, (this.worldLevel - 1) % 3, this.worldLevel);
             this.renderer.drawTerrain();
             if (this.worldLevel >= HERO_STATS.unlockLevel) this.hero.init(this.map);
             else this.hero.reset();

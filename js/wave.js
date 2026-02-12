@@ -1,4 +1,4 @@
-import { WAVES, TOTAL_WAVES, LEVEL_HP_MULTIPLIER, WAVE_BONUS_BASE, WAVE_BONUS_PER, INTEREST_RATE, CANVAS_W, CANVAS_H, getWaveHPScale, WAVE_MODIFIERS, MODIFIER_START_WAVE, MODIFIER_CHANCE, EARLY_SEND_MAX_BONUS, EARLY_SEND_DECAY, LEVEL_WAVES, getTotalWaves, getWaveTag } from './constants.js';
+import { WAVES, TOTAL_WAVES, LEVEL_HP_MULTIPLIER, WAVE_BONUS_BASE, WAVE_BONUS_PER, INTEREST_RATE, CANVAS_W, CANVAS_H, getWaveHPScale, WAVE_MODIFIERS, MODIFIER_START_WAVE, MODIFIER_CHANCE, EARLY_SEND_MAX_BONUS, EARLY_SEND_DECAY, LEVEL_WAVES, getTotalWaves, getWaveTag, DUAL_SPAWN_LEVEL } from './constants.js';
 
 export class WaveManager {
     constructor(game) {
@@ -22,6 +22,7 @@ export class WaveManager {
         this.spawnGroups = [];
         this.groupTimers = [];
         this.groupIndices = [];
+        this.spawnCounter = 0;
     }
 
     startNextWave() {
@@ -136,7 +137,9 @@ export class WaveManager {
             this.groupTimers[g] -= dt;
 
             if (this.groupTimers[g] <= 0) {
-                this.game.enemies.spawn(group.type, hpScale, this.modifier);
+                const useSecondary = (this.game.worldLevel >= DUAL_SPAWN_LEVEL) && (this.spawnCounter % 2 === 1);
+                this.game.enemies.spawn(group.type, hpScale, this.modifier, useSecondary);
+                this.spawnCounter++;
                 this.groupIndices[g]++;
                 this.groupTimers[g] = group.interval;
             }
@@ -190,5 +193,6 @@ export class WaveManager {
         this.spawnGroups = [];
         this.groupTimers = [];
         this.groupIndices = [];
+        this.spawnCounter = 0;
     }
 }

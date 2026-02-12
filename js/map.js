@@ -1,4 +1,4 @@
-import { COLS, ROWS, CELL, CELL_TYPE, MAP_DEFS } from './constants.js';
+import { COLS, ROWS, CELL, CELL_TYPE, MAP_DEFS, DUAL_SPAWN_LEVEL } from './constants.js';
 import { gridToWorld } from './utils.js';
 
 // Simple deterministic hash for procedural decoration
@@ -11,7 +11,7 @@ function seedRand(x, y, i) {
 }
 
 export class GameMap {
-    constructor(mapId = 'serpentine', layoutIndex = 0) {
+    constructor(mapId = 'serpentine', layoutIndex = 0, worldLevel = 0) {
         this.mapId = mapId;
         this.def = MAP_DEFS[mapId];
         this.layout = this.def.layouts[layoutIndex % this.def.layouts.length];
@@ -22,11 +22,12 @@ export class GameMap {
         // Split path data (null for non-split maps)
         this.pathUpper = null;
         this.pathLower = null;
+        this.secondaryPath = null;
 
-        this.buildGrid();
+        this.buildGrid(worldLevel);
     }
 
-    buildGrid() {
+    buildGrid(worldLevel) {
         const layout = this.layout;
 
         // Initialize all cells as buildable
@@ -88,6 +89,15 @@ export class GameMap {
             this.path = waypoints.map(wp => gridToWorld(wp.x, wp.y));
         }
 
+        // Secondary path (dual spawn, Level 6+)
+        if (layout.secondaryWaypoints && worldLevel >= DUAL_SPAWN_LEVEL) {
+            const secWP = layout.secondaryWaypoints;
+            for (let i = 0; i < secWP.length - 1; i++) {
+                this.carveLine(secWP[i].x, secWP[i].y, secWP[i + 1].x, secWP[i + 1].y);
+            }
+            this.secondaryPath = secWP.map(wp => gridToWorld(wp.x, wp.y));
+        }
+
         // Mark blocked cells
         for (const c of layout.blocked) {
             if (c.x >= 0 && c.x < COLS && c.y >= 0 && c.y < ROWS) {
@@ -98,7 +108,10 @@ export class GameMap {
         }
     }
 
-    getEnemyPath() {
+    getEnemyPath(useSecondary) {
+        if (useSecondary && this.secondaryPath) {
+            return this.secondaryPath;
+        }
         if (this.pathUpper && this.pathLower) {
             return Math.random() < 0.5 ? this.pathUpper : this.pathLower;
         }
@@ -158,6 +171,11 @@ export class GameMap {
 
         // Draw castle at path exit
         this.drawCastle(ctx);
+
+        // Draw secondary entry marker (dual spawn)
+        if (this.secondaryPath) {
+            this.drawSecondaryEntry(ctx);
+        }
 
         // Grid lines
         ctx.strokeStyle = 'rgba(0,0,0,0.08)';
@@ -241,6 +259,26 @@ export class GameMap {
         ctx.beginPath();
         ctx.moveTo(cx + 19 * s, cy - 36 * s);
         ctx.lineTo(cx + 19 * s, cy - 20 * s);
+        ctx.stroke();
+    }
+
+    drawSecondaryEntry(ctx) {
+        const wp = this.layout.secondaryWaypoints[0];
+        const cx = wp.x * CELL + CELL / 2;
+        const cy = wp.y * CELL + CELL / 2;
+
+        // Green arrow pointing left (into the map)
+        ctx.fillStyle = '#2ecc71';
+        ctx.beginPath();
+        ctx.moveTo(cx + 12, cy - 10);
+        ctx.lineTo(cx - 8, cy);
+        ctx.lineTo(cx + 12, cy + 10);
+        ctx.closePath();
+        ctx.fill();
+
+        // Outline
+        ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+        ctx.lineWidth = 1.5;
         ctx.stroke();
     }
 

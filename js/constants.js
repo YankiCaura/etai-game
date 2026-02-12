@@ -47,6 +47,9 @@ export const MAP_DEFS = {
                     { x: 0, y: 15 }, { x: 14, y: 12 },
                 ],
                 paths: null,
+                secondaryWaypoints: [
+                    {x:29,y:16},{x:22,y:16},{x:22,y:9},{x:27,y:9},{x:27,y:3},{x:29,y:3},{x:29,y:6}
+                ],
             },
             // Layout 1: Mirrored serpentine starting bottom-left, going up
             {
@@ -65,6 +68,9 @@ export const MAP_DEFS = {
                     { x: 0, y: 4 }, { x: 14, y: 7 },
                 ],
                 paths: null,
+                secondaryWaypoints: [
+                    {x:29,y:3},{x:22,y:3},{x:22,y:10},{x:27,y:10},{x:27,y:17},{x:29,y:17},{x:29,y:13}
+                ],
             },
             // Layout 2: Wider S-curve with fewer but longer segments
             {
@@ -81,6 +87,9 @@ export const MAP_DEFS = {
                     { x: 10, y: 19 }, { x: 11, y: 19 }, { x: 25, y: 1 }, { x: 26, y: 1 },
                 ],
                 paths: null,
+                secondaryWaypoints: [
+                    {x:29,y:2},{x:22,y:2},{x:22,y:12},{x:26,y:12},{x:26,y:16},{x:29,y:16}
+                ],
             },
         ],
     },
@@ -111,6 +120,9 @@ export const MAP_DEFS = {
                     { x: 26, y: 6 }, { x: 27, y: 6 }, { x: 26, y: 14 }, { x: 27, y: 14 },
                     { x: 4, y: 19 }, { x: 5, y: 19 }, { x: 24, y: 19 }, { x: 25, y: 19 },
                 ],
+                secondaryWaypoints: [
+                    {x:29,y:3},{x:24,y:3},{x:24,y:7},{x:29,y:7},{x:29,y:10}
+                ],
             },
             // Layout 1: Vertical fork — splits up/down then converges on right
             {
@@ -130,6 +142,9 @@ export const MAP_DEFS = {
                     { x: 24, y: 5 }, { x: 25, y: 5 }, { x: 24, y: 15 }, { x: 25, y: 15 },
                     { x: 8, y: 19 }, { x: 9, y: 19 }, { x: 16, y: 19 }, { x: 17, y: 19 },
                 ],
+                secondaryWaypoints: [
+                    {x:29,y:2},{x:24,y:2},{x:24,y:7},{x:28,y:7},{x:28,y:10},{x:29,y:10}
+                ],
             },
             // Layout 2: Wide fork with different angles and merge point
             {
@@ -148,6 +163,9 @@ export const MAP_DEFS = {
                     { x: 8, y: 9 }, { x: 9, y: 9 }, { x: 8, y: 11 }, { x: 9, y: 11 },
                     { x: 13, y: 9 }, { x: 14, y: 9 }, { x: 13, y: 11 }, { x: 14, y: 11 },
                     { x: 27, y: 8 }, { x: 28, y: 8 }, { x: 22, y: 15 }, { x: 23, y: 15 },
+                ],
+                secondaryWaypoints: [
+                    {x:29,y:15},{x:24,y:15},{x:24,y:10},{x:28,y:10},{x:28,y:5},{x:29,y:5}
                 ],
             },
         ],
@@ -174,6 +192,9 @@ export const MAP_DEFS = {
                     { x: 0, y: 0 }, { x: 28, y: 0 }, { x: 0, y: 19 }, { x: 28, y: 19 },
                 ],
                 paths: null,
+                secondaryWaypoints: [
+                    {x:29,y:17},{x:22,y:17},{x:22,y:11},{x:27,y:11},{x:27,y:3},{x:29,y:3},{x:29,y:8}
+                ],
             },
             // Layout 1: Different zigzag pattern — enters top, exits bottom-right
             {
@@ -189,6 +210,9 @@ export const MAP_DEFS = {
                     { x: 0, y: 0 }, { x: 0, y: 19 },
                 ],
                 paths: null,
+                secondaryWaypoints: [
+                    {x:29,y:2},{x:22,y:2},{x:22,y:10},{x:27,y:10},{x:27,y:15},{x:29,y:15}
+                ],
             },
             // Layout 2: L-shaped path with tight turns
             {
@@ -204,6 +228,9 @@ export const MAP_DEFS = {
                     { x: 0, y: 0 }, { x: 0, y: 19 },
                 ],
                 paths: null,
+                secondaryWaypoints: [
+                    {x:29,y:3},{x:25,y:3},{x:25,y:10},{x:28,y:10},{x:28,y:16},{x:29,y:16}
+                ],
             },
         ],
     },
@@ -462,7 +489,8 @@ export const WAVES = [
 ];
 
 export const TOTAL_WAVES = 20;
-export const LEVEL_HP_MULTIPLIER = 1.05;
+export const LEVEL_HP_MULTIPLIER = 1.055;
+export const DUAL_SPAWN_LEVEL = 6;
 
 // ── Level-Specific Wave Overrides ─────────────────────────
 export const GOLD_RUSH_MULTIPLIER = 2;

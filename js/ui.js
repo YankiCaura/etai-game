@@ -1,4 +1,4 @@
-import { TOWER_TYPES, TARGET_MODES, STATE, MAP_DEFS, COLS, ROWS, CELL, CELL_TYPE, TOTAL_WAVES, EARLY_SEND_MAX_BONUS, EARLY_SEND_DECAY, HERO_STATS, getTotalWaves } from './constants.js';
+import { TOWER_TYPES, TARGET_MODES, STATE, MAP_DEFS, COLS, ROWS, CELL, CELL_TYPE, TOTAL_WAVES, EARLY_SEND_MAX_BONUS, EARLY_SEND_DECAY, HERO_STATS, getTotalWaves, DUAL_SPAWN_LEVEL } from './constants.js';
 import { Economy } from './economy.js';
 
 export class UI {
@@ -137,6 +137,15 @@ export class UI {
             }
         }
 
+        // Carve secondary path if present and player level allows
+        const playerLevel = Economy.getPlayerLevel();
+        if (layout.secondaryWaypoints && (playerLevel + 1) >= DUAL_SPAWN_LEVEL) {
+            const secWP = layout.secondaryWaypoints;
+            for (let i = 0; i < secWP.length - 1; i++) {
+                carve(secWP[i].x, secWP[i].y, secWP[i + 1].x, secWP[i + 1].y);
+            }
+        }
+
         // Draw path cells
         ctx.fillStyle = env === 'desert' ? '#e0b050' : env === 'lava' ? '#ff6a30' : '#d4a840';
         for (let y = 0; y < ROWS; y++) {
@@ -162,6 +171,13 @@ export class UI {
         ctx.fillRect(entry.x * cellW, entry.y * cellH, cellW + 0.5, cellH + 0.5);
         ctx.fillStyle = '#e74c3c';
         ctx.fillRect(exitPt.x * cellW, exitPt.y * cellH, cellW + 0.5, cellH + 0.5);
+
+        // Secondary entry marker (dual spawn)
+        if (layout.secondaryWaypoints && (playerLevel + 1) >= DUAL_SPAWN_LEVEL) {
+            const secEntry = layout.secondaryWaypoints[0];
+            ctx.fillStyle = '#2ecc71';
+            ctx.fillRect(secEntry.x * cellW, secEntry.y * cellH, cellW + 0.5, cellH + 0.5);
+        }
     }
 
     drawLockOverlay(canvas, reqLevel) {

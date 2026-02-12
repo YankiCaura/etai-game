@@ -245,8 +245,8 @@ export class EnemyManager {
         this.enemies = [];
     }
 
-    spawn(typeName, hpScale, modifier) {
-        const enemy = new Enemy(typeName, hpScale, this.game.map.getEnemyPath());
+    spawn(typeName, hpScale, modifier, useSecondary) {
+        const enemy = new Enemy(typeName, hpScale, this.game.map.getEnemyPath(useSecondary));
         if (modifier) enemy.applyModifier(modifier);
         this.enemies.push(enemy);
         this.game.debug.onEnemySpawn(enemy);
