@@ -38,7 +38,7 @@ Open `http://localhost:8000` in a modern browser. There are no tests or linters 
 - `playerLevel` is 0-based (stored in localStorage), displayed as `playerLevel + 1`
 - `worldLevel = playerLevel + 1` set in `start()`; these must always agree with the menu display
 - Beat all waves on any map → level up (20 default, 15 for Level 3). Gold resets to `150 + level × 150` each level
-- HP scaling: `wave * 1.10^wave` per wave, `1.055^(level-1)` per level, plus per-map `worldHpMultiplier`
+- HP scaling: `wave * 1.10^wave` per wave, `1.04^(level-1)` per level, plus per-map `worldHpMultiplier`
 - Auto-wave: enabled by default (`game.autoWave`), auto-starts next wave after 5s. Toggle via Auto badge in top bar
 - Tower unlocks: some by wave number (`unlockWave`), some by player level (`unlockLevel`)
 - Map unlocks: Serpentine always, Split Creek at Lv.5, Gauntlet at Lv.10

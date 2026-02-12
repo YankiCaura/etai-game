@@ -118,7 +118,7 @@ Final HP = baseHP × getWaveHPScale(wave) × worldHpMultiplier × LEVEL_HP_MULTI
 |-------|-------|------------------|
 | **Wave** | `getWaveHPScale(wave)` + `WAVES[]` | Per-wave HP curve and enemy composition (global, same for all worlds) |
 | **World** | `worldHpMultiplier` on each `MAP_DEFS` entry | Per-world HP scaling (lower = easier world) |
-| **Level** | `LEVEL_HP_MULTIPLIER` (currently 1.055) | Per-level HP scaling (exponential, same for all worlds) |
+| **Level** | `LEVEL_HP_MULTIPLIER` (currently 1.04) | Per-level HP scaling (exponential, same for all worlds) |
 
 ---
 
@@ -221,12 +221,12 @@ This exponential curve determines how much base HP is multiplied per wave number
 Player level is a single global value that persists across all maps and sessions. It's stored in `localStorage` as `td_player_level`.
 
 ```js
-export const LEVEL_HP_MULTIPLIER = 1.055;
+export const LEVEL_HP_MULTIPLIER = 1.04;
 ```
 
 Each level multiplies enemy HP by this factor:
 - Level 1: x1.0
-- Level 2: x1.055
+- Level 2: x1.04
 - Level 3: x1.113
 - Level 4: x1.174
 - Level 5: x1.239

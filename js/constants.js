@@ -608,7 +608,7 @@ export const WAVES = [
 ];
 
 export const TOTAL_WAVES = 20;
-export const LEVEL_HP_MULTIPLIER = 1.055;
+export const LEVEL_HP_MULTIPLIER = 1.04;
 export const DUAL_SPAWN_LEVEL = 6;
 
 // ── Level-Specific Wave Overrides ─────────────────────────

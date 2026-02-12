@@ -16,7 +16,7 @@ You have a global player level that persists across all games. Beat all waves on
 | 6 | Dual spawn points — enemies alternate from left and right entries |
 | 10 | The Gauntlet map |
 
-Enemies get 1.055x HP per level, so higher levels are progressively harder. Your tower panel updates automatically as you unlock new towers — Arrow and Frost are replaced by Fire Arrow and Deep Frost at Level 2.
+Enemies get 1.04x HP per level, so higher levels are progressively harder. Your tower panel updates automatically as you unlock new towers — Arrow and Frost are replaced by Fire Arrow and Deep Frost at Level 2.
 
 Level 3 features a compressed 15-wave schedule (instead of 20) with two special events: a **Gold Rush** wave where all kills give double gold, and a **Bounty Boss** wave where killing the boss earns a +150g bonus.
 
