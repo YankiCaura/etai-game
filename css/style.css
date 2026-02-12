@@ -21,9 +21,10 @@ body {
 /* ── Game Container ────────────────────────────────────── */
 #game-container {
     position: relative;
-    width: 100%;
-    max-width: min(1200px, calc(100vw - 40px));
+    width: 1440px;
+    transform: scale(0.75);
     transform-origin: top center;
+    margin-bottom: -240px; /* Adjust for scaled height */
 }
 
 /* ── Top Bar ───────────────────────────────────────────── */
@@ -295,10 +296,8 @@ body {
 /* ── Canvas Stack ──────────────────────────────────────── */
 #canvas-wrapper {
     position: relative;
-    width: 100%;
-    max-width: 1440px;
-    height: auto;
-    aspect-ratio: 1440 / 960;
+    width: 1440px;
+    height: 960px;
     border: 1px solid #0f3460;
     cursor: crosshair;
 }
@@ -308,7 +307,7 @@ body {
     display: none;
     width: 230px;
     min-width: 230px;
-    height: auto;
+    height: 960px;
     background: #0d1b2a;
     border: 1px solid #0f3460;
     border-left: none;
@@ -1048,21 +1047,17 @@ body {
 }
 
 /* ── Responsive ────────────────────────────────────────── */
-@media (max-width: 1460px) {
+@media (max-width: 1150px) {
     #game-container {
-        width: 100vw;
+        transform: scale(0.65);
+        margin-bottom: -336px;
     }
-    #canvas-wrapper {
-        width: 100%;
-        min-width: 0;
-        height: auto;
-        aspect-ratio: 1440 / 960;
-    }
-    #admin-panel {
-        height: auto;
-    }
-    #top-bar, #bottom-bar {
-        padding: 6px 8px;
+}
+
+@media (max-width: 950px) {
+    #game-container {
+        transform: scale(0.55);
+        margin-bottom: -432px;
     }
     .tower-btn {
         padding: 4px 8px 4px 4px;
