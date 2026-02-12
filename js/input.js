@@ -37,6 +37,7 @@ export class InputHandler {
     }
 
     bindEvents() {
+        // Mouse events (desktop)
         this.canvas.addEventListener('mousemove', e => this.onMouseMove(e));
         this.canvas.addEventListener('click', e => this.onClick(e));
         this.canvas.addEventListener('contextmenu', e => {
@@ -44,17 +45,75 @@ export class InputHandler {
             this.cancelSelection();
         });
 
+        // Touch events (mobile)
+        this.canvas.addEventListener('touchstart', e => this.onTouchStart(e), { passive: false });
+        this.canvas.addEventListener('touchmove', e => this.onTouchMove(e), { passive: false });
+        this.canvas.addEventListener('touchend', e => this.onTouchEnd(e), { passive: false });
+
+        // Keyboard events (desktop)
         document.addEventListener('keydown', e => this.onKeyDown(e));
         document.addEventListener('keyup', e => this.onKeyUp(e));
+
+        // Mobile D-pad controls
+        this.setupMobileControls();
+    }
+
+    setupMobileControls() {
+        // D-pad buttons
+        const dpadBtns = document.querySelectorAll('.dpad-btn[data-dir]');
+        dpadBtns.forEach(btn => {
+            const dir = btn.dataset.dir;
+            btn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                this.dirsHeld[dir] = true;
+                this.applyHeroMovement();
+            }, { passive: false });
+
+            btn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                this.dirsHeld[dir] = false;
+                this.applyHeroMovement();
+            }, { passive: false });
+
+            // Also handle case where touch leaves the button
+            btn.addEventListener('touchcancel', (e) => {
+                e.preventDefault();
+                this.dirsHeld[dir] = false;
+                this.applyHeroMovement();
+            }, { passive: false });
+        });
+
+        // Ability buttons
+        const stunBtn = document.getElementById('stun-btn');
+        const magnetBtn = document.getElementById('magnet-btn');
+
+        if (stunBtn) {
+            stunBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                this.game.hero.activateStun();
+            }, { passive: false });
+        }
+
+        if (magnetBtn) {
+            magnetBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                this.game.hero.activateMagnet();
+            }, { passive: false });
+        }
     }
 
     getCanvasPos(e) {
         const rect = this.canvas.getBoundingClientRect();
         const scaleX = this.canvas.width / rect.width;
         const scaleY = this.canvas.height / rect.height;
+
+        // Support both mouse and touch events
+        const clientX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+        const clientY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
+
         return {
-            x: (e.clientX - rect.left) * scaleX,
-            y: (e.clientY - rect.top) * scaleY,
+            x: (clientX - rect.left) * scaleX,
+            y: (clientY - rect.top) * scaleY,
         };
     }
 
@@ -104,6 +163,40 @@ export class InputHandler {
                 this.selectedTower = null;
                 this.game.ui.hideTowerInfo();
             }
+        }
+    }
+
+    // Touch event handlers (mobile support)
+    onTouchStart(e) {
+        e.preventDefault(); // Prevent scrolling, zooming, etc.
+        this.game.audio.ensureContext(); // Audio context needs user gesture on mobile
+
+        const pos = this.getCanvasPos(e);
+        const grid = worldToGrid(pos.x, pos.y);
+        this.hoverGx = grid.x;
+        this.hoverGy = grid.y;
+
+        // Store touch start time for long-press detection
+        this.touchStartTime = Date.now();
+        this.touchStartPos = { x: pos.x, y: pos.y };
+    }
+
+    onTouchMove(e) {
+        e.preventDefault();
+
+        const pos = this.getCanvasPos(e);
+        const grid = worldToGrid(pos.x, pos.y);
+        this.hoverGx = grid.x;
+        this.hoverGy = grid.y;
+    }
+
+    onTouchEnd(e) {
+        e.preventDefault();
+
+        // Treat as click if touch duration was short (tap, not hold)
+        const touchDuration = Date.now() - this.touchStartTime;
+        if (touchDuration < 500) { // Less than 500ms = tap
+            this.onClick(e);
         }
     }
 

@@ -1046,6 +1046,107 @@ body {
     font-size: 11px;
 }
 
+/* ── Mobile Controls (D-pad + Abilities) ───────────────── */
+.mobile-only {
+    display: none; /* Hidden on desktop */
+}
+
+#mobile-controls {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    pointer-events: none;
+    z-index: 15;
+}
+
+#mobile-controls > * {
+    pointer-events: all;
+}
+
+/* D-pad */
+#dpad {
+    display: grid;
+    grid-template-columns: 60px 60px 60px;
+    grid-template-rows: 60px 60px 60px;
+    gap: 4px;
+}
+
+.dpad-btn {
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+    font-size: 24px;
+    border-radius: 10px;
+    cursor: pointer;
+    user-select: none;
+    touch-action: none;
+    transition: all 0.1s;
+}
+
+.dpad-btn:active {
+    background: rgba(52, 152, 219, 0.8);
+    border-color: #3498db;
+    transform: scale(0.95);
+}
+
+.dpad-up { grid-column: 2; grid-row: 1; }
+.dpad-left { grid-column: 1; grid-row: 2; }
+.dpad-center { grid-column: 2; grid-row: 2; opacity: 0; pointer-events: none; }
+.dpad-right { grid-column: 3; grid-row: 2; }
+.dpad-down { grid-column: 2; grid-row: 3; }
+
+/* Ability buttons */
+#ability-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ability-btn {
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    user-select: none;
+    touch-action: none;
+    transition: all 0.1s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 70px;
+}
+
+.ability-btn:active {
+    background: rgba(155, 89, 182, 0.8);
+    border-color: #9b59b6;
+    transform: scale(0.95);
+}
+
+.ability-btn.on-cooldown {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.ability-label {
+    font-size: 20px;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 4px;
+}
+
+.ability-name {
+    font-size: 12px;
+    font-weight: 600;
+}
+
 /* ── Responsive ────────────────────────────────────────── */
 @media (max-width: 1150px) {
     #game-container {
@@ -1072,5 +1173,29 @@ body {
     }
     .tower-cost {
         font-size: 14px;
+    }
+}
+
+/* Show mobile controls only on touchscreen devices */
+@media (hover: none) and (pointer: coarse) {
+    .mobile-only {
+        display: block !important;
+    }
+
+    /* Hide keyboard hints on mobile */
+    .key-hints {
+        display: none;
+    }
+
+    /* Make tower buttons easier to tap on mobile */
+    .tower-btn {
+        min-height: 60px;
+        padding: 8px 12px;
+    }
+
+    /* Larger tap targets for badges */
+    .speed-badge, .pause-badge, .mute-badge {
+        min-height: 44px;
+        padding: 10px 20px;
     }
 }

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Etai's Tower Defence</title>
 
     <!-- Open Graph / Social Media Meta Tags -->
@@ -54,6 +54,27 @@
 
             <!-- Tower Info Popup -->
             <div id="tower-info"></div>
+
+            <!-- Mobile Controls (hidden on desktop) -->
+            <div id="mobile-controls" class="mobile-only">
+                <div id="dpad">
+                    <button class="dpad-btn dpad-up" data-dir="up">▲</button>
+                    <button class="dpad-btn dpad-left" data-dir="left">◀</button>
+                    <button class="dpad-btn dpad-center"></button>
+                    <button class="dpad-btn dpad-right" data-dir="right">▶</button>
+                    <button class="dpad-btn dpad-down" data-dir="down">▼</button>
+                </div>
+                <div id="ability-btns">
+                    <button class="ability-btn" id="stun-btn" data-ability="stun">
+                        <span class="ability-label">Q</span>
+                        <span class="ability-name">Stun</span>
+                    </button>
+                    <button class="ability-btn" id="magnet-btn" data-ability="magnet">
+                        <span class="ability-label">E</span>
+                        <span class="ability-name">Magnet</span>
+                    </button>
+                </div>
+            </div>
 
             <!-- Game Screens -->
             <div id="menu-screen" class="game-screen visible">
