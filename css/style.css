@@ -91,19 +91,6 @@ body {
     box-shadow: 0 0 10px rgba(231, 76, 60, 0.3);
 }
 
-.hero-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 228, 255, 0.15);
-    border: 1px solid rgba(0, 228, 255, 0.4);
-    color: #00e5ff;
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 0.85em;
-    font-weight: 700;
-}
-
 .avatar-level-group {
     display: flex;
     align-items: center;
@@ -195,7 +182,7 @@ body {
     align-items: center;
 }
 
-.speed-badge, .pause-badge, .mute-badge, .exit-badge {
+.speed-badge, .autowave-badge, .pause-badge, .mute-badge, .exit-badge {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -220,6 +207,23 @@ body {
 .speed-badge:hover {
     background: #4a3800;
     box-shadow: 0 0 16px rgba(230, 126, 34, 0.5);
+}
+
+.autowave-badge {
+    background: #0a3020;
+    color: #2ecc71;
+    border-color: #27ae60;
+    box-shadow: 0 0 10px rgba(46, 204, 113, 0.3);
+}
+.autowave-badge:hover {
+    background: #0f4030;
+    box-shadow: 0 0 16px rgba(46, 204, 113, 0.5);
+}
+.autowave-badge.off {
+    color: #888;
+    border-color: #555;
+    background: #1a1a1a;
+    box-shadow: none;
 }
 
 .pause-badge {
@@ -1193,7 +1197,7 @@ body {
     }
 
     /* Larger tap targets for badges */
-    .speed-badge, .pause-badge, .mute-badge {
+    .speed-badge, .autowave-badge, .pause-badge, .mute-badge {
         min-height: 44px;
         padding: 10px 20px;
     }

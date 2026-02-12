@@ -13,8 +13,8 @@ export class UI {
         this.elAvatarCanvas = document.getElementById('avatar-canvas');
         this.elTowerPanel = document.getElementById('tower-panel');
         this.elTowerInfo = document.getElementById('tower-info');
-        this.elHeroInfo = document.getElementById('hero-info');
         this.elSpeedBtn = document.getElementById('speed-btn');
+        this.elAutoWaveBtn = document.getElementById('autowave-btn');
         this.elPauseBtn = document.getElementById('pause-btn');
         this.elMuteBtn = document.getElementById('mute-btn');
         this.elNextWaveBtn = document.getElementById('next-wave-btn');
@@ -368,6 +368,7 @@ export class UI {
         const worldLevel = this.game.worldLevel || 0;
         const visibleKeys = Object.entries(TOWER_TYPES)
             .filter(([, d]) => !(d.maxLevel && worldLevel > d.maxLevel))
+            .filter(([, d]) => !(d.unlockLevel && worldLevel < d.unlockLevel))
             .map(([k]) => k);
         const hotkey = visibleKeys.indexOf(key) + 1;
         const rate = (1 / stats.fireRate).toFixed(1);
@@ -427,6 +428,12 @@ export class UI {
             this.game.audio.ensureContext();
             const next = this.game.speed % 3 + 1;
             this.game.setSpeed(next);
+        });
+
+        // Auto-wave toggle
+        this.elAutoWaveBtn.addEventListener('click', () => {
+            this.game.autoWave = !this.game.autoWave;
+            this.update();
         });
 
         // Pause button
@@ -522,25 +529,6 @@ export class UI {
             }
         }
 
-        // Hero badge
-        if (this.elHeroInfo) {
-            const hero = game.hero;
-            if (hero.active) {
-                this.elHeroInfo.style.display = 'inline-flex';
-                if (!hero.alive) {
-                    this.elHeroInfo.textContent = `Respawn ${Math.ceil(hero.respawnTimer)}s`;
-                    this.elHeroInfo.style.borderColor = 'rgba(255,68,68,0.4)';
-                    this.elHeroInfo.style.color = '#ff4444';
-                } else {
-                    this.elHeroInfo.textContent = `Hero ${Math.ceil(hero.hp)}/${HERO_STATS.maxHP}`;
-                    this.elHeroInfo.style.borderColor = 'rgba(0,228,255,0.4)';
-                    this.elHeroInfo.style.color = '#00e5ff';
-                }
-            } else {
-                this.elHeroInfo.style.display = 'none';
-            }
-        }
-
         // Toggle hero-active class for mobile controls (only shows on mobile when hero is active)
         const canvasWrapper = document.getElementById('canvas-wrapper');
         if (canvasWrapper) {
@@ -553,6 +541,15 @@ export class UI {
 
         // Speed badge
         this.elSpeedBtn.textContent = `${game.speed}x`;
+
+        // Auto-wave badge
+        if (game.autoWave) {
+            this.elAutoWaveBtn.textContent = 'Auto';
+            this.elAutoWaveBtn.classList.remove('off');
+        } else {
+            this.elAutoWaveBtn.textContent = 'Manual';
+            this.elAutoWaveBtn.classList.add('off');
+        }
 
         // Pause badge
         this.elPauseBtn.innerHTML = game.state === STATE.PAUSED ? '&#9654; Resume' : '&#9208; Pause';
@@ -659,6 +656,53 @@ export class UI {
         info.style.display = 'block';
         info.style.borderColor = def.color;
 
+        // Auto-close: stays open while hovering card or tower, 1s after leaving both
+        if (this.towerInfoTimer) clearTimeout(this.towerInfoTimer);
+        this._infoTower = tower;
+        this._hoverOnCard = false;
+        this._hoverOnTower = true; // just placed/clicked = mouse is on tower
+
+        // Bind hover events once
+        if (!this._towerInfoHoverBound) {
+            this._towerInfoHoverBound = true;
+            const startClose = () => {
+                if (this._hoverOnCard || this._hoverOnTower) return;
+                if (this.towerInfoTimer) clearTimeout(this.towerInfoTimer);
+                this.towerInfoTimer = setTimeout(() => {
+                    this.game.input.selectedTower = null;
+                    this.hideTowerInfo();
+                }, 1000);
+            };
+            const cancelClose = () => {
+                if (this.towerInfoTimer) { clearTimeout(this.towerInfoTimer); this.towerInfoTimer = null; }
+            };
+            // Card hover
+            info.addEventListener('mouseenter', () => {
+                if (info.style.display === 'none') return;
+                this._hoverOnCard = true;
+                cancelClose();
+            });
+            info.addEventListener('mouseleave', () => {
+                if (info.style.display === 'none') return;
+                this._hoverOnCard = false;
+                startClose();
+            });
+            // Tower hover on canvas
+            this.game.input.canvas.addEventListener('mousemove', () => {
+                if (!this._infoTower || info.style.display === 'none') return;
+                const t = this._infoTower;
+                const size = (TOWER_TYPES[t.type] && TOWER_TYPES[t.type].size) || 1;
+                const gx = this.game.input.hoverGx;
+                const gy = this.game.input.hoverGy;
+                const over = gx >= t.gx && gx < t.gx + size && gy >= t.gy && gy < t.gy + size;
+                if (over !== this._hoverOnTower) {
+                    this._hoverOnTower = over;
+                    if (over) cancelClose();
+                    else startClose();
+                }
+            });
+        }
+
         // Position card near the tower
         const towerSize = def.size || 1;
         const towerCx = (tower.gx + towerSize / 2) * CELL;
@@ -696,6 +740,13 @@ export class UI {
     }
 
     hideTowerInfo() {
+        if (this.towerInfoTimer) {
+            clearTimeout(this.towerInfoTimer);
+            this.towerInfoTimer = null;
+        }
+        this._infoTower = null;
+        this._hoverOnCard = false;
+        this._hoverOnTower = false;
         this.elTowerInfo.style.display = 'none';
     }
 

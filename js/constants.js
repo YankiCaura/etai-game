@@ -91,6 +91,45 @@ export const MAP_DEFS = {
                     {x:29,y:2},{x:22,y:2},{x:22,y:12},{x:26,y:12},{x:26,y:16},{x:29,y:16}
                 ],
             },
+            // Layout 3: Bottom entry, N-shape winding upward
+            {
+                waypoints: [
+                    { x: 0, y: 15 }, { x: 5, y: 15 }, { x: 5, y: 8 }, { x: 12, y: 8 },
+                    { x: 12, y: 16 }, { x: 20, y: 16 }, { x: 20, y: 5 }, { x: 27, y: 5 },
+                    { x: 27, y: 12 }, { x: 29, y: 12 },
+                ],
+                blocked: [
+                    { x: 2, y: 2 }, { x: 3, y: 2 }, { x: 8, y: 1 }, { x: 9, y: 1 },
+                    { x: 15, y: 2 }, { x: 16, y: 2 }, { x: 24, y: 0 }, { x: 25, y: 0 },
+                    { x: 1, y: 12 }, { x: 2, y: 12 }, { x: 8, y: 5 }, { x: 9, y: 5 },
+                    { x: 15, y: 12 }, { x: 16, y: 12 }, { x: 24, y: 10 }, { x: 25, y: 10 },
+                    { x: 3, y: 19 }, { x: 4, y: 19 }, { x: 10, y: 19 }, { x: 11, y: 19 },
+                    { x: 0, y: 5 }, { x: 14, y: 0 },
+                ],
+                paths: null,
+                secondaryWaypoints: [
+                    {x:29,y:2},{x:23,y:2},{x:23,y:9},{x:28,y:9},{x:28,y:12},{x:29,y:12}
+                ],
+            },
+            // Layout 4: Center snake, fewer turns, longer segments
+            {
+                waypoints: [
+                    { x: 0, y: 10 }, { x: 8, y: 10 }, { x: 8, y: 3 }, { x: 16, y: 3 },
+                    { x: 16, y: 17 }, { x: 24, y: 17 }, { x: 24, y: 10 }, { x: 29, y: 10 },
+                ],
+                blocked: [
+                    { x: 3, y: 1 }, { x: 4, y: 1 }, { x: 12, y: 0 }, { x: 13, y: 0 },
+                    { x: 20, y: 1 }, { x: 21, y: 1 }, { x: 27, y: 2 }, { x: 28, y: 2 },
+                    { x: 3, y: 7 }, { x: 4, y: 7 }, { x: 12, y: 7 }, { x: 13, y: 7 },
+                    { x: 20, y: 8 }, { x: 21, y: 8 }, { x: 3, y: 14 }, { x: 4, y: 14 },
+                    { x: 12, y: 14 }, { x: 13, y: 14 }, { x: 20, y: 13 }, { x: 21, y: 13 },
+                    { x: 3, y: 19 }, { x: 4, y: 19 },
+                ],
+                paths: null,
+                secondaryWaypoints: [
+                    {x:29,y:3},{x:22,y:3},{x:22,y:13},{x:27,y:13},{x:27,y:10},{x:29,y:10}
+                ],
+            },
         ],
     },
     splitcreek: {
@@ -168,6 +207,50 @@ export const MAP_DEFS = {
                     {x:29,y:15},{x:24,y:15},{x:24,y:10},{x:28,y:10},{x:28,y:5},{x:29,y:5}
                 ],
             },
+            // Layout 3: Symmetric diamond fork
+            {
+                waypoints: [
+                    { x: 0, y: 10 }, { x: 5, y: 10 },
+                ],
+                paths: {
+                    upper: [{ x: 5, y: 4 }, { x: 12, y: 4 }, { x: 12, y: 7 }, { x: 20, y: 7 }, { x: 20, y: 9 }],
+                    lower: [{ x: 5, y: 16 }, { x: 12, y: 16 }, { x: 12, y: 13 }, { x: 20, y: 13 }, { x: 20, y: 11 }],
+                    suffix: [{ x: 20, y: 10 }, { x: 25, y: 10 }, { x: 29, y: 10 }],
+                },
+                blocked: [
+                    { x: 2, y: 1 }, { x: 3, y: 1 }, { x: 8, y: 0 }, { x: 9, y: 0 },
+                    { x: 15, y: 1 }, { x: 16, y: 1 }, { x: 24, y: 2 }, { x: 25, y: 2 },
+                    { x: 2, y: 6 }, { x: 3, y: 6 }, { x: 8, y: 10 }, { x: 9, y: 10 },
+                    { x: 15, y: 10 }, { x: 16, y: 10 }, { x: 24, y: 6 }, { x: 25, y: 6 },
+                    { x: 24, y: 14 }, { x: 25, y: 14 }, { x: 2, y: 18 }, { x: 3, y: 18 },
+                    { x: 8, y: 19 }, { x: 9, y: 19 }, { x: 15, y: 18 }, { x: 16, y: 18 },
+                ],
+                secondaryWaypoints: [
+                    {x:29,y:17},{x:24,y:17},{x:24,y:13},{x:28,y:13},{x:28,y:10},{x:29,y:10}
+                ],
+            },
+            // Layout 4: Angled fork with L-shaped suffix
+            {
+                waypoints: [
+                    { x: 0, y: 10 }, { x: 6, y: 10 },
+                ],
+                paths: {
+                    upper: [{ x: 6, y: 4 }, { x: 10, y: 4 }, { x: 10, y: 7 }, { x: 18, y: 7 }, { x: 18, y: 9 }],
+                    lower: [{ x: 6, y: 16 }, { x: 10, y: 16 }, { x: 10, y: 13 }, { x: 18, y: 13 }, { x: 18, y: 11 }],
+                    suffix: [{ x: 18, y: 10 }, { x: 23, y: 10 }, { x: 23, y: 5 }, { x: 29, y: 5 }],
+                },
+                blocked: [
+                    { x: 3, y: 1 }, { x: 4, y: 1 }, { x: 8, y: 1 }, { x: 9, y: 1 },
+                    { x: 14, y: 1 }, { x: 15, y: 1 }, { x: 21, y: 2 }, { x: 22, y: 2 },
+                    { x: 26, y: 2 }, { x: 27, y: 2 }, { x: 3, y: 18 }, { x: 4, y: 18 },
+                    { x: 8, y: 19 }, { x: 9, y: 19 }, { x: 14, y: 18 }, { x: 15, y: 18 },
+                    { x: 13, y: 10 }, { x: 14, y: 10 }, { x: 8, y: 10 }, { x: 9, y: 10 },
+                    { x: 21, y: 8 }, { x: 22, y: 8 }, { x: 26, y: 8 }, { x: 27, y: 8 },
+                ],
+                secondaryWaypoints: [
+                    {x:29,y:15},{x:24,y:15},{x:24,y:10},{x:28,y:10},{x:28,y:5},{x:29,y:5}
+                ],
+            },
         ],
     },
     gauntlet: {
@@ -232,13 +315,49 @@ export const MAP_DEFS = {
                     {x:29,y:3},{x:25,y:3},{x:25,y:10},{x:28,y:10},{x:28,y:16},{x:29,y:16}
                 ],
             },
+            // Layout 3: N-shape — enters bottom-left, winds up and back down
+            {
+                waypoints: [
+                    { x: 0, y: 15 }, { x: 7, y: 15 }, { x: 7, y: 4 }, { x: 20, y: 4 },
+                    { x: 20, y: 16 }, { x: 29, y: 16 },
+                ],
+                blocked: [
+                    { x: 3, y: 1 }, { x: 4, y: 1 }, { x: 12, y: 1 }, { x: 13, y: 1 },
+                    { x: 24, y: 1 }, { x: 25, y: 1 }, { x: 3, y: 8 }, { x: 4, y: 8 },
+                    { x: 12, y: 8 }, { x: 13, y: 8 }, { x: 15, y: 10 }, { x: 16, y: 10 },
+                    { x: 24, y: 8 }, { x: 25, y: 8 }, { x: 3, y: 18 }, { x: 4, y: 18 },
+                    { x: 12, y: 18 }, { x: 13, y: 18 }, { x: 15, y: 18 }, { x: 16, y: 18 },
+                ],
+                paths: null,
+                secondaryWaypoints: [
+                    {x:29,y:3},{x:24,y:3},{x:24,y:10},{x:27,y:10},{x:27,y:16},{x:29,y:16}
+                ],
+            },
+            // Layout 4: W-shape steps with tight turns
+            {
+                waypoints: [
+                    { x: 0, y: 3 }, { x: 7, y: 3 }, { x: 7, y: 10 }, { x: 14, y: 10 },
+                    { x: 14, y: 3 }, { x: 22, y: 3 }, { x: 22, y: 14 }, { x: 29, y: 14 },
+                ],
+                blocked: [
+                    { x: 3, y: 0 }, { x: 4, y: 0 }, { x: 10, y: 1 }, { x: 11, y: 1 },
+                    { x: 18, y: 0 }, { x: 19, y: 0 }, { x: 26, y: 1 }, { x: 27, y: 1 },
+                    { x: 3, y: 14 }, { x: 4, y: 14 }, { x: 10, y: 14 }, { x: 11, y: 14 },
+                    { x: 18, y: 14 }, { x: 19, y: 14 }, { x: 3, y: 18 }, { x: 4, y: 18 },
+                    { x: 10, y: 18 }, { x: 11, y: 18 }, { x: 18, y: 18 }, { x: 19, y: 18 },
+                ],
+                paths: null,
+                secondaryWaypoints: [
+                    {x:29,y:2},{x:25,y:2},{x:25,y:9},{x:28,y:9},{x:28,y:14},{x:29,y:14}
+                ],
+            },
         ],
     },
 };
 
 // ── Economy ────────────────────────────────────────────────
-export const STARTING_GOLD = 300;
 export const STARTING_LIVES = 20;
+export const KILL_GOLD_BONUS = 1.10;  // 10% bonus on all kill gold
 export const SELL_REFUND = 0.6;       // 60% back
 export const INTEREST_RATE = 0.02;    // 2% between waves
 export const WAVE_BONUS_BASE = 25;

@@ -1,4 +1,4 @@
-import { ENEMY_TYPES, CELL, CANVAS_W, CANVAS_H, WAVE_MODIFIERS, GOLD_RUSH_MULTIPLIER, MIDBOSS_BOUNTY } from './constants.js';
+import { ENEMY_TYPES, CELL, CANVAS_W, CANVAS_H, WAVE_MODIFIERS, GOLD_RUSH_MULTIPLIER, MIDBOSS_BOUNTY, KILL_GOLD_BONUS } from './constants.js';
 import { distance } from './utils.js';
 
 let nextEnemyId = 0;
@@ -285,7 +285,7 @@ export class EnemyManager {
                 let goldMulti = waveTag === 'goldrush' ? GOLD_RUSH_MULTIPLIER : 1;
                 const heroMulti = this.game.hero?.getGoldMultiplier(e.x, e.y) || 1;
                 goldMulti *= heroMulti;
-                const goldReward = Math.round(e.reward * 1.10 * goldMulti);
+                const goldReward = Math.round(e.reward * KILL_GOLD_BONUS * goldMulti);
                 this.game.economy.addGold(goldReward);
                 this.game.economy.addScore(e.reward);
                 const goldColor = heroMulti > 1 ? '#00e5ff' : (goldMulti > 1 ? '#ffaa00' : '#ffd700');

@@ -19,12 +19,13 @@ const FIXED_DT = 1 / 60; // 60 Hz physics
 export class Game {
     constructor(canvases) {
         this.state = STATE.MENU;
-        this.speed = 2;
+        this.speed = 1;
         this.lastTime = 0;
         this.accumulator = 0;
         this.selectedMapId = null;
         this.worldLevel = 0;
         this.adminMode = false;
+        this.autoWave = true;
         this.elapsedTime = 0;
         this.waveElapsed = 0;
 
@@ -81,7 +82,7 @@ export class Game {
         // Set starting gold based on world level
         this.economy.levelUpReset(this.worldLevel);
         // Recreate map with the correct layout for this world level
-        this.map = new GameMap(this.selectedMapId, (this.worldLevel - 1) % 3, this.worldLevel);
+        this.map = new GameMap(this.selectedMapId, this.worldLevel - 1, this.worldLevel);
         this.renderer.drawTerrain();
         if (this.worldLevel >= HERO_STATS.unlockLevel) this.hero.init(this.map);
         else this.hero.reset();
@@ -136,7 +137,7 @@ export class Game {
         this.waves.reset();
         this.input.reset();
         // Recreate map with the new layout for this world level
-        this.map = new GameMap(this.selectedMapId, (this.worldLevel - 1) % 3, this.worldLevel);
+        this.map = new GameMap(this.selectedMapId, this.worldLevel - 1, this.worldLevel);
         this.renderer.drawTerrain();
         if (this.worldLevel >= HERO_STATS.unlockLevel) this.hero.init(this.map);
         else this.hero.reset();
@@ -246,7 +247,7 @@ export class Game {
         this.waves.reset();
         this.input.reset();
         if (this.selectedMapId) {
-            this.map = new GameMap(this.selectedMapId, (this.worldLevel - 1) % 3, this.worldLevel);
+            this.map = new GameMap(this.selectedMapId, this.worldLevel - 1, this.worldLevel);
             this.renderer.drawTerrain();
             if (this.worldLevel >= HERO_STATS.unlockLevel) this.hero.init(this.map);
             else this.hero.reset();

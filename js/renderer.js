@@ -296,23 +296,72 @@ export class Renderer {
         ctx.stroke();
         ctx.globalAlpha = 1;
 
-        // Body — chevron/arrow shape rotated to turretAngle
+        // Body — knight/warrior rotated to turretAngle
         ctx.translate(x, y);
         ctx.rotate(hero.turretAngle);
 
-        ctx.fillStyle = isFlashing ? '#ff4444' : colors.body;
+        // Cape (flowing behind the hero, animated)
+        const capeWave = Math.sin(Date.now() * 0.008) * r * 0.15;
+        ctx.fillStyle = '#cc2244';
         ctx.beginPath();
-        ctx.moveTo(r, 0);
-        ctx.lineTo(-r * 0.7, -r * 0.65);
-        ctx.lineTo(-r * 0.3, 0);
-        ctx.lineTo(-r * 0.7, r * 0.65);
+        ctx.moveTo(-r * 0.3, -r * 0.35);
+        ctx.quadraticCurveTo(-r * 1.1, capeWave, -r * 0.3, r * 0.35);
         ctx.closePath();
         ctx.fill();
 
-        // Outline
+        // Armored body (shield-shaped pentagon)
+        ctx.fillStyle = isFlashing ? '#ff4444' : colors.body;
+        ctx.beginPath();
+        ctx.moveTo(r * 0.8, 0);
+        ctx.lineTo(r * 0.15, -r * 0.72);
+        ctx.lineTo(-r * 0.5, -r * 0.55);
+        ctx.lineTo(-r * 0.5, r * 0.55);
+        ctx.lineTo(r * 0.15, r * 0.72);
+        ctx.closePath();
+        ctx.fill();
         ctx.strokeStyle = isFlashing ? '#fff' : colors.outline;
         ctx.lineWidth = 1.5;
         ctx.stroke();
+
+        // Armor accent line
+        ctx.strokeStyle = isFlashing ? '#ff8888' : colors.outline;
+        ctx.globalAlpha = 0.35;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(r * 0.1, -r * 0.5);
+        ctx.lineTo(-r * 0.15, 0);
+        ctx.lineTo(r * 0.1, r * 0.5);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+
+        // Sword blade
+        ctx.strokeStyle = '#ddeeff';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(r * 0.7, 0);
+        ctx.lineTo(r * 1.4, 0);
+        ctx.stroke();
+        // Sword tip
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.moveTo(r * 1.4, -2.5);
+        ctx.lineTo(r * 1.6, 0);
+        ctx.lineTo(r * 1.4, 2.5);
+        ctx.closePath();
+        ctx.fill();
+        // Crossguard
+        ctx.strokeStyle = '#ffd700';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(r * 0.65, -r * 0.25);
+        ctx.lineTo(r * 0.65, r * 0.25);
+        ctx.stroke();
+
+        // Visor (glowing eye slit)
+        ctx.fillStyle = isFlashing ? '#ffaaaa' : '#ffffff';
+        ctx.globalAlpha = 0.9;
+        ctx.fillRect(r * 0.4, -r * 0.1, r * 0.22, r * 0.2);
+        ctx.globalAlpha = 1;
 
         ctx.restore();
 

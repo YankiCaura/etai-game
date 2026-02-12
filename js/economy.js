@@ -1,10 +1,10 @@
-import { STARTING_GOLD, STARTING_LIVES } from './constants.js';
+import { STARTING_LIVES } from './constants.js';
 
 const RECORD_KEY = 'td_high_score';
 
 export class Economy {
     constructor() {
-        this.gold = STARTING_GOLD;
+        this.gold = 0;
         this.lives = STARTING_LIVES;
         this.score = 0;
         this.record = Economy.getRecord();
@@ -48,7 +48,7 @@ export class Economy {
     }
 
     reset() {
-        this.gold = STARTING_GOLD;
+        this.gold = 0;
         this.lives = STARTING_LIVES;
         this.score = 0;
         this.record = Economy.getRecord();

@@ -119,6 +119,10 @@ export class WaveManager {
         // Track time between waves for early-send bonus
         if (this.betweenWaves) {
             this.betweenWaveTimer += dt;
+            // Auto-start next wave after 3 seconds
+            if (this.game.autoWave && this.betweenWaveTimer >= 3) {
+                this.startNextWave();
+            }
             return;
         }
 

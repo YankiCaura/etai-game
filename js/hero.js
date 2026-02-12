@@ -46,11 +46,18 @@ export class Hero {
     }
 
     init(map) {
-        // Spawn near the castle (second-to-last waypoint), facing enemies
-        const path = map.path;
-        const spawn = path.length >= 2 ? path[path.length - 2] : path[path.length - 1];
-        this.spawnX = spawn.x;
-        this.spawnY = spawn.y;
+        // Spawn near the castle — use shared suffix for split maps (both forks converge there)
+        const layout = map.layout;
+        let spawnPt;
+        if (layout.paths && layout.paths.suffix.length >= 2) {
+            const sp = layout.paths.suffix[layout.paths.suffix.length - 2];
+            spawnPt = { x: sp.x * CELL + CELL / 2, y: sp.y * CELL + CELL / 2 };
+        } else {
+            const path = map.path;
+            spawnPt = path.length >= 2 ? path[path.length - 2] : path[path.length - 1];
+        }
+        this.spawnX = spawnPt.x;
+        this.spawnY = spawnPt.y;
         this.x = this.spawnX;
         this.y = this.spawnY;
 

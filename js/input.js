@@ -8,6 +8,7 @@ function buildTowerKeys(game) {
     let idx = 1;
     for (const [type, def] of Object.entries(TOWER_TYPES)) {
         if (def.maxLevel && worldLevel > def.maxLevel) continue;
+        if (def.unlockLevel && worldLevel < def.unlockLevel) continue;
         keys[String(idx)] = type;
         idx++;
     }
@@ -108,8 +109,12 @@ export class InputHandler {
         const scaleY = this.canvas.height / rect.height;
 
         // Support both mouse and touch events
-        const clientX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
-        const clientY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
+        const clientX = e.clientX !== undefined ? e.clientX
+            : (e.touches && e.touches[0] ? e.touches[0].clientX
+            : (e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientX : 0));
+        const clientY = e.clientY !== undefined ? e.clientY
+            : (e.touches && e.touches[0] ? e.touches[0].clientY
+            : (e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientY : 0));
 
         return {
             x: (clientX - rect.left) * scaleX,
