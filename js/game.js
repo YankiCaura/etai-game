@@ -1,4 +1,5 @@
-import { STATE, CANVAS_W, CANVAS_H, HERO_STATS, DUAL_SPAWN_LEVEL, MAP_DEFS } from './constants.js';
+import { STATE, CANVAS_W, CANVAS_H, HERO_STATS, DUAL_SPAWN_LEVEL, MAP_DEFS, TOWER_TYPES, TOWER_LIGHT_DEFS, MAP_AMBIENT_DARKNESS } from './constants.js';
+import { hexToGL } from './utils.js';
 import { GameMap } from './map.js';
 import { TowerManager } from './tower.js';
 import { EnemyManager } from './enemy.js';
@@ -74,6 +75,7 @@ export class Game {
         if (this.postfx.enabled) {
             const t = tints[mapId] || [1, 1, 1];
             this.postfx.setMapTint(t[0], t[1], t[2]);
+            this.postfx.setAmbientDarkness(MAP_AMBIENT_DARKNESS[mapId] || 0);
         }
     }
 
@@ -210,7 +212,10 @@ export class Game {
         }
 
         this.renderer.drawFrame(this.accumulator / FIXED_DT);
-        if (this.postfx.enabled) this.postfx.render();
+        if (this.postfx.enabled) {
+            this.registerLights();
+            this.postfx.render();
+        }
         if (this.state === STATE.PLAYING) this.ui.update();
         requestAnimationFrame(t => this.tick(t));
     }
@@ -348,6 +353,52 @@ export class Game {
                     }
                 }
             }
+        }
+    }
+
+    registerLights() {
+        const pfx = this.postfx;
+
+        // Towers — colored glow matching tower theme
+        for (const t of this.towers.towers) {
+            const lightDef = TOWER_LIGHT_DEFS[t.type];
+            if (!lightDef) continue;
+            const [r, g, b] = hexToGL(TOWER_TYPES[t.type].color);
+            const lvl = t.level;
+            pfx.addLight(
+                t.x, t.y, r, g, b,
+                lightDef.radius + lvl * 0.02,
+                lightDef.intensity + lvl * 0.15,
+            );
+        }
+
+        // Projectiles — moving lights
+        for (const p of this.projectiles.projectiles) {
+            if (!p.alive) continue;
+            const [r, g, b] = hexToGL(p.getColor());
+            const rad = p.missile ? 0.05 : (p.splashRadius > 0 ? 0.04 : 0.03);
+            const int = p.missile ? 0.8 : (p.splashRadius > 0 ? 0.6 : 0.5);
+            pfx.addLight(p.x, p.y, r, g, b, rad, int);
+        }
+
+        // Hero — cyan glow + gold magnet aura
+        const hero = this.hero;
+        if (hero.active && hero.alive) {
+            pfx.addLight(hero.x, hero.y, 0, 0.9, 1.0, 0.08, 0.6);
+            if (hero.magnetActive) {
+                pfx.addLight(hero.x, hero.y, 1.0, 0.84, 0, 0.15, 0.4);
+            }
+        }
+
+        // Scorch zones — orange-red fire glow
+        for (const zone of this.scorchZones) {
+            const fade = zone.timer / zone.maxTimer;
+            pfx.addLight(
+                zone.x, zone.y,
+                1.0, 0.3, 0,
+                zone.radius / CANVAS_H * 1.5,
+                0.4 * fade,
+            );
         }
     }
 

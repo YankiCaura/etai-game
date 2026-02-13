@@ -302,6 +302,7 @@ export class Hero {
         this.game.particles.spawnAuraPulse(this.x, this.y, HERO_STATS.stunRadius * CELL, '#ffffff');
         this.game.triggerShake(4, 0.2);
         this.game.audio.playHeroStun();
+        this.game.postfx?.addFlashLight(this.x, this.y, 1.0, 1.0, 1.0, 0.15, 1.5, 0.4);
 
         if (enemies.length > 0) {
             this.game.particles.spawnBigFloatingText(this.x, this.y - 25, 'STUN!', '#ffffff');
@@ -320,6 +321,7 @@ export class Hero {
         this.game.particles.spawnBigFloatingText(this.x, this.y - 25, 'GOLD MAGNET!', '#ffd700');
         this.game.particles.spawnAuraPulse(this.x, this.y, HERO_STATS.magnetRadius * CELL, '#ffd700');
         this.game.audio.playHeroMagnet();
+        this.game.postfx?.addFlashLight(this.x, this.y, 1.0, 0.84, 0, 0.12, 1.0, 0.5);
     }
 
     getGoldMultiplier(ex, ey) {

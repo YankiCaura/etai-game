@@ -27,3 +27,11 @@ export function worldToGrid(wx, wy) {
 export function randRange(min, max) {
     return min + Math.random() * (max - min);
 }
+
+export function hexToGL(hex) {
+    return [
+        parseInt(hex.slice(1, 3), 16) / 255,
+        parseInt(hex.slice(3, 5), 16) / 255,
+        parseInt(hex.slice(5, 7), 16) / 255,
+    ];
+}

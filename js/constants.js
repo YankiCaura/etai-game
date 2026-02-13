@@ -739,3 +739,24 @@ export const MODIFIER_CHANCE = 0.35;
 // ── Early-Send Bonus ──────────────────────────────────────
 export const EARLY_SEND_MAX_BONUS = 50;
 export const EARLY_SEND_DECAY = 5; // gold lost per second of waiting
+
+// ── Point Light System ───────────────────────────────────
+export const MAX_POINT_LIGHTS = 32;
+export const MAP_AMBIENT_DARKNESS = {
+    serpentine: 0.25,
+    splitcreek: 0.10,
+    gauntlet: 0.35,
+};
+export const TOWER_LIGHT_DEFS = {
+    arrow:          { radius: 0.04, intensity: 0.25 },
+    firearrow:      { radius: 0.05, intensity: 0.35 },
+    frost:          { radius: 0.04, intensity: 0.25 },
+    deepfrost:      { radius: 0.05, intensity: 0.30 },
+    lightning:      { radius: 0.04, intensity: 0.30 },
+    superlightning: { radius: 0.06, intensity: 0.40 },
+    cannon:         { radius: 0.04, intensity: 0.25 },
+    bicannon:       { radius: 0.06, intensity: 0.40 },
+    sniper:         { radius: 0.04, intensity: 0.30 },
+    missilesniper:  { radius: 0.07, intensity: 0.45 },
+    pulsecannon:    { radius: 0.05, intensity: 0.35 },
+};

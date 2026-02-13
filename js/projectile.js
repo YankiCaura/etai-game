@@ -105,12 +105,13 @@ export class Projectile {
             let splashDmg = this.isHeavy ? dmg * 1.5 : dmg;
             let splashRad = this.isHeavy ? this.splashRadius * 1.5 : this.splashRadius;
 
-            // Missile crit: bigger splash
+            // Missile crit: bigger splash + bright flash
             if (this.missile && isCrit) {
                 splashRad *= 1.3;
                 game.particles.spawnFloatingText(this.x, this.y - 15, 'CRIT!', '#ff4444');
                 game.particles.spawnSpark(this.x, this.y, '#ff4444', 6);
                 game.postfx?.aberration(0.6, 0.15);
+                game.postfx?.addFlashLight(this.x, this.y, 1.0, 0.6, 0.1, 0.16, 2.0, 0.35);
             }
 
             this.doSplash(splashDmg, game, splashRad);
@@ -122,6 +123,8 @@ export class Projectile {
             game.triggerShake(this.isHeavy ? 5 : (this.missile ? 4 : 3), this.isHeavy ? 0.25 : (this.missile ? 0.2 : 0.15));
             // PostFX shockwave on explosions
             game.postfx?.shockwave(this.x / CANVAS_W, this.y / CANVAS_H, this.isHeavy ? 0.4 : (this.missile ? 0.35 : 0.25));
+            // Explosion flash light
+            game.postfx?.addFlashLight(this.x, this.y, 1.0, 0.4, 0, 0.12, 1.5, 0.3);
 
             // Heavy round: armor shred + scorch zone
             if (this.isHeavy && this.armorShred > 0) {

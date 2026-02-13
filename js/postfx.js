@@ -1,4 +1,4 @@
-import { CANVAS_W, CANVAS_H } from './constants.js';
+import { CANVAS_W, CANVAS_H, MAX_POINT_LIGHTS } from './constants.js';
 
 // ── GLSL Shaders ─────────────────────────────────────────────
 
@@ -18,12 +18,35 @@ precision mediump float;
 in vec2 vUV;
 uniform sampler2D uTerrain;
 uniform sampler2D uGame;
+// Point lights
+const int MAX_LIGHTS = 32;
+uniform int uLightCount;
+uniform vec2 uLightPos[MAX_LIGHTS];
+uniform vec3 uLightColor[MAX_LIGHTS];
+uniform float uLightRadius[MAX_LIGHTS];
+uniform float uLightIntensity[MAX_LIGHTS];
+uniform float uAmbientDark;
 out vec4 fragColor;
 void main() {
     vec4 terrain = texture(uTerrain, vUV);
     vec4 game = texture(uGame, vUV);
-    // Game canvas has transparency — composite over terrain
-    fragColor = vec4(mix(terrain.rgb, game.rgb, game.a), 1.0);
+    vec3 scene = mix(terrain.rgb, game.rgb, game.a);
+    // Lighting accumulation
+    float aspect = ${(CANVAS_W / CANVAS_H).toFixed(4)};
+    vec3 lightAccum = vec3(1.0 - uAmbientDark);
+    for (int i = 0; i < MAX_LIGHTS; i++) {
+        if (i >= uLightCount) break;
+        vec2 diff = vUV - uLightPos[i];
+        diff.x *= aspect;
+        float dist = length(diff);
+        if (dist >= uLightRadius[i]) continue;
+        float t = dist / uLightRadius[i];
+        float t2 = t * t;
+        float atten = (1.0 - t2) * (1.0 - t2);
+        lightAccum += uLightColor[i] * uLightIntensity[i] * atten;
+    }
+    scene *= min(lightAccum, vec3(2.0));
+    fragColor = vec4(scene, 1.0);
 }`;
 
 const BRIGHT_FRAG = `#version 300 es
@@ -266,6 +289,15 @@ export class PostFX {
         this.aberrationTimer = 0;
         this.aberrationDuration = 0;
         this.aberrationIntensity = 0;
+
+        // Point lights
+        this.lights = [];
+        this.flashLights = [];
+        this.ambientDarkness = 0;
+        this._lightPosData = new Float32Array(MAX_POINT_LIGHTS * 2);
+        this._lightColorData = new Float32Array(MAX_POINT_LIGHTS * 3);
+        this._lightRadiusData = new Float32Array(MAX_POINT_LIGHTS);
+        this._lightIntensityData = new Float32Array(MAX_POINT_LIGHTS);
     }
 
     // ── Effect triggers ──────────────────────────────────────
@@ -296,6 +328,35 @@ export class PostFX {
         this.mapTint = [r, g, b];
     }
 
+    // ── Point light API ───────────────────────────────────────
+
+    clearLights() {
+        this.lights.length = 0;
+    }
+
+    addLight(px, py, r, g, b, radius, intensity) {
+        if (!this.enabled || this.lights.length >= MAX_POINT_LIGHTS) return;
+        this.lights.push({
+            x: px / CANVAS_W,
+            y: 1.0 - py / CANVAS_H,
+            r, g, b, radius, intensity,
+        });
+    }
+
+    addFlashLight(px, py, r, g, b, radius, intensity, duration) {
+        if (!this.enabled) return;
+        this.flashLights.push({
+            x: px / CANVAS_W,
+            y: 1.0 - py / CANVAS_H,
+            r, g, b, radius, intensity,
+            timer: duration, duration,
+        });
+    }
+
+    setAmbientDarkness(level) {
+        this.ambientDarkness = level;
+    }
+
     // ── Update timers (called from game.update) ──────────────
 
     update(dt) {
@@ -312,6 +373,14 @@ export class PostFX {
         if (this.aberrationTimer > 0) {
             this.aberrationTimer -= dt;
             if (this.aberrationTimer < 0) this.aberrationTimer = 0;
+        }
+
+        // Decay flash lights
+        for (let i = this.flashLights.length - 1; i >= 0; i--) {
+            this.flashLights[i].timer -= dt;
+            if (this.flashLights[i].timer <= 0) {
+                this.flashLights.splice(i, 1);
+            }
         }
     }
 
@@ -332,11 +401,12 @@ export class PostFX {
         gl.bindTexture(gl.TEXTURE_2D, this.gameTex);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.gameCanvas);
 
-        // Pass 1: Composite terrain + game
+        // Pass 1: Composite terrain + game (with point lighting)
         this._bindFBO(this.compositeFBO);
         gl.useProgram(this.compositeProg);
         this._bindTex(this.compositeProg, 'uTerrain', this.terrainTex, 0);
         this._bindTex(this.compositeProg, 'uGame', this.gameTex, 1);
+        this._uploadLights();
         gl.drawArrays(gl.TRIANGLES, 0, 3);
 
         // Pass 2: Bright-pass extract
@@ -397,9 +467,49 @@ export class PostFX {
 
         gl.drawArrays(gl.TRIANGLES, 0, 3);
         gl.bindVertexArray(null);
+        this.clearLights();
     }
 
     // ── Internal helpers ─────────────────────────────────────
+
+    _uploadLights() {
+        const gl = this.gl;
+        const prog = this.compositeProg;
+
+        let count = 0;
+
+        // Regular lights (towers, projectiles, hero, scorch)
+        for (let i = 0; i < this.lights.length && count < MAX_POINT_LIGHTS; i++, count++) {
+            const l = this.lights[i];
+            this._lightPosData[count * 2] = l.x;
+            this._lightPosData[count * 2 + 1] = l.y;
+            this._lightColorData[count * 3] = l.r;
+            this._lightColorData[count * 3 + 1] = l.g;
+            this._lightColorData[count * 3 + 2] = l.b;
+            this._lightRadiusData[count] = l.radius;
+            this._lightIntensityData[count] = l.intensity;
+        }
+
+        // Flash lights (with fade-out)
+        for (let i = 0; i < this.flashLights.length && count < MAX_POINT_LIGHTS; i++, count++) {
+            const fl = this.flashLights[i];
+            const fade = fl.timer / fl.duration;
+            this._lightPosData[count * 2] = fl.x;
+            this._lightPosData[count * 2 + 1] = fl.y;
+            this._lightColorData[count * 3] = fl.r;
+            this._lightColorData[count * 3 + 1] = fl.g;
+            this._lightColorData[count * 3 + 2] = fl.b;
+            this._lightRadiusData[count] = fl.radius;
+            this._lightIntensityData[count] = fl.intensity * fade;
+        }
+
+        gl.uniform1i(prog.uniforms['uLightCount'], count);
+        gl.uniform2fv(prog.uniforms['uLightPos[0]'], this._lightPosData);
+        gl.uniform3fv(prog.uniforms['uLightColor[0]'], this._lightColorData);
+        gl.uniform1fv(prog.uniforms['uLightRadius[0]'], this._lightRadiusData);
+        gl.uniform1fv(prog.uniforms['uLightIntensity[0]'], this._lightIntensityData);
+        gl.uniform1f(prog.uniforms['uAmbientDark'], this.ambientDarkness);
+    }
 
     _bindFBO(fbo) {
         const gl = this.gl;
