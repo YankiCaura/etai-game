@@ -904,6 +904,30 @@ export class UI {
                 }
             }
 
+            // Hero unlock announcement
+            const heroUnlockEl = document.getElementById('level-up-hero-unlock');
+            const heroUnlocked = nextLevel === HERO_STATS.unlockLevel;
+            if (heroUnlockEl) {
+                if (heroUnlocked) {
+                    const c = HERO_STATS.color;
+                    heroUnlockEl.style.display = 'block';
+                    heroUnlockEl.style.color = c;
+                    heroUnlockEl.style.background = `linear-gradient(135deg, rgba(0,0,0,0.6), rgba(0,0,0,0.3))`;
+                    heroUnlockEl.style.border = `2px solid ${c}`;
+                    heroUnlockEl.style.boxShadow = `0 0 20px ${c}66, inset 0 0 12px ${c}22`;
+                    heroUnlockEl.innerHTML = `
+                        <div class="unlock-title">Hero Unlocked!</div>
+                        <div class="unlock-desc" style="color:#eee">
+                            <b>WASD</b> to move &nbsp;|&nbsp; Auto-attacks nearby enemies<br>
+                            <b>Q</b> — AoE stun &nbsp;|&nbsp; <b>E</b> — Gold magnet (2x gold)
+                        </div>
+                    `;
+                } else {
+                    heroUnlockEl.style.display = 'none';
+                    heroUnlockEl.innerHTML = '';
+                }
+            }
+
             // Confetti burst from top-center
             const cx = COLS * CELL / 2;
             game.particles.spawnConfetti(cx, 40, 50);
@@ -921,6 +945,10 @@ export class UI {
             if (towerUnlock) {
                 game.particles.spawnConfetti(cx, 40, 60);
                 game.particles.spawnAuraPulse(cx, avY, 100, towerUnlock.color);
+            }
+            if (heroUnlocked) {
+                game.particles.spawnConfetti(cx, 40, 70);
+                game.particles.spawnAuraPulse(cx, avY, 110, HERO_STATS.color);
             }
         }
     }

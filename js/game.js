@@ -1,4 +1,4 @@
-import { STATE, CANVAS_W, CANVAS_H, HERO_STATS } from './constants.js';
+import { STATE, CANVAS_W, CANVAS_H, HERO_STATS, DUAL_SPAWN_LEVEL, MAP_DEFS } from './constants.js';
 import { GameMap } from './map.js';
 import { TowerManager } from './tower.js';
 import { EnemyManager } from './enemy.js';
@@ -75,6 +75,13 @@ export class Game {
         }
     }
 
+    getLayoutIndex() {
+        if (this.worldLevel <= 1) return 0;
+        if (this.worldLevel >= DUAL_SPAWN_LEVEL) return this.worldLevel - 1;
+        const numLayouts = MAP_DEFS[this.selectedMapId].layouts.length;
+        return Math.floor(Math.random() * numLayouts);
+    }
+
     start() {
         if (!this.selectedMapId) return;
         this.audio.ensureContext();
@@ -82,7 +89,7 @@ export class Game {
         // Set starting gold based on world level
         this.economy.levelUpReset(this.worldLevel);
         // Recreate map with the correct layout for this world level
-        this.map = new GameMap(this.selectedMapId, this.worldLevel - 1, this.worldLevel);
+        this.map = new GameMap(this.selectedMapId, this.getLayoutIndex(), this.worldLevel);
         this.renderer.drawTerrain();
         if (this.worldLevel >= HERO_STATS.unlockLevel) this.hero.init(this.map);
         else this.hero.reset();
@@ -137,7 +144,7 @@ export class Game {
         this.waves.reset();
         this.input.reset();
         // Recreate map with the new layout for this world level
-        this.map = new GameMap(this.selectedMapId, this.worldLevel - 1, this.worldLevel);
+        this.map = new GameMap(this.selectedMapId, this.getLayoutIndex(), this.worldLevel);
         this.renderer.drawTerrain();
         if (this.worldLevel >= HERO_STATS.unlockLevel) this.hero.init(this.map);
         else this.hero.reset();
@@ -247,7 +254,7 @@ export class Game {
         this.waves.reset();
         this.input.reset();
         if (this.selectedMapId) {
-            this.map = new GameMap(this.selectedMapId, this.worldLevel - 1, this.worldLevel);
+            this.map = new GameMap(this.selectedMapId, this.getLayoutIndex(), this.worldLevel);
             this.renderer.drawTerrain();
             if (this.worldLevel >= HERO_STATS.unlockLevel) this.hero.init(this.map);
             else this.hero.reset();
