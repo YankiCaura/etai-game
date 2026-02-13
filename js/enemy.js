@@ -85,11 +85,9 @@ export class Enemy {
     }
 
     applySlow(factor, duration) {
-        // Take the stronger slow
-        if (factor < this.slowFactor || duration > this.slowTimer) {
-            this.slowFactor = factor;
-            this.slowTimer = duration;
-        }
+        // Take best of each independently — stronger slow + longer duration
+        if (factor < this.slowFactor) this.slowFactor = factor;
+        if (duration > this.slowTimer) this.slowTimer = duration;
     }
 
     applyFreeze(duration) {
@@ -103,18 +101,16 @@ export class Enemy {
     }
 
     applyArmorShred(amount, duration) {
-        this.armorShredAmount = amount;
+        this.armorShredAmount = Math.max(this.armorShredAmount, amount);
         this.armorShredStacks = Math.min(3, this.armorShredStacks + 1);
-        this.armorShredTimer = duration;
+        this.armorShredTimer = Math.max(this.armorShredTimer, duration);
         this.armor = Math.max(0, this.baseArmor - this.armorShredAmount * this.armorShredStacks);
     }
 
     applyBurn(dps, duration) {
-        // Take the stronger burn
-        if (dps > this.burnDPS || duration > this.burnTimer) {
-            this.burnDPS = dps;
-            this.burnTimer = duration;
-        }
+        // Take best of each independently — stronger DPS + longer duration
+        if (dps > this.burnDPS) this.burnDPS = dps;
+        if (duration > this.burnTimer) this.burnTimer = duration;
     }
 
     applyKnockback(cells) {
@@ -149,11 +145,7 @@ export class Enemy {
             }
         }
 
-        if (wi <= 0 && remaining > 0) {
-            cx = this.path[0].x;
-            cy = this.path[0].y;
-            wi = 0;
-        }
+        if (wi < 0) wi = 0;
 
         this.x = cx;
         this.y = cy;
