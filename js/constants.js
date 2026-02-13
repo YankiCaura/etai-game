@@ -501,9 +501,9 @@ export const TOWER_TYPES = {
         knockback: true,
         unlockLevel: 8,
         levels: [
-            { damage: 20, range: 3.5, fireRate: 1.4, projSpeed: 200, splashRadius: 1.2, knockbackDist: 1.0 },
-            { damage: 30, range: 4.0, fireRate: 1.2, projSpeed: 220, splashRadius: 1.5, knockbackDist: 1.5, upgradeCost: 150 },
-            { damage: 45, range: 4.5, fireRate: 1.0, projSpeed: 240, splashRadius: 1.8, knockbackDist: 2.0, upgradeCost: 250 },
+            { damage: 20, range: 3.5, fireRate: 1.8, projSpeed: 200, splashRadius: 1.2, knockbackDist: 1.0 },
+            { damage: 30, range: 4.0, fireRate: 1.5, projSpeed: 220, splashRadius: 1.5, knockbackDist: 1.5, upgradeCost: 150 },
+            { damage: 45, range: 4.5, fireRate: 1.3, projSpeed: 240, splashRadius: 1.8, knockbackDist: 2.0, upgradeCost: 250 },
         ],
     },
 };
