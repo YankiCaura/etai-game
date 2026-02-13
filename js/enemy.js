@@ -346,6 +346,12 @@ export class EnemyManager {
                 e.deathTimer = 0;
                 this.game.debug.onEnemyKilled(e);
 
+                // Achievement tracking
+                this.game.achievements.increment('totalKills');
+                if (e.type === 'boss') this.game.achievements.increment('bossKills');
+                else if (e.type === 'swarm') this.game.achievements.increment('swarmKills');
+                else if (e.type === 'tank') this.game.achievements.increment('tankKills');
+
                 // Calculate gold reward with gold rush + hero magnet multipliers
                 const waveTag = this.game.waves.waveTag;
                 let goldMulti = waveTag === 'goldrush' ? GOLD_RUSH_MULTIPLIER : 1;
@@ -354,6 +360,7 @@ export class EnemyManager {
                 const goldReward = Math.round(e.reward * KILL_GOLD_BONUS * goldMulti);
                 this.game.economy.addGold(goldReward);
                 this.game.economy.addScore(e.reward);
+                this.game.achievements.increment('totalGoldEarned', goldReward);
                 const goldColor = heroMulti > 1 ? '#00e5ff' : (goldMulti > 1 ? '#ffaa00' : '#ffd700');
                 this.game.particles.spawnFloatingText(e.x, e.y - 10, `+${goldReward}`, goldColor);
 

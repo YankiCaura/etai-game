@@ -13,6 +13,7 @@ import { Audio } from './audio.js';
 import { WaveDebugger } from './debug.js';
 import { PostFX } from './postfx.js';
 import { Hero } from './hero.js';
+import { Achievements } from './achievements.js';
 
 const FIXED_DT = 1 / 60; // 60 Hz physics
 
@@ -54,6 +55,7 @@ export class Game {
         this.audio = new Audio();
         this.debug = new WaveDebugger();
         this.postfx = new PostFX(canvases.fx, canvases.terrain, canvases.game);
+        this.achievements = new Achievements();
 
         // Initial terrain render
         this.renderer.drawTerrain();
@@ -91,6 +93,7 @@ export class Game {
         // Recreate map with the correct layout for this world level
         this.map = new GameMap(this.selectedMapId, this.getLayoutIndex(), this.worldLevel);
         this.renderer.drawTerrain();
+        this.heroDeathsThisLevel = 0;
         if (this.worldLevel >= HERO_STATS.unlockLevel) this.hero.init(this.map);
         else this.hero.reset();
         this.state = STATE.PLAYING;
@@ -102,6 +105,9 @@ export class Game {
 
     toggleAdmin() {
         this.adminMode = !this.adminMode;
+        if (this.adminMode) {
+            this.achievements.check('adminToggle', { on: true });
+        }
     }
 
     togglePause() {
@@ -128,6 +134,14 @@ export class Game {
     levelUp() {
         this.state = STATE.LEVEL_UP;
         Economy.setPlayerLevel(this.worldLevel);
+        this.achievements.increment('levelsCompleted');
+        this.achievements.set('highestLevel', this.worldLevel);
+        this.achievements.set('highestScore', this.economy.score);
+        this.achievements.check('levelComplete', {
+            map: this.selectedMapId,
+            heroActive: this.hero.active,
+            heroDeaths: this.heroDeathsThisLevel,
+        });
         this.audio.playVictory();
         this.ui.showScreen('level-up');
     }
@@ -146,6 +160,7 @@ export class Game {
         // Recreate map with the new layout for this world level
         this.map = new GameMap(this.selectedMapId, this.getLayoutIndex(), this.worldLevel);
         this.renderer.drawTerrain();
+        this.heroDeathsThisLevel = 0;
         if (this.worldLevel >= HERO_STATS.unlockLevel) this.hero.init(this.map);
         else this.hero.reset();
         this.state = STATE.PLAYING;

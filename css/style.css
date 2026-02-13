@@ -1206,6 +1206,230 @@ body {
     font-weight: 600;
 }
 
+/* ── Achievement Toast ─────────────────────────────────── */
+#achievement-toast {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-120px);
+    z-index: 25;
+    background: rgba(13, 27, 42, 0.96);
+    border: 2px solid #cd7f32;
+    border-radius: 12px;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    pointer-events: none;
+    opacity: 0;
+    min-width: 280px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    transition: none;
+}
+
+#achievement-toast.show {
+    animation: toastSlideIn 0.4s ease-out forwards, toastFadeOut 0.5s ease-in 3s forwards;
+}
+
+#achievement-toast.tier-bronze { border-color: #cd7f32; box-shadow: 0 0 16px rgba(205,127,50,0.4); }
+#achievement-toast.tier-silver { border-color: #c0c0c0; box-shadow: 0 0 16px rgba(192,192,192,0.4); }
+#achievement-toast.tier-gold   { border-color: #ffd700; box-shadow: 0 0 16px rgba(255,215,0,0.4); }
+
+@keyframes toastSlideIn {
+    0% { transform: translateX(-50%) translateY(-120px); opacity: 0; }
+    100% { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
+
+@keyframes toastFadeOut {
+    0% { opacity: 1; }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+}
+
+.toast-icon {
+    font-size: 32px;
+    flex-shrink: 0;
+}
+
+.toast-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.toast-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #888;
+    font-weight: 600;
+}
+
+.toast-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: #eee;
+}
+
+.toast-desc {
+    font-size: 12px;
+    color: #aaa;
+}
+
+/* ── Trophy Screen ────────────────────────────────────── */
+#trophy-screen {
+    overflow: hidden;
+}
+
+.trophy-container {
+    width: 90%;
+    max-width: 820px;
+    height: 85%;
+    display: flex;
+    flex-direction: column;
+}
+
+.trophy-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #444;
+    flex-shrink: 0;
+}
+
+.trophy-header .screen-title {
+    margin-bottom: 0;
+    font-size: 28px;
+}
+
+.trophy-count {
+    font-size: 16px;
+    color: #ffd700;
+    font-weight: 700;
+}
+
+.trophy-header .screen-btn {
+    font-size: 13px;
+    padding: 6px 20px;
+}
+
+.trophy-scroll {
+    overflow-y: auto;
+    flex: 1;
+    padding: 16px 4px 16px 0;
+}
+
+.trophy-scroll::-webkit-scrollbar { width: 6px; }
+.trophy-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 3px; }
+.trophy-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+
+.trophy-category {
+    margin-bottom: 20px;
+}
+
+.trophy-category-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #3498db;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #1a4a8a;
+}
+
+#trophy-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.trophy-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(15, 52, 96, 0.4);
+    border: 1px solid #1a3a5a;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 6px;
+    transition: all 0.15s;
+}
+
+.trophy-card.unlocked {
+    background: rgba(15, 52, 96, 0.7);
+}
+
+.trophy-card.unlocked.tier-bronze { border-color: #cd7f32; }
+.trophy-card.unlocked.tier-silver { border-color: #c0c0c0; }
+.trophy-card.unlocked.tier-gold   { border-color: #ffd700; }
+
+.trophy-card.locked {
+    opacity: 0.5;
+}
+
+.trophy-card-icon {
+    font-size: 28px;
+    flex-shrink: 0;
+    width: 36px;
+    text-align: center;
+}
+
+.trophy-card-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.trophy-card-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #eee;
+}
+
+.trophy-card.locked .trophy-card-name { color: #888; }
+
+.trophy-card-desc {
+    font-size: 11px;
+    color: #999;
+    margin-top: 2px;
+}
+
+.trophy-card-tier {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.trophy-card-tier.tier-bronze { color: #cd7f32; background: rgba(205,127,50,0.15); }
+.trophy-card-tier.tier-silver { color: #c0c0c0; background: rgba(192,192,192,0.15); }
+.trophy-card-tier.tier-gold   { color: #ffd700; background: rgba(255,215,0,0.15); }
+
+.trophy-progress {
+    width: 100%;
+    height: 4px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
+    margin-top: 4px;
+    overflow: hidden;
+}
+
+.trophy-progress-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: #3498db;
+    transition: width 0.3s;
+}
+
+.trophy-progress-text {
+    font-size: 10px;
+    color: #666;
+    margin-top: 2px;
+}
+
 /* ── Responsive ────────────────────────────────────────── */
 @media (max-width: 1150px) {
     #game-container {

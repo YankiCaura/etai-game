@@ -312,6 +312,27 @@ export class Audio {
         this.playTone('triangle', 800, 1200, 0.1, 0.08);
     }
 
+    playAchievement() {
+        this.ensureContext();
+        if (!this.ctx || this.muted) return;
+        // Ascending 3-note chime (C5-E5-G5)
+        const notes = [523, 659, 784];
+        const now = this.ctx.currentTime;
+        notes.forEach((freq, i) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0, now + i * 0.08);
+            gain.gain.linearRampToValueAtTime(0.18, now + i * 0.08 + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.3);
+            osc.connect(gain);
+            gain.connect(this.masterGain);
+            osc.start(now + i * 0.08);
+            osc.stop(now + i * 0.08 + 0.3);
+        });
+    }
+
     playLowLivesWarning() {
         this.ensureContext();
         if (!this.ctx || this.muted) return;

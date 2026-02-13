@@ -56,6 +56,9 @@
             <!-- Tower Info Popup -->
             <div id="tower-info"></div>
 
+            <!-- Achievement Toast -->
+            <div id="achievement-toast"></div>
+
             <!-- Mobile Controls (hidden on desktop) -->
             <div id="mobile-controls" class="mobile-only">
                 <div id="dpad">
@@ -96,6 +99,7 @@
                     <kbd>T</kbd> Target mode
                 </div>
                 <div class="menu-buttons">
+                    <button id="trophy-btn" class="screen-btn manual-btn">Trophies</button>
                     <button id="manual-btn" class="screen-btn manual-btn">How to Play</button>
                     <button id="about-btn" class="screen-btn manual-btn">About</button>
                 </div>
@@ -363,6 +367,19 @@
                     <p>Created by Etai</p>
                 </div>
                 <button id="about-close-btn" class="screen-btn">Back</button>
+            </div>
+
+            <div id="trophy-screen" class="game-screen">
+                <div class="trophy-container">
+                    <div class="trophy-header">
+                        <div class="screen-title">Trophies</div>
+                        <span class="trophy-count" id="trophy-count"></span>
+                        <button id="trophy-close-btn" class="screen-btn">Back</button>
+                    </div>
+                    <div class="trophy-scroll">
+                        <div id="trophy-grid"></div>
+                    </div>
+                </div>
             </div>
 
             <div id="game-over-screen" class="game-screen">

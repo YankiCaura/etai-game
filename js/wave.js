@@ -186,6 +186,14 @@ export class WaveManager {
 
         this.game.debug.onWaveEnd(this.game);
 
+        // Achievement: wave completion checks
+        const debugReport = this.game.debug.getLastReport();
+        const livesLost = debugReport ? (debugReport.livesLost || 0) : 0;
+        this.game.achievements.check('waveComplete', { livesLost });
+        if (this.game.speed === 3) {
+            this.game.achievements.increment('wavesAt3x');
+        }
+
         // Rewards
         const bonus = WAVE_BONUS_BASE + this.currentWave * WAVE_BONUS_PER;
         this.game.economy.addGold(bonus);
@@ -194,6 +202,7 @@ export class WaveManager {
         // Interest
         const interest = Math.floor(this.game.economy.gold * INTEREST_RATE);
         this.game.economy.addGold(interest);
+        this.game.achievements.increment('totalGoldEarned', bonus + interest);
 
         this.game.particles.spawnFloatingText(CANVAS_W / 2, CANVAS_H / 3, `Wave ${this.currentWave} Complete! +${bonus + interest}g`, '#ffd700');
 

@@ -277,6 +277,10 @@ export class TowerManager {
         }
 
         this.game.debug.onTowerBuilt(def.cost);
+        this.game.achievements.increment('towersBuilt');
+        this.game.achievements.increment(`tower_${typeName}_placed`);
+        this.game.achievements.increment('totalGoldSpent', def.cost);
+        this.game.achievements.check('towerPlaced', { type: typeName });
         this.game.renderer.drawTerrain();
         this.game.audio.playPlace();
 
@@ -291,6 +295,8 @@ export class TowerManager {
         const value = tower.getSellValue();
         this.game.debug.onTowerSold(value);
         this.game.economy.addGold(value);
+        this.game.achievements.increment('towersSold');
+        this.game.achievements.increment('totalGoldEarned', value);
 
         // Remove all cells for this tower
         for (let dx = 0; dx < tower.size; dx++) {
@@ -313,7 +319,14 @@ export class TowerManager {
         if (!this.game.economy.canAfford(cost)) return false;
         this.game.economy.spendGold(cost);
         this.game.debug.onTowerUpgraded(cost);
+        this.game.achievements.increment('towersUpgraded');
+        this.game.achievements.increment('totalGoldSpent', cost);
         tower.upgrade();
+        // Check if tower is now maxed
+        const def = TOWER_TYPES[tower.type];
+        if (tower.level >= def.levels.length - 1) {
+            this.game.achievements.increment('towersMaxed');
+        }
         this.game.renderer.drawTerrain();
 
         // Upgrade visual feedback

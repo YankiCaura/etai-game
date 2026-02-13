@@ -170,6 +170,10 @@ export class Projectile {
                     game.particles.spawnSpark(this.x, this.y, '#ff4444', 5);
                     game.postfx?.aberration(0.5, 0.15);
                 }
+                // Hero kill tracking
+                if (this.towerType === 'hero' && !this.target.alive) {
+                    game.achievements.increment('heroKills');
+                }
             }
         }
 

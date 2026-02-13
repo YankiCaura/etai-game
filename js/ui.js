@@ -20,6 +20,9 @@ export class UI {
         this.elNextWaveBtn = document.getElementById('next-wave-btn');
         this.elMapSelect = document.getElementById('map-select');
 
+        this.elToast = document.getElementById('achievement-toast');
+        this._toastBusy = false;
+
         this.setupTowerPanel();
         this.setupControls();
         this.buildMapSelect();
@@ -502,6 +505,15 @@ export class UI {
         document.getElementById('about-close-btn')?.addEventListener('click', () => {
             this.showScreen('menu');
         });
+
+        // Trophy buttons
+        document.getElementById('trophy-btn')?.addEventListener('click', () => {
+            this.buildTrophyScreen();
+            this.showScreen('trophy');
+        });
+        document.getElementById('trophy-close-btn')?.addEventListener('click', () => {
+            this.showScreen('menu');
+        });
     }
 
     update() {
@@ -584,6 +596,12 @@ export class UI {
             }
         } else {
             this.elNextWaveBtn.style.display = 'none';
+        }
+
+        // Achievement toast polling
+        if (!this._toastBusy) {
+            const ach = game.achievements.popToast();
+            if (ach) this.showAchievementToast(ach);
         }
 
         // Refresh upgrade button affordability if tower info is open
@@ -806,8 +824,8 @@ export class UI {
         const screen = document.getElementById(`${name}-screen`);
         if (screen) screen.classList.add('visible');
 
-        // Hide/show gameplay bars
-        const onMenu = name === 'menu';
+        // Hide/show gameplay bars — menu-child screens also hide bars
+        const onMenu = name === 'menu' || name === 'trophy' || name === 'manual' || name === 'about';
         const topBar = document.getElementById('top-bar');
         const bottomBar = document.getElementById('bottom-bar');
         if (topBar) topBar.style.display = onMenu ? 'none' : 'flex';
@@ -959,5 +977,112 @@ export class UI {
         const bottomBar = document.getElementById('bottom-bar');
         if (topBar) topBar.style.display = 'flex';
         if (bottomBar) bottomBar.style.display = 'flex';
+    }
+
+    showAchievementToast(ach) {
+        const toast = this.elToast;
+        if (!toast) return;
+        this._toastBusy = true;
+        toast.className = `tier-${ach.tier}`;
+        toast.innerHTML = `
+            <span class="toast-icon">${ach.icon}</span>
+            <div class="toast-info">
+                <span class="toast-label">Achievement Unlocked</span>
+                <span class="toast-name">${ach.name}</span>
+                <span class="toast-desc">${ach.description}</span>
+            </div>
+        `;
+        // Force reflow then add show class
+        toast.offsetHeight;
+        toast.classList.add('show');
+        this.game.audio.playAchievement();
+
+        setTimeout(() => {
+            toast.classList.remove('show');
+            this._toastBusy = false;
+        }, 3500);
+    }
+
+    buildTrophyScreen() {
+        const ach = this.game.achievements;
+        const grid = document.getElementById('trophy-grid');
+        const countEl = document.getElementById('trophy-count');
+        if (!grid) return;
+
+        grid.innerHTML = '';
+        if (countEl) countEl.textContent = `${ach.getUnlockedCount()} / ${ach.getTotalCount()}`;
+
+        // Group by category
+        const all = ach.getAll();
+        const categories = {};
+        for (const a of all) {
+            const cat = a.category;
+            if (!categories[cat]) categories[cat] = [];
+            categories[cat].push(a);
+        }
+
+        for (const [catName, items] of Object.entries(categories)) {
+            const catDiv = document.createElement('div');
+            catDiv.className = 'trophy-category';
+            const catTitle = document.createElement('div');
+            catTitle.className = 'trophy-category-title';
+            catTitle.textContent = catName;
+            catDiv.appendChild(catTitle);
+
+            for (const a of items) {
+                const unlocked = ach.isUnlocked(a.id);
+                const isHidden = a.hidden && !unlocked;
+
+                const card = document.createElement('div');
+                card.className = `trophy-card ${unlocked ? 'unlocked' : 'locked'} tier-${a.tier}`;
+
+                const icon = document.createElement('span');
+                icon.className = 'trophy-card-icon';
+                icon.textContent = isHidden ? '?' : a.icon;
+
+                const info = document.createElement('div');
+                info.className = 'trophy-card-info';
+
+                const name = document.createElement('div');
+                name.className = 'trophy-card-name';
+                name.textContent = isHidden ? '???' : a.name;
+
+                const desc = document.createElement('div');
+                desc.className = 'trophy-card-desc';
+                desc.textContent = isHidden ? 'Hidden achievement' : a.description;
+
+                info.appendChild(name);
+                info.appendChild(desc);
+
+                // Progress bar for stat-based locked achievements
+                if (!unlocked && !isHidden && a.stat) {
+                    const prog = ach.getProgress(a.id);
+                    if (prog) {
+                        const bar = document.createElement('div');
+                        bar.className = 'trophy-progress';
+                        const fill = document.createElement('div');
+                        fill.className = 'trophy-progress-fill';
+                        fill.style.width = `${Math.round(prog.pct * 100)}%`;
+                        bar.appendChild(fill);
+                        info.appendChild(bar);
+                        const text = document.createElement('div');
+                        text.className = 'trophy-progress-text';
+                        text.textContent = `${prog.current} / ${prog.target}`;
+                        info.appendChild(text);
+                    }
+                }
+
+                const tier = document.createElement('span');
+                tier.className = `trophy-card-tier tier-${a.tier}`;
+                tier.textContent = a.tier;
+
+                card.appendChild(icon);
+                card.appendChild(info);
+                card.appendChild(tier);
+                catDiv.appendChild(card);
+            }
+
+            grid.appendChild(catDiv);
+        }
     }
 }

@@ -261,6 +261,8 @@ export class Hero {
         this.deathAnimTimer = 0;
         this.respawnTimer = HERO_STATS.respawnDelay;
         this.clearMovement();
+        this.game.achievements.increment('heroDeaths');
+        this.game.heroDeathsThisLevel = (this.game.heroDeathsThisLevel || 0) + 1;
 
         this.game.particles.spawnExplosion(this.x, this.y, HERO_STATS.color);
         this.game.particles.spawnBigFloatingText(this.x, this.y - 20, 'HERO DOWN!', '#ff4444');
@@ -289,6 +291,7 @@ export class Hero {
 
         this.stunCooldown = HERO_STATS.stunCooldown;
         this.stunFlashTimer = 0.3;
+        this.game.achievements.increment('heroStuns');
 
         const enemies = this.game.enemies.getEnemiesInRange(this.x, this.y, HERO_STATS.stunRadius);
         for (const e of enemies) {
@@ -312,6 +315,7 @@ export class Hero {
         this.magnetCooldown = HERO_STATS.magnetCooldown;
         this.magnetActive = true;
         this.magnetTimer = HERO_STATS.magnetDuration;
+        this.game.achievements.increment('heroMagnets');
 
         this.game.particles.spawnBigFloatingText(this.x, this.y - 25, 'GOLD MAGNET!', '#ffd700');
         this.game.particles.spawnAuraPulse(this.x, this.y, HERO_STATS.magnetRadius * CELL, '#ffd700');
