@@ -49,6 +49,7 @@ export class Renderer {
             firearrow: '#8b1a1a',
             bicannon: '#6b4226',
             missilesniper: '#6b8e23',
+            pulsecannon: '#2eaaaa',
         };
         const maxedAccentColors = {
             arrow: '#7fff00',
@@ -61,6 +62,7 @@ export class Renderer {
             firearrow: '#ff4500',
             bicannon: '#ff6b00',
             missilesniper: '#b5d43b',
+            pulsecannon: '#40dddd',
         };
         const accent = maxed ? (maxedAccentColors[tower.type] || '#ffd700') : (accentColors[tower.type] || '#888');
 
@@ -890,6 +892,7 @@ export class Renderer {
                     firearrow: '255,69,0',
                     bicannon: '255,107,0',
                     missilesniper: '181,212,59',
+                    pulsecannon: '46,170,170',
                 };
                 const glowRGB = maxed ? (maxedGlowColors[tower.type] || '255,215,0') : '255,215,0';
 
@@ -961,6 +964,9 @@ export class Renderer {
                     break;
                 case 'missilesniper':
                     this.drawMissileSniperTurret(ctx, recoilShift, tower);
+                    break;
+                case 'pulsecannon':
+                    this.drawPulseCannonTurret(ctx, recoilShift, tower);
                     break;
                 default:
                     ctx.fillStyle = tower.color;
@@ -1215,6 +1221,33 @@ export class Renderer {
                 ctx.lineTo(cx + Math.cos(sweepAngle) * 30, cy + Math.sin(sweepAngle) * 30);
                 ctx.stroke();
             }
+        } else if (tower.type === 'pulsecannon') {
+            // Pulsing teal energy field
+            const pulse = 0.1 + Math.sin(gp * 1.5) * 0.06;
+            ctx.fillStyle = `rgba(46,170,170,${pulse})`;
+            ctx.beginPath();
+            ctx.arc(cx, cy, 20, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Orbiting energy dots
+            for (let i = 0; i < 3; i++) {
+                const a = sp * 2 + (Math.PI * 2 / 3) * i;
+                const r = 14 + Math.sin(gp + i * 2) * 2;
+                const px = cx + Math.cos(a) * r;
+                const py = cy + Math.sin(a) * r;
+                ctx.fillStyle = `rgba(46,220,220,${0.3 + Math.sin(gp * 2 + i) * 0.15})`;
+                ctx.beginPath();
+                ctx.arc(px, py, 1.8, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Concentric ring pulse
+            const ringR = 10 + Math.sin(gp * 2) * 4;
+            ctx.strokeStyle = `rgba(46,170,170,${0.08 + Math.sin(gp * 2) * 0.04})`;
+            ctx.lineWidth = 0.8;
+            ctx.beginPath();
+            ctx.arc(cx, cy, ringR, 0, Math.PI * 2);
+            ctx.stroke();
         }
     }
 
@@ -2085,6 +2118,65 @@ export class Renderer {
         }
     }
 
+    drawPulseCannonTurret(ctx, recoil, tower) {
+        // Rounded teal body — sci-fi energy weapon
+        ctx.fillStyle = '#1a7a7a';
+        ctx.beginPath();
+        ctx.arc(0, 0, 10, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Inner body highlight
+        ctx.fillStyle = '#2eaaaa';
+        ctx.beginPath();
+        ctx.arc(0, 0, 7, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Core glow
+        const coreGlow = 0.4 + Math.sin(tower.glowPhase * 2) * 0.2;
+        ctx.fillStyle = `rgba(46,220,220,${coreGlow})`;
+        ctx.beginPath();
+        ctx.arc(0, 0, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Short wide barrel
+        ctx.fillStyle = '#1a7a7a';
+        ctx.fillRect(4 + recoil, -5, 12, 10);
+
+        // Barrel highlight
+        ctx.fillStyle = '#2eaaaa';
+        ctx.fillRect(6 + recoil, -3, 8, 6);
+
+        // Concentric dish/emitter at muzzle
+        ctx.strokeStyle = '#40dddd';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(16 + recoil, 0, 5, -Math.PI * 0.5, Math.PI * 0.5);
+        ctx.stroke();
+        ctx.strokeStyle = `rgba(46,220,220,${0.5 + Math.sin(tower.glowPhase * 3) * 0.3})`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(16 + recoil, 0, 3, -Math.PI * 0.4, Math.PI * 0.4);
+        ctx.stroke();
+
+        // Muzzle glow
+        const muzzleGlow = 0.3 + Math.sin(tower.glowPhase * 3) * 0.2;
+        ctx.fillStyle = `rgba(46,220,220,${muzzleGlow})`;
+        ctx.beginPath();
+        ctx.arc(16 + recoil, 0, 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Recoil energy burst
+        if (tower.recoilTimer > 0) {
+            const t = tower.recoilTimer / 0.12;
+            ctx.globalAlpha = t * 0.5;
+            ctx.fillStyle = '#40dddd';
+            ctx.beginPath();
+            ctx.arc(18 + recoil, 0, 3 + (1 - t) * 4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1;
+        }
+    }
+
     // ── Ambient Effects ──────────────────────────────────────────
 
     updateAmbients(dt) {
@@ -2329,6 +2421,7 @@ export class Renderer {
                     : p.towerType === 'superlightning' ? 2
                     : p.towerType === 'sniper' ? 0.5
                     : p.towerType === 'firearrow' ? 1
+                    : p.towerType === 'pulsecannon' ? 2
                     : 1;
 
                 ctx.strokeStyle = color;
@@ -2417,6 +2510,9 @@ export class Renderer {
                     break;
                 case 'missilesniper':
                     this.drawMissileSniperProjectile(ctx, p, color);
+                    break;
+                case 'pulsecannon':
+                    this.drawPulseCannonProjectile(ctx, p, color);
                     break;
                 default:
                     ctx.fillStyle = color;
@@ -2787,6 +2883,33 @@ export class Renderer {
         ctx.fill();
 
         ctx.restore();
+    }
+
+    drawPulseCannonProjectile(ctx, p, color) {
+        // Outer glow
+        ctx.fillStyle = 'rgba(46,220,220,0.2)';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Energy ring
+        ctx.strokeStyle = 'rgba(46,170,170,0.5)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 4.5, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Core orb
+        ctx.fillStyle = '#2eaaaa';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Bright center
+        ctx.fillStyle = '#80eeee';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 1.5, 0, Math.PI * 2);
+        ctx.fill();
     }
 
     drawAvatar(ctx, level, themeColor) {

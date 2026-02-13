@@ -43,6 +43,9 @@ export class Projectile {
         this.scorchDPS = tower.scorchDPS;
         this.scorchDuration = tower.scorchDuration;
 
+        // Knockback (pulse cannon)
+        this.knockbackDist = tower.knockbackDist || 0;
+
         // Visual
         this.angle = angle(this, target);
         this.trail = [];
@@ -113,8 +116,8 @@ export class Projectile {
             this.doSplash(splashDmg, game, splashRad);
             game.audio.playExplosion();
 
-            // Missile explosions are olive-colored
-            const explosionColor = this.missile ? '#aabb44' : (this.isHeavy ? '#ff3300' : '#ff6600');
+            // Explosion color by type
+            const explosionColor = this.towerType === 'pulsecannon' ? '#2eaaaa' : this.missile ? '#aabb44' : (this.isHeavy ? '#ff3300' : '#ff6600');
             game.particles.spawnExplosion(this.x, this.y, explosionColor);
             game.triggerShake(this.isHeavy ? 5 : (this.missile ? 4 : 3), this.isHeavy ? 0.25 : (this.missile ? 0.2 : 0.15));
             // PostFX shockwave on explosions
@@ -132,6 +135,16 @@ export class Projectile {
                 // Spawn scorch zone
                 if (this.scorchDPS > 0) {
                     game.addScorchZone(this.x, this.y, splashPx * 0.8, this.scorchDPS, this.scorchDuration);
+                }
+            }
+
+            // Pulse cannon knockback
+            if (this.knockbackDist > 0) {
+                const kbSplashPx = splashRad * CELL;
+                for (const e of game.enemies.enemies) {
+                    if (!e.alive || e.deathTimer >= 0) continue;
+                    if (distance(this, e) > kbSplashPx) continue;
+                    e.applyKnockback(this.knockbackDist);
                 }
             }
         } else if (this.forkCount > 0) {
@@ -276,6 +289,7 @@ export class Projectile {
             firearrow: '#ff4500',
             bicannon: '#ff8c00',
             missilesniper: '#aabb44',
+            pulsecannon: '#2eaaaa',
             hero: '#00e5ff',
         };
         return colors[this.towerType] || '#fff';

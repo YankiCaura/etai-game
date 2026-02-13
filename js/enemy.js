@@ -114,6 +114,48 @@ export class Enemy {
         }
     }
 
+    applyKnockback(cells) {
+        // Bosses immune, tanks 50% resistance
+        if (this.type === 'boss') return;
+        if (this.type === 'tank') cells *= 0.5;
+
+        const knockPx = cells * CELL;
+        let remaining = knockPx;
+        let wi = this.waypointIndex;
+        let cx = this.x;
+        let cy = this.y;
+
+        while (remaining > 0 && wi > 0) {
+            const prev = this.path[wi];
+            const dx = prev.x - cx;
+            const dy = prev.y - cy;
+            const segDist = Math.sqrt(dx * dx + dy * dy);
+
+            if (segDist <= remaining) {
+                remaining -= segDist;
+                cx = prev.x;
+                cy = prev.y;
+                wi--;
+            } else {
+                const ratio = remaining / segDist;
+                cx += dx * ratio;
+                cy += dy * ratio;
+                remaining = 0;
+            }
+        }
+
+        if (wi <= 0 && remaining > 0) {
+            cx = this.path[0].x;
+            cy = this.path[0].y;
+            wi = 0;
+        }
+
+        this.x = cx;
+        this.y = cy;
+        this.waypointIndex = wi;
+        this.progress = Math.max(0, this.progress - knockPx);
+    }
+
     heal(amount) {
         this.hp = Math.min(this.maxHP, this.hp + amount);
     }

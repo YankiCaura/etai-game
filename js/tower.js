@@ -78,6 +78,9 @@ export class Tower {
         this.shredDuration = lvl.shredDuration || 0;
         this.scorchDPS = lvl.scorchDPS || 0;
         this.scorchDuration = lvl.scorchDuration || 0;
+
+        // Knockback (pulse cannon)
+        this.knockbackDist = lvl.knockbackDist || 0;
     }
 
     getUpgradeCost() {
@@ -202,6 +205,9 @@ export class Tower {
             game.particles.spawnMuzzleFlash(muzzleX, muzzleY, '#ff6600', 4);
         } else if (this.type === 'superlightning') {
             game.particles.spawnMuzzleFlash(muzzleX, muzzleY, '#b388ff', 5);
+        } else if (this.type === 'pulsecannon') {
+            game.particles.spawnMuzzleFlash(muzzleX, muzzleY, '#2eaaaa', 6);
+            game.triggerShake(3, 0.15);
         }
     }
 

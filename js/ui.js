@@ -260,9 +260,11 @@ export class UI {
             btn.dataset.type = key;
             btn.style.setProperty('--tower-color', def.color);
             btn.innerHTML = `
-                <img class="tower-icon" src="${this.towerIcons[key]}" width="64" height="64">
-                <span class="tower-name">${def.name}</span>
-                <span class="tower-cost">$${def.cost}</span>
+                <img class="tower-icon" src="${this.towerIcons[key]}" width="52" height="52">
+                <div class="tower-label">
+                    <span class="tower-name">${def.name}</span>
+                    <span class="tower-cost">$${def.cost}</span>
+                </div>
             `;
             btn.addEventListener('click', () => {
                 this.game.audio.ensureContext();
@@ -316,6 +318,7 @@ export class UI {
             case 'superlightning': this.game.renderer.drawSuperLightningTurret(ctx, 0, fake); break;
             case 'bicannon': this.game.renderer.drawBiCannonTurret(ctx, 0, fake); break;
             case 'missilesniper': this.game.renderer.drawMissileSniperTurret(ctx, 0, fake); break;
+            case 'pulsecannon': this.game.renderer.drawPulseCannonTurret(ctx, 0, fake); break;
         }
 
         ctx.restore();
@@ -356,6 +359,7 @@ export class UI {
             case 'superlightning': this.game.renderer.drawSuperLightningTurret(ctx, 0, fake); break;
             case 'bicannon': this.game.renderer.drawBiCannonTurret(ctx, 0, fake); break;
             case 'missilesniper': this.game.renderer.drawMissileSniperTurret(ctx, 0, fake); break;
+            case 'pulsecannon': this.game.renderer.drawPulseCannonTurret(ctx, 0, fake); break;
         }
 
         ctx.restore();
@@ -384,6 +388,7 @@ export class UI {
             sniper: `${stats.critChance * 100}% crit for ${stats.critMulti}x dmg`,
             firearrow: `Burns for ${stats.burnDamage} dmg/s (${stats.burnDuration}s)`,
             missilesniper: `Homing missiles, splash ${stats.splashRadius}, ${(stats.critChance * 100).toFixed(0)}% crit ${stats.critMulti}x`,
+            pulsecannon: `Splash + knockback ${stats.knockbackDist} cells`,
         };
 
         let lockHTML = '';
@@ -666,6 +671,9 @@ export class UI {
         if (tower.critChance) {
             statsHtml += `<div>${arrow(pct(tower.critChance), nextLvl?.critChance ? pct(nextLvl.critChance) : null)} crit</div>`;
         }
+        if (tower.knockbackDist) {
+            statsHtml += `<div>${arrow(tower.knockbackDist.toFixed(1), nextLvl?.knockbackDist?.toFixed(1))} knockback</div>`;
+        }
         statsHtml += `<div>Target: <span style="color:${modeColor};font-weight:700">${targetMode}</span></div>`;
 
         let html = `
@@ -841,6 +849,27 @@ export class UI {
                 game.renderer.drawAvatar(avatarCanvas.getContext('2d'), nextLevel, themeColor);
             }
 
+            // World unlock announcement
+            const unlockEl = document.getElementById('level-up-unlock');
+            let worldUnlocked = null;
+            if (unlockEl) {
+                worldUnlocked = Object.values(MAP_DEFS).find(d => d.requiredLevel === nextLevel);
+                if (worldUnlocked) {
+                    unlockEl.style.display = 'block';
+                    unlockEl.style.color = worldUnlocked.themeColor;
+                    unlockEl.style.background = `linear-gradient(135deg, rgba(0,0,0,0.6), rgba(0,0,0,0.3))`;
+                    unlockEl.style.border = `2px solid ${worldUnlocked.themeColor}`;
+                    unlockEl.style.boxShadow = `0 0 20px ${worldUnlocked.themeColor}66, inset 0 0 12px ${worldUnlocked.themeColor}22`;
+                    unlockEl.innerHTML = `
+                        <div class="unlock-title">New World Unlocked!</div>
+                        <div class="unlock-desc" style="color:#eee">${worldUnlocked.name} is now available</div>
+                    `;
+                } else {
+                    unlockEl.style.display = 'none';
+                    unlockEl.innerHTML = '';
+                }
+            }
+
             // Confetti burst from top-center
             const cx = COLS * CELL / 2;
             game.particles.spawnConfetti(cx, 40, 50);
@@ -849,6 +878,12 @@ export class UI {
             const avY = ROWS * CELL / 2;
             game.particles.spawnAuraPulse(cx, avY, 60, '#ffd700');
             game.particles.spawnAuraPulse(cx, avY, 90, '#bb86fc');
+
+            // Extra confetti + bigger rings for world unlock
+            if (worldUnlocked) {
+                game.particles.spawnConfetti(cx, 40, 80);
+                game.particles.spawnAuraPulse(cx, avY, 120, worldUnlocked.themeColor);
+            }
         }
     }
 
