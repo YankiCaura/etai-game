@@ -478,9 +478,15 @@ export class UI {
             this.game.restart();
         });
 
-        // Level up continue button
+        // Level up continue button — go to map select if a new world just unlocked
         document.getElementById('level-up-btn')?.addEventListener('click', () => {
-            this.game.continueNextLevel();
+            const nextLevel = this.game.worldLevel + 1;
+            const newMap = Object.values(MAP_DEFS).find(d => d.requiredLevel === nextLevel);
+            if (newMap) {
+                this.game.restart();
+            } else {
+                this.game.continueNextLevel();
+            }
         });
 
         // Exit button

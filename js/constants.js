@@ -547,7 +547,7 @@ export const ENEMY_TYPES = {
     },
     runner: {
         name: 'Runner',
-        baseHP: 15,
+        baseHP: 16,
         speed: 125,    // (+15%)
         reward: 5,
         livesCost: 1,
