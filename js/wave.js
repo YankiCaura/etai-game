@@ -68,6 +68,7 @@ export class WaveManager {
         this.betweenWaveTimer = 0;
         this.reinforceTimer = 0;
         this.reinforceBursts = 0;
+        this.secondaryCount = 0;
         this.game.waveElapsed = 0;
 
         // Goldrush every N waves
@@ -218,19 +219,29 @@ export class WaveManager {
                 this.groupTimers[g] -= dt;
 
                 if (this.groupTimers[g] <= 0) {
-                    // Dual-spawn ramp: wave 15 = 0% (build phase), wave 16+ ramps 5%→25%
+                    // Dual-spawn: wave 15 = build phase, 16-19 = fixed count, 20+ = % ramp
                     let useSecondary = false;
                     const effectiveWave = this.game.getEffectiveWave();
                     if (effectiveWave > DUAL_SPAWN_WAVE) {
-                        const wavesIntoDual = effectiveWave - DUAL_SPAWN_WAVE - 1;
-                        const chance = Math.min(DUAL_SPAWN_START_PCT + wavesIntoDual * DUAL_SPAWN_RAMP_PCT, DUAL_SPAWN_MAX_PCT);
-                        useSecondary = Math.random() < chance;
-                        // No heavy enemies on secondary during first 5 dual-spawn waves
-                        if (useSecondary && wavesIntoDual < 5) {
+                        const wavesIntoDual = effectiveWave - DUAL_SPAWN_WAVE;
+                        if (wavesIntoDual <= 2) {
+                            // Waves 16-17: max 1 enemy on secondary
+                            useSecondary = this.secondaryCount < 1 && Math.random() < 0.10;
+                        } else if (wavesIntoDual <= 4) {
+                            // Waves 18-19: max 2 enemies on secondary
+                            useSecondary = this.secondaryCount < 2 && Math.random() < 0.10;
+                        } else {
+                            // Wave 20+: percentage ramp from 5% to 20%
+                            const chance = Math.min(DUAL_SPAWN_MAX_PCT, DUAL_SPAWN_START_PCT + (wavesIntoDual - 5) * DUAL_SPAWN_RAMP_PCT);
+                            useSecondary = Math.random() < chance;
+                        }
+                        // No heavy enemies on secondary during intro waves 16-19
+                        if (useSecondary && wavesIntoDual <= 4) {
                             const t = group.type;
                             if (t === 'tank' || t === 'boss' || t === 'megaboss') useSecondary = false;
                         }
                     }
+                    if (useSecondary) this.secondaryCount++;
                     this.game.enemies.spawn(group.type, hpScale, this.modifier, useSecondary);
                     this.spawnCounter++;
                     this.groupIndices[g]++;
