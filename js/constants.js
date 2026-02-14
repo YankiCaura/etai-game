@@ -587,7 +587,7 @@ export const SPEED_MAX = 3;
 export const ENEMY_TYPES = {
     grunt: {
         name: 'Grunt',
-        baseHP: 25,
+        baseHP: 20,
         speed: 70,     // px per second (+15%)
         reward: 6,
         livesCost: 1,
@@ -597,7 +597,7 @@ export const ENEMY_TYPES = {
     },
     runner: {
         name: 'Runner',
-        baseHP: 10,
+        baseHP: 8,
         speed: 125,    // (+15%)
         reward: 5,
         livesCost: 1,
@@ -649,7 +649,7 @@ export const ENEMY_TYPES = {
     },
     flying: {
         name: 'Flying',
-        baseHP: 20,
+        baseHP: 13,
         speed: 97,
         reward: 10,
         livesCost: 1,
