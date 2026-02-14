@@ -42,7 +42,7 @@ Every world is an **endless wave-based survival run**. No levels — you play un
 - HP scaling: `wave * 1.10^wave * mapHpMultiplier` — no per-level multiplier
 - Waves 1-5: hand-crafted intro waves. Wave 6+: procedural via `generateWave()`
 - Goldrush every 10 waves (2x kill gold), boss every 5 waves
-- Starting gold: fixed 300g for all worlds
+- Starting gold: fixed 275g for all worlds
 - Auto-wave: enabled by default (`game.autoWave`), auto-starts next wave after 5s
 - Wave record saved per map in `td_wave_record` localStorage key
 
@@ -54,10 +54,10 @@ Every world is an **endless wave-based survival run**. No levels — you play un
 | 2 | Cannon | — |
 | 5 | Sniper | — |
 | 10 | Fire Arrow, Deep Frost | Arrow, Frost (auto-upgraded) |
-| 20 | Hero (WASD unit) | — |
-| 30 | Super Lightning, Bi-Cannon + Dual Spawn | Lightning, Cannon (auto-upgraded) |
-| 50 | Missile Sniper | Sniper (auto-upgraded) |
-| 80 | Pulse Cannon | — |
+| 15 | Dual Spawn | — |
+| 20 | Hero (WASD unit) + Missile Sniper | Sniper (auto-upgraded) |
+| 25 | Super Lightning, Bi-Cannon | Lightning, Cannon (auto-upgraded) |
+| 30 | Pulse Cannon | — |
 
 When a threshold is crossed, `onWaveThreshold()` in game.js:
 1. Collects all unlocks in a batch
@@ -70,8 +70,8 @@ When a threshold is crossed, `onWaveThreshold()` in game.js:
 | World | Required Record | Starting Unlocks | Effect |
 |-------|----------------|-----------------|--------|
 | Serpentine | Always open | 0 | Full progression from wave 1 |
-| Split Creek | Wave 40 on any map | 30 | Starts with wave 1-30 towers pre-unlocked |
-| Gauntlet | Wave 80 on any map | 50 | Starts with wave 1-50 towers pre-unlocked |
+| Split Creek | Wave 30 on any map | 30 | Starts with wave 1-30 towers pre-unlocked |
+| Gauntlet | Wave 40 on any map | 50 | Starts with wave 1-50 towers pre-unlocked |
 
 Maps with `startingUnlocks > 0` pre-populate `_triggeredThresholds` so those unlocks aren't announced again.
 
@@ -97,9 +97,9 @@ Press backtick (`` ` ``) to toggle the admin panel with real-time DPS/efficiency
 
 WASD-controlled hero spawns when `getEffectiveWave() >= 20` (unlockWave in HERO_STATS). Auto-attacks nearest enemy (15 dmg, 3.5 range, 2/s). Two abilities: Q = AoE stun (3-cell radius, 1.5s, 15s cooldown), E = gold magnet (2x kill gold in 4-cell radius, 8s duration, 20s cooldown). Takes contact damage from enemies (type-dependent multipliers). Dies at 0 HP, respawns after 5s. Managed by `hero.js`, updated after enemies/before towers in game loop.
 
-## Dual Spawn Points (Wave 30+)
+## Dual Spawn Points (Wave 15+)
 
-At `getEffectiveWave() >= DUAL_SPAWN_WAVE` (30), enemies spawn from two entry points. Each layout in `MAP_DEFS` has `secondaryWaypoints` entering from x=29 (right edge), converging at the same exit. `WaveManager` alternates spawns: odd-numbered enemies use the secondary path. Secondary paths are always carved in `GameMap` (so they appear on previews). Split Creek primary enemies still fork upper/lower; secondary enemies use a single right-side path.
+At `getEffectiveWave() >= DUAL_SPAWN_WAVE` (15), enemies spawn from two entry points. Each layout in `MAP_DEFS` has `secondaryWaypoints` entering from x=29 (right edge), converging at the same exit. `WaveManager` alternates spawns: odd-numbered enemies use the secondary path. Secondary paths are always carved in `GameMap` (so they appear on previews). Split Creek primary enemies still fork upper/lower; secondary enemies use a single right-side path.
 
 ## Ambient Map Effects
 

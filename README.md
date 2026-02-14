@@ -4,7 +4,7 @@ A tower defense game built with vanilla JavaScript, HTML5 Canvas, and WebGL2 pos
 
 ## How to Play
 
-Defend your castle against waves of enemies by placing and upgrading towers along the path. Enemies follow the path from entry to exit — if they reach the end, you lose lives. Survive all waves to level up and unlock new towers, maps, and abilities.
+Defend your base against endless waves of enemies by placing and upgrading towers along the path. Enemies follow the path from entry to exit — if they reach the end, you lose lives. Each world is an endless survival run. How far can you get?
 
 ## Running the Game
 
@@ -22,17 +22,16 @@ Open `http://localhost:8000` in a modern browser with WebGL2 support.
 - **11 tower types** with unique mechanics — burn, freeze, chain lightning, splash, knockback, homing missiles, and more
 - **6 enemy types** — grunts, runners, tanks, healers, bosses, and swarms
 - **3 maps** with distinct strategic challenges — long winding paths, split forks, and short gauntlets
-- **Hero unit** (Level 3+) — WASD-controlled character with AoE stun and gold magnet abilities
-- **Dual spawn points** (Level 6+) — enemies attack from two directions
+- **Hero unit** (Wave 20+) — WASD-controlled character with AoE stun and gold magnet abilities
+- **Dual spawn points** (Wave 15+) — enemies attack from two directions
 - **WebGL2 post-processing** — bloom, vignette, color grading, dynamic point lighting, shockwave distortion, chromatic aberration
 - **Procedural audio** — all sound generated via Web Audio API, no audio files
 - **Wave modifiers** — random buffs (armored, swift, regen, horde) keep each run fresh
 - **Achievement system** — 31 achievements across 6 categories
-- **Persistent progression** — global player level unlocks content across sessions
+- **Wave-based progression** — new towers and abilities unlock at wave thresholds mid-run
 
 ## Documentation
 
-- **[USER_MANUAL.md](USER_MANUAL.md)** — Full player guide with tower stats, strategies, and controls
 - **[ADMIN_GUIDE.md](ADMIN_GUIDE.md)** — Technical guide for tuning balance, adding content, and using admin tools
 - **[CLAUDE.md](CLAUDE.md)** — Developer reference for code architecture and conventions
 

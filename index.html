@@ -110,7 +110,7 @@
 
                         <div class="manual-section">
                             <h2>Goal</h2>
-                            <p>Build and upgrade towers to stop endless waves of enemies from reaching the exit. You start with 20 lives and 300 gold. If an enemy reaches the end, you lose lives. Lose them all and it's game over. How far can you survive?</p>
+                            <p>Build and upgrade towers to stop endless waves of enemies from reaching the exit. You start with 20 lives and 275 gold. If an enemy reaches the end, you lose lives. Lose them all and it's game over. How far can you survive?</p>
                         </div>
 
                         <div class="manual-section">
@@ -152,17 +152,17 @@
                                     <tr>
                                         <td><span class="manual-dot" style="background:#9b59b6"></span> Lightning</td>
                                         <td>$125</td><td>15/22/32</td><td>3.5/4/4.5</td><td>1/1.2/1.4/s</td>
-                                        <td>Chains to 3-5 enemies. 70% damage per bounce.</td>
+                                        <td>Chains to 3-5 enemies. 70% damage per bounce. Replaced by Super Lightning at wave 25.</td>
                                     </tr>
                                     <tr>
                                         <td><span class="manual-dot" style="background:#8b5e3c"></span> Cannon</td>
                                         <td>$100</td><td>30/50/80</td><td>3/3.5/4</td><td>0.8/1/1.2/s</td>
-                                        <td>Splash damage. Unlocks at wave 2.</td>
+                                        <td>Splash damage. Unlocks wave 2, replaced by Bi-Cannon at wave 25.</td>
                                     </tr>
                                     <tr>
                                         <td><span class="manual-dot" style="background:#c0392b"></span> Sniper</td>
                                         <td>$150</td><td>60/90/140</td><td>6/7/8</td><td>0.5/0.6/0.7/s</td>
-                                        <td>Huge range. 10-20% crit for 2.5-3x damage. Unlocks at wave 5.</td>
+                                        <td>Huge range. 10-20% crit for 2.5-3x damage. Unlocks wave 5, replaced by Missile Sniper at wave 20.</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -191,6 +191,23 @@
                         </div>
 
                         <div class="manual-section">
+                            <h2>Towers — Wave 20 Unlock</h2>
+                            <table class="manual-table">
+                                <thead>
+                                    <tr><th>Tower</th><th>Cost</th><th>Damage</th><th>Range</th><th>Rate</th><th>Special</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><span class="manual-dot" style="background:#6b8e23"></span> Missile Sniper</td>
+                                        <td>$325</td><td>80/120/180</td><td>7/8/9</td><td>0.4/0.45/0.56/s</td>
+                                        <td>2x2 size. Splash + crit. Homing missiles. Massive AoE.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <p class="manual-tip">The Missile Sniper occupies a 2x2 area — the only tower that takes up 4 grid cells. Plan your placement carefully!</p>
+                        </div>
+
+                        <div class="manual-section">
                             <h2>Towers — Wave 25 Unlocks</h2>
                             <table class="manual-table">
                                 <thead>
@@ -209,23 +226,6 @@
                                     </tr>
                                 </tbody>
                             </table>
-                        </div>
-
-                        <div class="manual-section">
-                            <h2>Towers — Wave 20 Unlock</h2>
-                            <table class="manual-table">
-                                <thead>
-                                    <tr><th>Tower</th><th>Cost</th><th>Damage</th><th>Range</th><th>Rate</th><th>Special</th></tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td><span class="manual-dot" style="background:#6b8e23"></span> Missile Sniper</td>
-                                        <td>$325</td><td>80/120/180</td><td>7/8/9</td><td>0.4/0.45/0.56/s</td>
-                                        <td>2x2 size. Splash + crit. Homing missiles. Massive AoE.</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <p class="manual-tip">The Missile Sniper occupies a 2x2 area — the only tower that takes up 4 grid cells. Plan your placement carefully!</p>
                         </div>
 
                         <div class="manual-section">
@@ -297,10 +297,10 @@
                                     <tr><td>2</td><td>Cannon</td></tr>
                                     <tr><td>5</td><td>Sniper</td></tr>
                                     <tr><td>10</td><td>Fire Arrow + Deep Frost (replace Arrow + Frost)</td></tr>
-                                    <tr><td>20</td><td>Hero unit (WASD movement, Q stun, E gold magnet)</td></tr>
-                                    <tr><td>30</td><td>Super Lightning + Bi-Cannon (replace Lightning + Cannon) + Dual spawn</td></tr>
-                                    <tr><td>50</td><td>Missile Sniper (2x2) (replaces Sniper)</td></tr>
-                                    <tr><td>80</td><td>Pulse Cannon</td></tr>
+                                    <tr><td>15</td><td>Dual spawn — enemies attack from two sides</td></tr>
+                                    <tr><td>20</td><td>Hero unit + Missile Sniper (replaces Sniper)</td></tr>
+                                    <tr><td>25</td><td>Super Lightning + Bi-Cannon (replace Lightning + Cannon)</td></tr>
+                                    <tr><td>30</td><td>Pulse Cannon</td></tr>
                                 </tbody>
                             </table>
                             <p class="manual-tip">Split Creek and The Gauntlet start with some towers pre-unlocked. Your tower panel updates automatically as you reach new wave thresholds!</p>
@@ -310,8 +310,8 @@
                             <h2>Economy</h2>
                             <div class="manual-cards">
                                 <div class="manual-card"><strong>Kill bonus:</strong> +10% gold on kills</div>
-                                <div class="manual-card"><strong>Wave bonus:</strong> 25 + (wave x 10) gold</div>
-                                <div class="manual-card"><strong>Interest:</strong> 2% of gold between waves</div>
+                                <div class="manual-card"><strong>Wave bonus:</strong> 25 + (wave x 6) gold</div>
+                                <div class="manual-card"><strong>Interest:</strong> 1% of gold between waves</div>
                                 <div class="manual-card"><strong>Sell refund:</strong> 60% of total invested</div>
                             </div>
                         </div>
