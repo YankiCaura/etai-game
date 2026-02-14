@@ -227,20 +227,20 @@ export class WaveManager {
 
         // Secondary reinforcement bursts: when secondary lane is cleared
         // but primary enemies remain, send reinforcements to keep pressure up
-        if (!this.spawning && this.reinforceBursts < 3 && this.game.getEffectiveWave() > DUAL_SPAWN_WAVE) {
+        if (!this.spawning && this.game.getEffectiveWave() > DUAL_SPAWN_WAVE) {
             const enemies = this.game.enemies.enemies;
             const hasPrimary = enemies.some(e => e.alive && !e.isSecondary && e.deathTimer < 0);
             const hasSecondary = enemies.some(e => e.alive && e.isSecondary && e.deathTimer < 0);
 
             if (hasPrimary && !hasSecondary) {
                 this.reinforceTimer += dt;
-                if (this.reinforceTimer >= 4) {
+                if (this.reinforceTimer >= 2) {
                     this.reinforceTimer = 0;
                     this.reinforceBursts++;
                     const types = ['grunt', 'runner', 'swarm'];
-                    const burstType = types[Math.floor(Math.random() * types.length)];
-                    const burstCount = 2 + Math.floor(Math.random() * 2); // 2-3 enemies
+                    const burstCount = 4 + Math.floor(Math.random() * 3); // 4-6 enemies
                     for (let i = 0; i < burstCount; i++) {
+                        const burstType = types[Math.floor(Math.random() * types.length)];
                         this.game.enemies.spawn(burstType, hpScale, this.modifier, true);
                     }
                 }
