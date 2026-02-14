@@ -33,109 +33,109 @@ export const MAP_DEFS = {
         startingUnlocks: 0,
         description: 'A long winding path gives you plenty of time to build defenses.',
         layouts: [
-            // Layout 0: Original winding path
+            // Layout 0: Stacked horizontal U-turns (kill zones: y=2,4 left, y=13,15 right)
             {
                 waypoints: [
-                    { x: 0, y: 2 }, { x: 7, y: 2 }, { x: 7, y: 6 }, { x: 2, y: 6 },
-                    { x: 2, y: 10 }, { x: 10, y: 10 }, { x: 10, y: 4 }, { x: 15, y: 4 },
-                    { x: 15, y: 14 }, { x: 6, y: 14 }, { x: 6, y: 18 }, { x: 20, y: 18 },
-                    { x: 20, y: 12 }, { x: 25, y: 12 }, { x: 25, y: 6 }, { x: 29, y: 6 },
+                    { x: 0, y: 1 }, { x: 14, y: 1 }, { x: 14, y: 3 }, { x: 2, y: 3 },
+                    { x: 2, y: 5 }, { x: 14, y: 5 }, { x: 14, y: 8 }, { x: 8, y: 8 },
+                    { x: 8, y: 12 }, { x: 27, y: 12 }, { x: 27, y: 14 }, { x: 14, y: 14 },
+                    { x: 14, y: 16 }, { x: 27, y: 16 }, { x: 27, y: 18 }, { x: 29, y: 18 },
                 ],
                 blocked: [
-                    { x: 4, y: 0 }, { x: 5, y: 0 }, { x: 12, y: 1 }, { x: 13, y: 1 },
-                    { x: 22, y: 3 }, { x: 23, y: 3 }, { x: 0, y: 8 }, { x: 1, y: 8 },
-                    { x: 18, y: 8 }, { x: 19, y: 8 }, { x: 27, y: 10 }, { x: 28, y: 10 },
-                    { x: 12, y: 16 }, { x: 13, y: 16 }, { x: 24, y: 16 }, { x: 25, y: 16 },
-                    { x: 3, y: 19 }, { x: 4, y: 19 }, { x: 16, y: 0 }, { x: 27, y: 2 },
-                    { x: 0, y: 15 }, { x: 14, y: 12 },
+                    { x: 18, y: 0 }, { x: 19, y: 0 }, { x: 24, y: 1 }, { x: 25, y: 1 },
+                    { x: 20, y: 6 }, { x: 21, y: 6 }, { x: 6, y: 0 }, { x: 7, y: 0 },
+                    { x: 0, y: 10 }, { x: 1, y: 10 }, { x: 4, y: 11 }, { x: 5, y: 11 },
+                    { x: 0, y: 17 }, { x: 1, y: 17 }, { x: 10, y: 10 }, { x: 11, y: 10 },
+                    { x: 4, y: 19 }, { x: 5, y: 19 }, { x: 20, y: 19 }, { x: 21, y: 19 },
+                    { x: 18, y: 10 }, { x: 19, y: 10 },
                 ],
                 paths: null,
                 secondaryWaypoints: [
-                    {x:29,y:16},{x:22,y:16},{x:22,y:9},{x:27,y:9},{x:27,y:3},{x:29,y:3},{x:29,y:6}
+                    {x:29,y:3},{x:24,y:3},{x:24,y:9},{x:29,y:9},{x:29,y:18}
                 ],
             },
-            // Layout 1: Mirrored serpentine starting bottom-left, going up
+            // Layout 1: Vertical bars + horizontal switchbacks (kill zones: x=4,6 vertical, y=7,9 horizontal)
             {
                 waypoints: [
-                    { x: 0, y: 17 }, { x: 7, y: 17 }, { x: 7, y: 13 }, { x: 2, y: 13 },
-                    { x: 2, y: 9 }, { x: 10, y: 9 }, { x: 10, y: 15 }, { x: 15, y: 15 },
-                    { x: 15, y: 5 }, { x: 6, y: 5 }, { x: 6, y: 1 }, { x: 20, y: 1 },
-                    { x: 20, y: 7 }, { x: 25, y: 7 }, { x: 25, y: 13 }, { x: 29, y: 13 },
+                    { x: 0, y: 18 }, { x: 3, y: 18 }, { x: 3, y: 3 }, { x: 5, y: 3 },
+                    { x: 5, y: 18 }, { x: 7, y: 18 }, { x: 7, y: 3 }, { x: 10, y: 3 },
+                    { x: 10, y: 6 }, { x: 27, y: 6 }, { x: 27, y: 8 }, { x: 14, y: 8 },
+                    { x: 14, y: 10 }, { x: 27, y: 10 }, { x: 27, y: 13 }, { x: 29, y: 13 },
                 ],
                 blocked: [
-                    { x: 4, y: 19 }, { x: 5, y: 19 }, { x: 12, y: 18 }, { x: 13, y: 18 },
-                    { x: 22, y: 16 }, { x: 23, y: 16 }, { x: 0, y: 11 }, { x: 1, y: 11 },
-                    { x: 18, y: 11 }, { x: 19, y: 11 }, { x: 27, y: 9 }, { x: 28, y: 9 },
-                    { x: 12, y: 3 }, { x: 13, y: 3 }, { x: 24, y: 3 }, { x: 25, y: 3 },
-                    { x: 3, y: 0 }, { x: 4, y: 0 }, { x: 16, y: 19 }, { x: 27, y: 17 },
-                    { x: 0, y: 4 }, { x: 14, y: 7 },
+                    { x: 16, y: 0 }, { x: 17, y: 0 }, { x: 22, y: 1 }, { x: 23, y: 1 },
+                    { x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 8 }, { x: 1, y: 8 },
+                    { x: 0, y: 14 }, { x: 1, y: 14 }, { x: 20, y: 4 }, { x: 21, y: 4 },
+                    { x: 16, y: 16 }, { x: 17, y: 16 }, { x: 22, y: 17 }, { x: 23, y: 17 },
+                    { x: 18, y: 19 }, { x: 19, y: 19 }, { x: 11, y: 12 }, { x: 12, y: 12 },
+                    { x: 11, y: 16 }, { x: 12, y: 16 },
                 ],
                 paths: null,
                 secondaryWaypoints: [
-                    {x:29,y:3},{x:22,y:3},{x:22,y:10},{x:27,y:10},{x:27,y:17},{x:29,y:17},{x:29,y:13}
+                    {x:29,y:18},{x:25,y:18},{x:25,y:15},{x:29,y:15},{x:29,y:13}
                 ],
             },
-            // Layout 2: Tight zigzag (entry top-left, exit right)
+            // Layout 2: Center spiral with dual clusters (kill zones: y=5,7 left, y=13,15 right)
             {
                 waypoints: [
-                    { x: 0, y: 3 }, { x: 8, y: 3 }, { x: 8, y: 7 }, { x: 3, y: 7 },
-                    { x: 3, y: 11 }, { x: 11, y: 11 }, { x: 11, y: 6 }, { x: 17, y: 6 },
-                    { x: 17, y: 11 }, { x: 13, y: 11 }, { x: 13, y: 15 }, { x: 20, y: 15 },
-                    { x: 20, y: 10 }, { x: 26, y: 10 }, { x: 26, y: 5 }, { x: 29, y: 5 },
+                    { x: 0, y: 10 }, { x: 4, y: 10 }, { x: 4, y: 4 }, { x: 16, y: 4 },
+                    { x: 16, y: 6 }, { x: 6, y: 6 }, { x: 6, y: 8 }, { x: 16, y: 8 },
+                    { x: 16, y: 12 }, { x: 27, y: 12 }, { x: 27, y: 14 }, { x: 16, y: 14 },
+                    { x: 16, y: 16 }, { x: 27, y: 16 }, { x: 27, y: 18 }, { x: 29, y: 18 },
                 ],
                 blocked: [
-                    { x: 0, y: 0 }, { x: 1, y: 0 }, { x: 15, y: 0 }, { x: 16, y: 0 },
-                    { x: 28, y: 0 }, { x: 29, y: 0 }, { x: 21, y: 1 }, { x: 22, y: 1 },
-                    { x: 0, y: 5 }, { x: 1, y: 5 }, { x: 21, y: 4 }, { x: 22, y: 4 },
-                    { x: 0, y: 14 }, { x: 1, y: 14 }, { x: 5, y: 14 }, { x: 6, y: 14 },
-                    { x: 0, y: 18 }, { x: 1, y: 18 }, { x: 7, y: 18 }, { x: 8, y: 18 },
-                    { x: 15, y: 18 }, { x: 16, y: 18 },
+                    { x: 8, y: 0 }, { x: 9, y: 0 }, { x: 20, y: 0 }, { x: 21, y: 0 },
+                    { x: 0, y: 2 }, { x: 1, y: 2 }, { x: 24, y: 2 }, { x: 25, y: 2 },
+                    { x: 0, y: 6 }, { x: 1, y: 6 }, { x: 0, y: 14 }, { x: 1, y: 14 },
+                    { x: 4, y: 19 }, { x: 5, y: 19 }, { x: 12, y: 19 }, { x: 13, y: 19 },
+                    { x: 10, y: 10 }, { x: 11, y: 10 }, { x: 20, y: 9 }, { x: 21, y: 9 },
+                    { x: 10, y: 16 }, { x: 11, y: 16 },
                 ],
                 paths: null,
                 secondaryWaypoints: [
-                    {x:29,y:15},{x:23,y:15},{x:23,y:8},{x:27,y:8},{x:27,y:5},{x:29,y:5}
+                    {x:29,y:4},{x:22,y:4},{x:22,y:9},{x:29,y:9},{x:29,y:18}
                 ],
             },
-            // Layout 3: Compact spiral (entry bottom-left, exit top-right)
+            // Layout 3: Bottom-entry S-curve (kill zones: y=16,14 bottom-left, y=6,4 top-right)
             {
                 waypoints: [
-                    { x: 0, y: 16 }, { x: 5, y: 16 }, { x: 5, y: 12 }, { x: 2, y: 12 },
-                    { x: 2, y: 7 }, { x: 8, y: 7 }, { x: 8, y: 12 }, { x: 14, y: 12 },
-                    { x: 14, y: 5 }, { x: 8, y: 5 }, { x: 8, y: 2 }, { x: 16, y: 2 },
-                    { x: 16, y: 8 }, { x: 22, y: 8 }, { x: 22, y: 2 }, { x: 29, y: 2 },
+                    { x: 0, y: 17 }, { x: 14, y: 17 }, { x: 14, y: 15 }, { x: 2, y: 15 },
+                    { x: 2, y: 13 }, { x: 12, y: 13 }, { x: 12, y: 9 }, { x: 8, y: 9 },
+                    { x: 8, y: 7 }, { x: 27, y: 7 }, { x: 27, y: 5 }, { x: 16, y: 5 },
+                    { x: 16, y: 3 }, { x: 27, y: 3 }, { x: 27, y: 1 }, { x: 29, y: 1 },
                 ],
                 blocked: [
-                    { x: 0, y: 0 }, { x: 1, y: 0 }, { x: 4, y: 0 }, { x: 5, y: 0 },
-                    { x: 18, y: 0 }, { x: 19, y: 0 }, { x: 0, y: 4 }, { x: 1, y: 4 },
-                    { x: 11, y: 9 }, { x: 12, y: 9 }, { x: 18, y: 15 }, { x: 19, y: 15 },
-                    { x: 0, y: 19 }, { x: 1, y: 19 }, { x: 7, y: 18 }, { x: 8, y: 18 },
-                    { x: 12, y: 18 }, { x: 13, y: 18 }, { x: 28, y: 10 }, { x: 29, y: 10 },
-                    { x: 28, y: 17 }, { x: 29, y: 17 },
+                    { x: 0, y: 0 }, { x: 1, y: 0 }, { x: 4, y: 2 }, { x: 5, y: 2 },
+                    { x: 18, y: 0 }, { x: 19, y: 0 }, { x: 0, y: 7 }, { x: 1, y: 7 },
+                    { x: 4, y: 10 }, { x: 5, y: 10 }, { x: 0, y: 19 }, { x: 1, y: 19 },
+                    { x: 18, y: 11 }, { x: 19, y: 11 }, { x: 18, y: 18 }, { x: 19, y: 18 },
+                    { x: 6, y: 19 }, { x: 7, y: 19 }, { x: 24, y: 13 }, { x: 25, y: 13 },
+                    { x: 24, y: 9 }, { x: 25, y: 9 },
                 ],
                 paths: null,
                 secondaryWaypoints: [
-                    {x:29,y:14},{x:24,y:14},{x:24,y:6},{x:27,y:6},{x:27,y:2},{x:29,y:2}
+                    {x:29,y:17},{x:22,y:17},{x:22,y:10},{x:29,y:10},{x:29,y:1}
                 ],
             },
-            // Layout 4: Dense switchback (entry mid-left, exit mid-right)
+            // Layout 4: Wide switchbacks with massive bottom zones (kill zones: y=3,5 top, y=13,15,17 bottom)
             {
                 waypoints: [
-                    { x: 0, y: 10 }, { x: 6, y: 10 }, { x: 6, y: 5 }, { x: 3, y: 5 },
-                    { x: 3, y: 1 }, { x: 10, y: 1 }, { x: 10, y: 7 }, { x: 15, y: 7 },
-                    { x: 15, y: 1 }, { x: 21, y: 1 }, { x: 21, y: 8 }, { x: 16, y: 8 },
-                    { x: 16, y: 14 }, { x: 23, y: 14 }, { x: 23, y: 8 }, { x: 29, y: 8 },
+                    { x: 0, y: 8 }, { x: 6, y: 8 }, { x: 6, y: 2 }, { x: 20, y: 2 },
+                    { x: 20, y: 4 }, { x: 8, y: 4 }, { x: 8, y: 6 }, { x: 20, y: 6 },
+                    { x: 20, y: 12 }, { x: 8, y: 12 }, { x: 8, y: 14 }, { x: 22, y: 14 },
+                    { x: 22, y: 16 }, { x: 8, y: 16 }, { x: 8, y: 18 }, { x: 29, y: 18 },
                 ],
                 blocked: [
-                    { x: 0, y: 0 }, { x: 1, y: 0 }, { x: 26, y: 0 }, { x: 27, y: 0 },
-                    { x: 0, y: 3 }, { x: 1, y: 3 }, { x: 12, y: 3 }, { x: 13, y: 3 },
-                    { x: 26, y: 3 }, { x: 27, y: 3 }, { x: 7, y: 12 }, { x: 8, y: 12 },
-                    { x: 0, y: 13 }, { x: 1, y: 13 }, { x: 0, y: 16 }, { x: 1, y: 16 },
-                    { x: 5, y: 18 }, { x: 6, y: 18 }, { x: 12, y: 18 }, { x: 13, y: 18 },
-                    { x: 19, y: 18 }, { x: 20, y: 18 },
+                    { x: 0, y: 0 }, { x: 1, y: 0 }, { x: 12, y: 0 }, { x: 13, y: 0 },
+                    { x: 26, y: 0 }, { x: 27, y: 0 }, { x: 0, y: 3 }, { x: 1, y: 3 },
+                    { x: 0, y: 11 }, { x: 1, y: 11 }, { x: 2, y: 9 }, { x: 3, y: 9 },
+                    { x: 0, y: 19 }, { x: 1, y: 19 }, { x: 4, y: 19 }, { x: 5, y: 19 },
+                    { x: 14, y: 19 }, { x: 15, y: 19 }, { x: 26, y: 10 }, { x: 27, y: 10 },
+                    { x: 26, y: 19 }, { x: 27, y: 19 },
                 ],
                 paths: null,
                 secondaryWaypoints: [
-                    {x:29,y:17},{x:25,y:17},{x:25,y:12},{x:28,y:12},{x:28,y:8},{x:29,y:8}
+                    {x:29,y:2},{x:25,y:2},{x:25,y:9},{x:29,y:9},{x:29,y:18}
                 ],
             },
         ],
@@ -373,12 +373,12 @@ export const MAP_DEFS = {
 
 // ── Economy ────────────────────────────────────────────────
 export const STARTING_LIVES = 20;
-export const STARTING_GOLD = 275;
+export const STARTING_GOLD = 300;
 export const KILL_GOLD_BONUS = 1.10;  // 10% bonus on all kill gold
 export const SELL_REFUND = 0.6;       // 60% back
 export const INTEREST_RATE = 0.01;    // 1% between waves
 export const WAVE_BONUS_BASE = 25;
-export const WAVE_BONUS_PER = 6;
+export const WAVE_BONUS_PER = 7;
 
 // ── Tower Definitions ──────────────────────────────────────
 export const TOWER_TYPES = {
