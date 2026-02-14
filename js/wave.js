@@ -236,11 +236,11 @@ export class WaveManager {
 
             if (hasPrimary && !hasSecondary) {
                 this.reinforceTimer += dt;
-                if (this.reinforceTimer >= 2) {
+                if (this.reinforceTimer >= 4) {
                     this.reinforceTimer = 0;
                     this.reinforceBursts++;
                     const types = ['grunt', 'runner', 'swarm'];
-                    const burstCount = 4 + Math.floor(Math.random() * 3); // 4-6 enemies
+                    const burstCount = 3 + Math.floor(Math.random() * 3); // 3-5 enemies
                     for (let i = 0; i < burstCount; i++) {
                         const burstType = types[Math.floor(Math.random() * types.length)];
                         this.game.enemies.spawn(burstType, hpScale, this.modifier, true);
