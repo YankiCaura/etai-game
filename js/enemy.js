@@ -122,7 +122,8 @@ export class Enemy {
     }
 
     applyFreeze(duration) {
-        this.freezeTimer = Math.max(this.freezeTimer, duration);
+        const effectiveDuration = this.type === 'megaboss' ? duration * 0.5 : duration;
+        this.freezeTimer = Math.max(this.freezeTimer, effectiveDuration);
         this.isFrozen = true;
     }
 
@@ -145,8 +146,8 @@ export class Enemy {
     }
 
     applyKnockback(cells) {
-        // Bosses immune, tanks 50% resistance, max 2 knockbacks per enemy
-        if (this.type === 'boss') return;
+        // Bosses and mega bosses immune, tanks 50% resistance, max 2 knockbacks per enemy
+        if (this.type === 'boss' || this.type === 'megaboss') return;
         if (this.knockbackCount >= 2) return;
         this.knockbackCount++;
         if (this.type === 'tank') cells *= 0.5;
@@ -360,9 +361,9 @@ export class EnemyManager {
     }
 
     update(dt) {
-        // Boss enrage: when a boss is the only living enemy, it enrages
+        // Boss/megaboss enrage: when a boss or megaboss is the only living enemy, it enrages
         const alive = this.enemies.filter(e => e.alive && e.deathTimer < 0);
-        if (alive.length === 1 && alive[0].type === 'boss' && !alive[0].enraged && !this.game.waves.spawning) {
+        if (alive.length === 1 && (alive[0].type === 'boss' || alive[0].type === 'megaboss') && !alive[0].enraged && !this.game.waves.spawning) {
             const boss = alive[0];
             boss.enraged = true;
             boss.baseSpeed = Math.round(boss.baseSpeed * 1.5);
@@ -404,7 +405,7 @@ export class EnemyManager {
 
                 // Achievement tracking
                 this.game.achievements.increment('totalKills');
-                if (e.type === 'boss') this.game.achievements.increment('bossKills');
+                if (e.type === 'boss' || e.type === 'megaboss') this.game.achievements.increment('bossKills');
                 else if (e.type === 'swarm') this.game.achievements.increment('swarmKills');
                 else if (e.type === 'tank') this.game.achievements.increment('tankKills');
 
@@ -434,12 +435,13 @@ export class EnemyManager {
                     this.game.triggerShake(3, 0.15);
                 }
 
-                // Boss death screen shake + PostFX
-                if (e.type === 'boss') {
-                    this.game.triggerShake(10, 0.4);
-                    this.game.postfx?.flash(0.15, 0.2);
-                    this.game.postfx?.shockwave(e.x / CANVAS_W, e.y / CANVAS_H, 0.5);
-                    this.game.postfx?.addFlashLight(e.x, e.y, 1.0, 0.84, 0, 0.20, 2.0, 0.5);
+                // Boss/megaboss death screen shake + PostFX
+                if (e.type === 'boss' || e.type === 'megaboss') {
+                    const isMega = e.type === 'megaboss';
+                    this.game.triggerShake(isMega ? 15 : 10, isMega ? 0.6 : 0.4);
+                    this.game.postfx?.flash(isMega ? 0.25 : 0.15, isMega ? 0.3 : 0.2);
+                    this.game.postfx?.shockwave(e.x / CANVAS_W, e.y / CANVAS_H, isMega ? 0.8 : 0.5);
+                    this.game.postfx?.addFlashLight(e.x, e.y, 1.0, isMega ? 0.1 : 0.84, 0, isMega ? 0.30 : 0.20, 2.0, isMega ? 0.7 : 0.5);
                 }
                 continue;
             }

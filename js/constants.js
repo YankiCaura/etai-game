@@ -542,7 +542,7 @@ export const HERO_STATS = {
     damage: 15,  range: 3.5,  fireRate: 0.5,  projSpeed: 350,
     // Contact damage (DPS tick every 0.5s)
     contactTick: 0.5,  contactBase: 10,
-    contactMultipliers: { grunt: 1, runner: 0.8, tank: 2, healer: 0.6, boss: 3, swarm: 0.5 },
+    contactMultipliers: { grunt: 1, runner: 0.8, tank: 2, healer: 0.6, boss: 3, swarm: 0.5, megaboss: 4 },
     // Respawn
     respawnDelay: 5.0,
     // Q: AoE Stun
@@ -570,7 +570,7 @@ export const WAVE_GEN = {
     INTERVAL_BASE: 0.8,        // base spawn interval (seconds)
     INTERVAL_DECAY: 0.01,      // interval shrinks per wave
     INTERVAL_MIN: 0.22,        // floor for spawn interval
-    INTERVAL_MULTI: { grunt: 1.0, runner: 1.3, tank: 0.8, healer: 1.0, boss: 0.8, swarm: 1.3, flying: 1.0 },
+    INTERVAL_MULTI: { grunt: 1.0, runner: 1.3, tank: 0.8, healer: 1.0, boss: 0.8, swarm: 1.3, flying: 1.0, megaboss: 0.7 },
     GROUP_OVERLAP: 0.5,        // next group starts at this fraction of previous
     GROUP_GAP_MIN: 1.0,        // min gap between groups (seconds)
     GROUP_GAP_RANDOM: 1.5,     // random extra gap
@@ -656,6 +656,16 @@ export const ENEMY_TYPES = {
         color: '#9b59b6',
         radius: 11,
         armor: 0,
+    },
+    megaboss: {
+        name: 'Mega Boss',
+        baseHP: 720,
+        speed: 58,
+        reward: 80,
+        livesCost: 5,
+        color: '#8b0000',
+        radius: 28,
+        armor: 0.25,
     },
 };
 

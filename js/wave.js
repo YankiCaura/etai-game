@@ -178,6 +178,17 @@ export class WaveManager {
             });
         }
 
+        // Mega boss every 2 waves starting at 25 — arrives mid-wave
+        if (waveNum >= 25 && (waveNum - 25) % 2 === 0) {
+            const megaCount = 1 + Math.floor((waveNum - 25) / 2);
+            groups.push({
+                type: 'megaboss',
+                count: megaCount,
+                interval: W.BOSS_INTERVAL,
+                delay: runningDelay * 0.4,
+            });
+        }
+
         return groups;
     }
 

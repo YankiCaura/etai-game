@@ -524,6 +524,18 @@ export class Renderer {
         ctx.closePath();
     }
 
+    drawOctagon(ctx, x, y, r) {
+        ctx.beginPath();
+        for (let i = 0; i < 8; i++) {
+            const a = (Math.PI * 2 * i) / 8 - Math.PI / 8;
+            const px = x + Math.cos(a) * r;
+            const py = y + Math.sin(a) * r;
+            if (i === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+    }
+
     drawTriangle(ctx, x, y, r, angle) {
         ctx.beginPath();
         // Point in movement direction
@@ -578,6 +590,9 @@ export class Renderer {
                 break;
             case 'flying':
                 this.drawWing(ctx, x, y, r);
+                break;
+            case 'megaboss':
+                this.drawOctagon(ctx, x, y, r);
                 break;
             default:
                 ctx.beginPath();
@@ -643,6 +658,18 @@ export class Renderer {
                 ctx.stroke();
             }
 
+            // Mega boss crimson aura
+            if (e.type === 'megaboss' && !isDying) {
+                const pulse = 0.15 + 0.1 * Math.sin(this.game.elapsedTime * 4);
+                ctx.fillStyle = `rgba(139, 0, 0, ${pulse})`;
+                ctx.beginPath();
+                ctx.arc(drawX, drawY, r + 8, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = `rgba(255, 50, 0, ${pulse + 0.15})`;
+                ctx.lineWidth = 3;
+                ctx.stroke();
+            }
+
             // Body shape — lerp color toward white during death
             if (isDying) {
                 const w = Math.min(deathT * 2, 1); // faster color shift
@@ -698,6 +725,29 @@ export class Renderer {
                     ctx.closePath();
                     ctx.fill();
                 }
+            } else if (e.type === 'megaboss' && !isDying) {
+                // Spike horns — 4 spikes radiating outward
+                ctx.fillStyle = '#ff4500';
+                for (let i = 0; i < 4; i++) {
+                    const a = (Math.PI * 2 * i) / 4 - Math.PI / 4;
+                    const sx = drawX + Math.cos(a) * r * 0.75;
+                    const sy = drawY + Math.sin(a) * r * 0.75;
+                    const tx = drawX + Math.cos(a) * r * 1.3;
+                    const ty = drawY + Math.sin(a) * r * 1.3;
+                    const perpX = -Math.sin(a) * r * 0.15;
+                    const perpY = Math.cos(a) * r * 0.15;
+                    ctx.beginPath();
+                    ctx.moveTo(sx + perpX, sy + perpY);
+                    ctx.lineTo(tx, ty);
+                    ctx.lineTo(sx - perpX, sy - perpY);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+                // Inner dark core
+                ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                ctx.beginPath();
+                ctx.arc(drawX, drawY, r * 0.4, 0, Math.PI * 2);
+                ctx.fill();
             } else if (e.type === 'runner' && !isDying) {
                 // Speed lines behind
                 ctx.strokeStyle = 'rgba(255,255,255,0.3)';
