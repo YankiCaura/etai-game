@@ -1186,39 +1186,67 @@ export class Renderer {
                 ctx.fill();
             }
         } else if (tower.type === 'missilesniper') {
+            // Ambient military glow — olive pulsing field
+            const ambPulse = 0.06 + Math.sin(gp * 1.2) * 0.04;
+            ctx.fillStyle = `rgba(107,142,35,${ambPulse})`;
+            ctx.beginPath();
+            ctx.arc(cx, cy, 22, 0, Math.PI * 2);
+            ctx.fill();
+
             // Green dashed laser sight to target + crosshair circle
             if (tower.target && tower.target.alive) {
-                ctx.strokeStyle = 'rgba(107,142,35,0.2)';
-                ctx.lineWidth = 0.8;
+                // Double laser sight lines
+                ctx.strokeStyle = 'rgba(107,142,35,0.25)';
+                ctx.lineWidth = 0.6;
                 ctx.setLineDash([4, 5]);
                 ctx.beginPath();
-                ctx.moveTo(cx, cy);
-                ctx.lineTo(tower.target.x, tower.target.y);
+                ctx.moveTo(cx - 2, cy);
+                ctx.lineTo(tower.target.x - 2, tower.target.y);
+                ctx.moveTo(cx + 2, cy);
+                ctx.lineTo(tower.target.x + 2, tower.target.y);
                 ctx.stroke();
                 ctx.setLineDash([]);
 
-                // Crosshair circle on target
-                ctx.strokeStyle = 'rgba(107,142,35,0.35)';
-                ctx.lineWidth = 1;
+                // Rotating crosshair on target
+                const crossAngle = sp * 2;
+                ctx.strokeStyle = 'rgba(107,142,35,0.4)';
+                ctx.lineWidth = 1.2;
                 ctx.beginPath();
-                ctx.arc(tower.target.x, tower.target.y, 8, 0, Math.PI * 2);
+                ctx.arc(tower.target.x, tower.target.y, 9, 0, Math.PI * 2);
                 ctx.stroke();
-                // Crosshair lines
+                // Rotating crosshair spokes
                 for (let i = 0; i < 4; i++) {
-                    const a = (Math.PI / 2) * i;
+                    const a = crossAngle + (Math.PI / 2) * i;
                     ctx.beginPath();
                     ctx.moveTo(tower.target.x + Math.cos(a) * 5, tower.target.y + Math.sin(a) * 5);
-                    ctx.lineTo(tower.target.x + Math.cos(a) * 11, tower.target.y + Math.sin(a) * 11);
+                    ctx.lineTo(tower.target.x + Math.cos(a) * 12, tower.target.y + Math.sin(a) * 12);
                     ctx.stroke();
                 }
+                // Target lock diamond
+                ctx.strokeStyle = 'rgba(150,200,50,0.3)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(tower.target.x, tower.target.y - 14);
+                ctx.lineTo(tower.target.x + 14, tower.target.y);
+                ctx.lineTo(tower.target.x, tower.target.y + 14);
+                ctx.lineTo(tower.target.x - 14, tower.target.y);
+                ctx.closePath();
+                ctx.stroke();
             } else {
-                // Idle radar sweep
+                // Idle radar sweep — dual lines
                 const sweepAngle = sp * 1.5;
-                ctx.strokeStyle = `rgba(107,142,35,${0.15 + Math.sin(gp) * 0.08})`;
+                ctx.strokeStyle = `rgba(107,142,35,${0.18 + Math.sin(gp) * 0.1})`;
                 ctx.lineWidth = 1.5;
                 ctx.beginPath();
                 ctx.moveTo(cx, cy);
-                ctx.lineTo(cx + Math.cos(sweepAngle) * 30, cy + Math.sin(sweepAngle) * 30);
+                ctx.lineTo(cx + Math.cos(sweepAngle) * 25, cy + Math.sin(sweepAngle) * 25);
+                ctx.stroke();
+                // Secondary sweep (offset)
+                ctx.strokeStyle = `rgba(107,142,35,${0.08 + Math.sin(gp + 1) * 0.05})`;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.lineTo(cx + Math.cos(sweepAngle + 0.8) * 20, cy + Math.sin(sweepAngle + 0.8) * 20);
                 ctx.stroke();
             }
         } else if (tower.type === 'pulsecannon') {
@@ -2020,87 +2048,89 @@ export class Renderer {
     }
 
     drawMissileSniperTurret(ctx, recoil, tower) {
-        // Armored launcher body — wider for 2x2
-        ctx.fillStyle = '#4a5a20';
+        // Armored launcher body — compact for 1x1
+        ctx.fillStyle = '#3a4a15';
         ctx.beginPath();
-        ctx.moveTo(-14, -12);
-        ctx.lineTo(6, -14);
-        ctx.lineTo(6, 14);
-        ctx.lineTo(-14, 12);
+        ctx.moveTo(-10, -9);
+        ctx.lineTo(4, -11);
+        ctx.lineTo(4, 11);
+        ctx.lineTo(-10, 9);
         ctx.closePath();
         ctx.fill();
 
         // Inner armor plate
         ctx.fillStyle = '#6b8e23';
-        ctx.fillRect(-12, -11, 16, 22);
+        ctx.fillRect(-8, -8, 11, 16);
 
         // Armor highlight
         ctx.fillStyle = '#8aaa40';
-        ctx.fillRect(-10, -9, 12, 8);
+        ctx.fillRect(-6, -6, 8, 6);
 
-        // 4-tube missile pod (2x2 arrangement)
-        const tubes = [[-5, -7], [5, -7], [-5, 3], [5, 3]];
+        // Quad-tube missile pod (tight 2x2)
+        const tubes = [[-4, -5], [4, -5], [-4, 3], [4, 3]];
         for (const [ty, tx] of tubes) {
             // Tube body
             ctx.fillStyle = '#3a4a15';
             ctx.beginPath();
-            ctx.moveTo(tx + recoil, ty - 3);
-            ctx.lineTo(tx + 18 + recoil, ty - 2.5);
-            ctx.lineTo(tx + 18 + recoil, ty + 2.5);
-            ctx.lineTo(tx + recoil, ty + 3);
+            ctx.moveTo(tx + recoil, ty - 2);
+            ctx.lineTo(tx + 14 + recoil, ty - 1.8);
+            ctx.lineTo(tx + 14 + recoil, ty + 1.8);
+            ctx.lineTo(tx + recoil, ty + 2);
             ctx.closePath();
             ctx.fill();
 
             // Tube inner highlight
             ctx.fillStyle = '#5a6a2a';
-            ctx.fillRect(tx + 2 + recoil, ty - 1, 14, 2);
+            ctx.fillRect(tx + 1 + recoil, ty - 0.8, 11, 1.6);
 
             // Muzzle opening
             ctx.fillStyle = '#222';
             ctx.beginPath();
-            ctx.arc(tx + 18 + recoil, ty, 2, 0, Math.PI * 2);
+            ctx.arc(tx + 14 + recoil, ty, 1.5, 0, Math.PI * 2);
             ctx.fill();
         }
 
-        // Targeting scope on top
+        // Targeting scope
         ctx.fillStyle = '#555';
-        ctx.fillRect(-4, -16, 12, 4);
-        ctx.strokeStyle = '#777';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.arc(-2, -14, 2.5, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(6, -14, 2, 0, Math.PI * 2);
-        ctx.stroke();
-
-        // Scope lens glow — green
+        ctx.fillRect(-3, -12, 9, 3);
         const lensGlow = 0.5 + Math.sin(tower.glowPhase * 2) * 0.3;
         ctx.fillStyle = `rgba(107,142,35,${lensGlow})`;
         ctx.beginPath();
-        ctx.arc(-2, -14, 1.8, 0, Math.PI * 2);
+        ctx.arc(-1, -11, 1.5, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = `rgba(107,142,35,${lensGlow * 0.6})`;
+        ctx.fillStyle = `rgba(150,200,50,${lensGlow * 0.8})`;
         ctx.beginPath();
-        ctx.arc(6, -14, 1.3, 0, Math.PI * 2);
+        ctx.arc(4, -11, 1.2, 0, Math.PI * 2);
         ctx.fill();
 
-        // Rotating radar dish behind (world-space)
+        // Rotating radar dish (world-space)
         ctx.save();
         ctx.rotate(-tower.turretAngle);
-        ctx.strokeStyle = `rgba(107,142,35,${0.2 + Math.sin(tower.glowPhase * 2) * 0.1})`;
+        ctx.strokeStyle = `rgba(107,142,35,${0.25 + Math.sin(tower.glowPhase * 2) * 0.15})`;
         ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.arc(0, 0, 18, tower.spinPhase * 0.6, tower.spinPhase * 0.6 + Math.PI * 0.4);
+        ctx.arc(0, 0, 14, tower.spinPhase * 0.6, tower.spinPhase * 0.6 + Math.PI * 0.4);
         ctx.stroke();
         ctx.restore();
 
+        // Exhaust vents on back
+        ctx.fillStyle = '#444';
+        ctx.fillRect(-10, -6, 2, 3);
+        ctx.fillRect(-10, 3, 2, 3);
+        // Exhaust glow when recently fired
+        if (tower.recoilTimer > 0) {
+            const heat = tower.recoilTimer / 0.12;
+            ctx.fillStyle = `rgba(180,200,60,${heat * 0.4})`;
+            ctx.fillRect(-10, -6, 2, 3);
+            ctx.fillRect(-10, 3, 2, 3);
+        }
+
         // Rivets
         ctx.fillStyle = '#bbb';
-        const rivets = [[-10, -10], [-10, 10], [-3, -10], [-3, 10], [3, -10], [3, 10]];
+        const rivets = [[-7, -7], [-7, 7], [1, -7], [1, 7]];
         for (const [rx, ry] of rivets) {
             ctx.beginPath();
-            ctx.arc(rx, ry, 1.2, 0, Math.PI * 2);
+            ctx.arc(rx, ry, 1, 0, Math.PI * 2);
             ctx.fill();
         }
 

@@ -488,7 +488,6 @@ export const TOWER_TYPES = {
         splash: true,
         crit: true,
         missile: true,
-        size: 2,
         unlockWave: 20,
         levels: [
             { damage: 80, range: 7.0, fireRate: 2.5, projSpeed: 300, splashRadius: 1.2, critChance: 0.12, critMulti: 2.5 },

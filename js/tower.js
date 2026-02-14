@@ -186,7 +186,7 @@ export class Tower {
         game.audio.playShoot(this.type, isHeavy);
 
         // Muzzle flash particles (non-aura towers)
-        const muzzleDist = this.size > 1 ? 24 : 14;
+        const muzzleDist = this.type === 'missilesniper' ? 18 : 14;
         const muzzleX = this.x + Math.cos(this.turretAngle) * muzzleDist;
         const muzzleY = this.y + Math.sin(this.turretAngle) * muzzleDist;
         if (this.type === 'missilesniper') {
