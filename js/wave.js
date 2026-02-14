@@ -40,6 +40,11 @@ export class WaveManager {
         }
 
         this.currentWave++;
+
+        // Trigger unlocks/announcements BEFORE the wave starts
+        this.game.ui.setupTowerPanel();
+        this.game.onWaveThreshold(this.currentWave);
+
         this.spawning = true;
         this.waveComplete = false;
         this.betweenWaves = false;
@@ -86,12 +91,6 @@ export class WaveManager {
         this.spawnGroups = waveDef;
         this.groupTimers = waveDef.map(g => g.delay || 0);
         this.groupIndices = waveDef.map(() => 0);
-
-        // Rebuild tower panel (handles unlockWave/maxWave visibility each wave)
-        this.game.ui.setupTowerPanel();
-
-        // Trigger wave threshold unlocks (auto-upgrade, unlock screen, hero, dual spawn)
-        this.game.onWaveThreshold(this.currentWave);
 
         this.game.debug.onWaveStart(this.game);
         this.game.audio.playWaveStart();
