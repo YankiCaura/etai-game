@@ -150,7 +150,7 @@ export class WaveManager {
 
             // Ease enemy count during dual spawn introduction (waves 15-20)
             const dualEase = (waveNum >= DUAL_SPAWN_WAVE && waveNum <= DUAL_SPAWN_WAVE + 5)
-                ? 0.70 + (waveNum - DUAL_SPAWN_WAVE) * 0.06 : 1.0;
+                ? 0.45 + (waveNum - DUAL_SPAWN_WAVE) * 0.11 : 1.0;
             const count = Math.floor((W.COUNT_BASE + waveNum * W.COUNT_PER_WAVE + Math.random() * W.COUNT_RANDOM) * W.COUNT_MULTIPLIER * dualEase);
             const baseInterval = Math.max(W.INTERVAL_MIN, W.INTERVAL_BASE - waveNum * W.INTERVAL_DECAY);
             const interval = baseInterval * (W.INTERVAL_MULTI[type] || 1.0);
