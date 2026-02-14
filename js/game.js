@@ -222,6 +222,10 @@ export class Game {
     }
 
     restart() {
+        // Save wave record before resetting (covers mid-wave quit)
+        if (this.selectedMapId && this.waves.currentWave > 0) {
+            Economy.setWaveRecord(this.selectedMapId, this.waves.currentWave);
+        }
         this.state = STATE.MENU;
         this.selectedMapId = null;
         this.elapsedTime = 0;
