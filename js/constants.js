@@ -597,7 +597,7 @@ export const ENEMY_TYPES = {
     },
     tank: {
         name: 'Tank',
-        baseHP: 100,
+        baseHP: 98,
         speed: 40,     // (+15%)
         reward: 14,
         livesCost: 2,
