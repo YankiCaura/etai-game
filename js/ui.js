@@ -865,12 +865,15 @@ export class UI {
                 extras += `<div class="unlock-extra" style="color:#00e5ff">HERO UNLOCKED! Move with WASD, Q to stun, E for gold magnet</div>`;
             }
             if (unlock.dualSpawn) {
-                extras += `<div class="unlock-extra" style="color:#e74c3c">Beware! Enemies now attack from two sides!</div>`;
+                extras += `<div class="unlock-extra" style="color:#e74c3c;font-size:1.3em;font-weight:bold">&#x26A0; Enemies now attack from two sides!</div>`;
+                extras += `<div class="unlock-extra" style="color:#e74c3c;font-size:0.85em;opacity:0.85">Starting slow — ramps up over the next 8 waves</div>`;
             }
         }
 
+        const hasTowers = unlocksBatch.some(u => u.towers || u.hero);
+        const title = hasTowers ? 'NEW UNLOCKS!' : 'WARNING!';
         container.innerHTML = `
-            <div class="unlock-title" style="color:${titleColor}">NEW UNLOCKS!</div>
+            <div class="unlock-title" style="color:${titleColor}">${title}</div>
             <div class="unlock-subtitle">Wave ${this.game.waves.currentWave} reached</div>
             ${towerCards ? `<div class="unlock-towers">${towerCards}</div>` : ''}
             ${replacesText}

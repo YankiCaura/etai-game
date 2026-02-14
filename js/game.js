@@ -206,23 +206,9 @@ export class Game {
             }
         }
 
-        // Separate dual-spawn-only announcements from real unlocks
-        const hasDualSpawn = unlocksBatch.some(u => u.dualSpawn);
-        const realUnlocks = unlocksBatch.filter(u => !u.dualSpawn || u.towers || u.hero);
-        const dualSpawnOnly = hasDualSpawn && !unlocksBatch.some(u => u.towers || u.hero);
-
-        if (hasDualSpawn && dualSpawnOnly) {
-            // Just a warning text — no unlock screen, no pause
-            this.particles.spawnBigFloatingText(CANVAS_W / 2, CANVAS_H / 3, 'Beware! Enemies now attack from two sides!', '#e74c3c');
-            this.triggerShake(5, 0.3);
-            this.audio.playExplosion();
+        if (unlocksBatch.length > 0) {
             this.ui.setupTowerPanel();
-        }
-
-        // Show full unlock screen for tower/hero unlocks
-        if (realUnlocks.length > 0 && !dualSpawnOnly) {
-            this.ui.setupTowerPanel();
-            this.ui.showUnlockScreen(realUnlocks);
+            this.ui.showUnlockScreen(unlocksBatch);
             this.state = STATE.PAUSED;
             this.triggerShake(5, 0.3);
             if (this.postfx.enabled) {

@@ -175,12 +175,12 @@ export class WaveManager {
             this.groupTimers[g] -= dt;
 
             if (this.groupTimers[g] <= 0) {
-                // Gradual dual-spawn ramp: 10% → 20% → 50% secondary path
+                // Gradual dual-spawn ramp over 8 waves: ~6% → 50%
                 let useSecondary = false;
                 const effectiveWave = this.game.getEffectiveWave();
                 if (effectiveWave >= DUAL_SPAWN_WAVE) {
                     const wavesIntoDual = effectiveWave - DUAL_SPAWN_WAVE;
-                    const chance = wavesIntoDual <= 0 ? 0.10 : wavesIntoDual <= 1 ? 0.20 : 0.50;
+                    const chance = Math.min(0.06 + wavesIntoDual * 0.063, 0.50);
                     useSecondary = Math.random() < chance;
                 }
                 this.game.enemies.spawn(group.type, hpScale, this.modifier, useSecondary);
