@@ -400,9 +400,9 @@ export const TOWER_TYPES = {
         burn: true,
         unlockWave: 10,
         levels: [
-            { damage: 16, range: 3.5, fireRate: 0.30, projSpeed: 320, burnDamage: 3, burnDuration: 3.0 },
-            { damage: 25, range: 4.0, fireRate: 0.25, projSpeed: 360, burnDamage: 5, burnDuration: 3.5, upgradeCost: 120 },
-            { damage: 36, range: 4.5, fireRate: 0.20, projSpeed: 400, burnDamage: 8, burnDuration: 4.0, upgradeCost: 200 },
+            { damage: 18, range: 3.5, fireRate: 0.30, projSpeed: 320, burnDamage: 3, burnDuration: 3.0 },
+            { damage: 28, range: 4.0, fireRate: 0.25, projSpeed: 360, burnDamage: 6, burnDuration: 3.5, upgradeCost: 120 },
+            { damage: 40, range: 4.5, fireRate: 0.20, projSpeed: 400, burnDamage: 9, burnDuration: 4.0, upgradeCost: 200 },
         ],
     },
     frost: {
@@ -629,7 +629,7 @@ export const ENEMY_TYPES = {
     },
     boss: {
         name: 'Boss',
-        baseHP: 388,
+        baseHP: 349,
         speed: 26,     // (+15%)
         reward: 42,
         livesCost: 5,
@@ -669,7 +669,7 @@ export const ENEMY_TYPES = {
     },
     megaboss: {
         name: 'Mega Boss',
-        baseHP: 551,
+        baseHP: 413,
         speed: 58,
         reward: 80,
         livesCost: 5,
@@ -710,7 +710,7 @@ export const MAX_PARTICLES = 500;
 // ── HP Scaling ─────────────────────────────────────────────
 export function getWaveHPScale(wave) {
     // Wave 1≈1.10, Wave 10≈25.9, Wave 20≈134
-    return wave * Math.pow(1.11, wave);
+    return wave * Math.pow(1.10, wave);
 }
 
 // ── Wave Modifiers ────────────────────────────────────────
