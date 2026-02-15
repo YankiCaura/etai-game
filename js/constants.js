@@ -474,9 +474,9 @@ export const TOWER_TYPES = {
         dualBarrel: true,
         unlockWave: 25,
         levels: [
-            { damage: 35, range: 3.5, fireRate: 0.6, projSpeed: 220, splashRadius: 1.4, heavyEvery: 4, armorShred: 0.10, shredDuration: 3.0, scorchDPS: 5, scorchDuration: 2.0 },
-            { damage: 55, range: 4.0, fireRate: 0.5, projSpeed: 240, splashRadius: 1.7, heavyEvery: 4, armorShred: 0.12, shredDuration: 3.5, scorchDPS: 8, scorchDuration: 2.5, upgradeCost: 120 },
-            { damage: 85, range: 4.5, fireRate: 0.4, projSpeed: 260, splashRadius: 2.0, heavyEvery: 3, armorShred: 0.15, shredDuration: 4.0, scorchDPS: 12, scorchDuration: 3.0, upgradeCost: 200 },
+            { damage: 40, range: 3.5, fireRate: 0.6, projSpeed: 220, splashRadius: 1.4, heavyEvery: 4, armorShred: 0.10, shredDuration: 3.0, scorchDPS: 6, scorchDuration: 2.0 },
+            { damage: 63, range: 4.0, fireRate: 0.5, projSpeed: 240, splashRadius: 1.7, heavyEvery: 4, armorShred: 0.12, shredDuration: 3.5, scorchDPS: 9, scorchDuration: 2.5, upgradeCost: 120 },
+            { damage: 98, range: 4.5, fireRate: 0.4, projSpeed: 260, splashRadius: 2.0, heavyEvery: 3, armorShred: 0.15, shredDuration: 4.0, scorchDPS: 14, scorchDuration: 3.0, upgradeCost: 200 },
         ],
     },
     sniper: {
