@@ -1,4 +1,4 @@
-import { STATE, CANVAS_W, CANVAS_H, HERO_STATS, MAP_DEFS, TOWER_TYPES, TOWER_LIGHT_DEFS, MAP_AMBIENT_DARKNESS, WAVE_UNLOCKS, SPEED_MULTIPLIERS, SPEED_MIN, SPEED_MAX } from './constants.js';
+import { STATE, CANVAS_W, CANVAS_H, HERO_STATS, MAP_DEFS, TOWER_TYPES, TOWER_LIGHT_DEFS, MAP_AMBIENT_DARKNESS, WAVE_UNLOCKS, SPEED_MULTIPLIERS, SPEED_MIN, SPEED_MAX, ATMOSPHERE_PRESETS } from './constants.js';
 import { hexToGL } from './utils.js';
 import { GameMap } from './map.js';
 import { TowerManager } from './tower.js';
@@ -40,6 +40,11 @@ export class Game {
 
         // Scorch zones (from Bi-Cannon heavy rounds)
         this.scorchZones = [];
+
+        // Atmosphere override state
+        this.selectedAtmosphere = localStorage.getItem('td_atmosphere') || 'standard';
+        this.atmosphereColors = null;    // { ground, path, obstacle } or null
+        this.atmosphereParticles = null; // { primary, secondary } or null
 
         // Track which wave thresholds have been triggered this run
         this._triggeredThresholds = new Set();
@@ -109,17 +114,48 @@ export class Game {
     selectMap(mapId) {
         this.selectedMapId = mapId;
         this.map = new GameMap(mapId);
+        this._applyAtmosphere();
         this.refreshTerrain();
-        // Per-map color grading
-        const tints = {
-            serpentine: [0.95, 1.0, 0.9],
-            splitcreek: [0.9, 0.95, 1.05],
-            gauntlet: [1.05, 0.95, 0.9],
-        };
-        if (this.postfx.enabled) {
-            const t = tints[mapId] || [1, 1, 1];
-            this.postfx.setMapTint(t[0], t[1], t[2]);
-            this.postfx.setAmbientDarkness(MAP_AMBIENT_DARKNESS[mapId] || 0);
+    }
+
+    _applyAtmosphere() {
+        const preset = ATMOSPHERE_PRESETS[this.selectedAtmosphere];
+        const mapId = this.selectedMapId;
+        if (!preset || this.selectedAtmosphere === 'standard') {
+            // Standard: use map-native visuals
+            this.atmosphereColors = null;
+            this.atmosphereParticles = null;
+            const tints = {
+                serpentine: [0.95, 1.0, 0.9],
+                splitcreek: [0.9, 0.95, 1.05],
+                gauntlet: [1.05, 0.95, 0.9],
+            };
+            if (this.postfx.enabled) {
+                const t = tints[mapId] || [1, 1, 1];
+                this.postfx.setMapTint(t[0], t[1], t[2]);
+                this.postfx.setAmbientDarkness(MAP_AMBIENT_DARKNESS[mapId] || 0);
+                this.postfx.bloomIntensity = 0.3;
+                this.postfx.bloomThreshold = 0.7;
+                this.postfx.vignetteStrength = 0.4;
+            }
+            if (this.renderer3d && this.renderer3d.scene3d) {
+                this.renderer3d.scene3d.applyAtmosphereLighting(null);
+            }
+            return;
+        }
+        // Apply atmosphere overrides
+        this.atmosphereColors = { ground: preset.ground, path: preset.path, obstacle: preset.obstacle };
+        this.atmosphereParticles = preset.particles;
+        if (this.postfx.enabled && preset.postfx) {
+            const pf = preset.postfx;
+            this.postfx.setMapTint(pf.mapTint[0], pf.mapTint[1], pf.mapTint[2]);
+            this.postfx.setAmbientDarkness(pf.ambientDarkness);
+            this.postfx.bloomIntensity = pf.bloomIntensity;
+            this.postfx.bloomThreshold = pf.bloomThreshold;
+            this.postfx.vignetteStrength = pf.vignetteStrength;
+        }
+        if (this.renderer3d && this.renderer3d.scene3d && preset.lighting) {
+            this.renderer3d.scene3d.applyAtmosphereLighting(preset.lighting);
         }
     }
 

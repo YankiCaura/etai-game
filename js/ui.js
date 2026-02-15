@@ -1,4 +1,4 @@
-import { TOWER_TYPES, TARGET_MODES, STATE, MAP_DEFS, COLS, ROWS, CELL, CELL_TYPE, EARLY_SEND_MAX_BONUS, EARLY_SEND_DECAY, VERSION, SPEED_MAX } from './constants.js';
+import { TOWER_TYPES, TARGET_MODES, STATE, MAP_DEFS, COLS, ROWS, CELL, CELL_TYPE, EARLY_SEND_MAX_BONUS, EARLY_SEND_DECAY, VERSION, SPEED_MAX, ATMOSPHERE_PRESETS } from './constants.js';
 import { Economy } from './economy.js';
 
 export class UI {
@@ -18,6 +18,7 @@ export class UI {
         this.elPauseBtn = document.getElementById('pause-btn');
         this.elMuteBtn = document.getElementById('mute-btn');
         this.elNextWaveBtn = document.getElementById('next-wave-btn');
+        this.elAtmoBtn = document.getElementById('atmo-btn');
         this.elMapSelect = document.getElementById('map-select');
 
         this.elToast = document.getElementById('achievement-toast');
@@ -29,6 +30,7 @@ export class UI {
         this.setupTowerPanel();
         this.setupControls();
         this.buildMapSelect();
+        this.buildAtmosphereSelect();
     }
 
     buildMapSelect() {
@@ -112,9 +114,16 @@ export class UI {
         const cellH = h / ROWS;
         const layout = def.layouts[0];
 
-        // Background
+        // Background — atmosphere override or map-native
         const env = def.environment || 'forest';
-        ctx.fillStyle = env === 'desert' ? '#c8a878' : env === 'lava' ? '#c05020' : '#2a3a2a';
+        const atmoId = this.game.selectedAtmosphere;
+        const atmo = atmoId !== 'standard' && ATMOSPHERE_PRESETS[atmoId];
+        if (atmo && atmo.ground) {
+            const g = atmo.ground;
+            ctx.fillStyle = `rgb(${g.base[0]},${g.base[1]},${g.base[2]})`;
+        } else {
+            ctx.fillStyle = env === 'desert' ? '#c8a878' : env === 'lava' ? '#c05020' : '#2a3a2a';
+        }
         ctx.fillRect(0, 0, w, h);
 
         // Build a temp grid to know which cells are path
@@ -164,7 +173,7 @@ export class UI {
             }
         }
 
-        // Draw path cells
+        // Draw path cells — always map-native for enemy contrast
         ctx.fillStyle = env === 'desert' ? '#e0b050' : env === 'lava' ? '#ff6a30' : '#d4a840';
         for (let y = 0; y < ROWS; y++) {
             for (let x = 0; x < COLS; x++) {
@@ -175,7 +184,11 @@ export class UI {
         }
 
         // Draw blocked cells
-        ctx.fillStyle = env === 'desert' ? '#a08060' : env === 'lava' ? '#1a1a2a' : '#4a5a4a';
+        if (atmo && atmo.obstacle) {
+            ctx.fillStyle = atmo.obstacle.tint;
+        } else {
+            ctx.fillStyle = env === 'desert' ? '#a08060' : env === 'lava' ? '#1a1a2a' : '#4a5a4a';
+        }
         for (const c of layout.blocked) {
             if (c.x >= 0 && c.x < COLS && c.y >= 0 && c.y < ROWS && grid[c.y][c.x] !== CELL_TYPE.PATH) {
                 ctx.fillRect(c.x * cellW, c.y * cellH, cellW + 0.5, cellH + 0.5);
@@ -196,6 +209,37 @@ export class UI {
             ctx.fillStyle = '#2ecc71';
             ctx.fillRect(secEntry.x * cellW, secEntry.y * cellH, cellW + 0.5, cellH + 0.5);
         }
+    }
+
+    buildAtmosphereSelect() {
+        const container = document.getElementById('atmosphere-options');
+        if (!container) return;
+        container.innerHTML = '';
+        for (const [id, preset] of Object.entries(ATMOSPHERE_PRESETS)) {
+            const chip = document.createElement('div');
+            chip.className = 'atmosphere-chip' + (id === this.game.selectedAtmosphere ? ' selected' : '');
+            chip.textContent = preset.name;
+            chip.style.borderColor = preset.themeColor;
+            chip.style.setProperty('--atmo-glow', preset.themeColor + '66');
+            chip.addEventListener('click', () => {
+                this.game.selectedAtmosphere = id;
+                localStorage.setItem('td_atmosphere', id);
+                // Update chip highlight
+                container.querySelectorAll('.atmosphere-chip').forEach(c => c.classList.remove('selected'));
+                chip.classList.add('selected');
+                // Rebuild map previews with new atmosphere colors
+                this.buildMapSelect();
+                this._updateAtmoBtn();
+            });
+            container.appendChild(chip);
+        }
+    }
+
+    _updateAtmoBtn() {
+        if (!this.elAtmoBtn) return;
+        const preset = ATMOSPHERE_PRESETS[this.game.selectedAtmosphere];
+        this.elAtmoBtn.textContent = preset ? preset.name : 'Standard';
+        this.elAtmoBtn.style.borderColor = preset ? preset.themeColor : '#555';
     }
 
     drawLockOverlay(canvas, reqRecord) {
@@ -467,6 +511,24 @@ export class UI {
             this.game.audio.toggleMute();
             this.update();
         });
+
+        // Atmosphere rotate button
+        if (this.elAtmoBtn) {
+            this.elAtmoBtn.addEventListener('click', () => {
+                const keys = Object.keys(ATMOSPHERE_PRESETS);
+                const idx = keys.indexOf(this.game.selectedAtmosphere);
+                const nextId = keys[(idx + 1) % keys.length];
+                this.game.selectedAtmosphere = nextId;
+                localStorage.setItem('td_atmosphere', nextId);
+                this._updateAtmoBtn();
+                // Re-apply atmosphere if in-game
+                if (this.game.selectedMapId) {
+                    this.game._applyAtmosphere();
+                    this.game.refreshTerrain();
+                }
+            });
+            this._updateAtmoBtn();
+        }
 
         // Next wave button
         this.elNextWaveBtn.addEventListener('click', () => {

@@ -156,7 +156,7 @@ export class GameMap {
         return this.grid[gy][gx];
     }
 
-    drawTerrain(ctx) {
+    drawTerrain(ctx, colorOverride = null) {
         ctx.clearRect(0, 0, COLS * CELL, ROWS * CELL);
         const env = this.def.environment || 'forest';
 
@@ -166,7 +166,17 @@ export class GameMap {
                 const py = y * CELL;
                 const type = this.grid[y][x];
 
-                if (type === CELL_TYPE.PATH) {
+                if (colorOverride) {
+                    if (type === CELL_TYPE.PATH) {
+                        // Always use map-native path for contrast with enemies
+                        this[`draw${env === 'desert' ? 'Desert' : env === 'lava' ? 'Lava' : ''}PathCell`](ctx, px, py, x, y);
+                    } else {
+                        this._drawAtmoGround(ctx, px, py, x, y, colorOverride);
+                        if (type === CELL_TYPE.BLOCKED) {
+                            this._drawAtmoObstacle(ctx, px, py, x, y, colorOverride);
+                        }
+                    }
+                } else if (type === CELL_TYPE.PATH) {
                     this[`draw${env === 'desert' ? 'Desert' : env === 'lava' ? 'Lava' : ''}PathCell`](ctx, px, py, x, y);
                 } else {
                     this[`draw${env === 'desert' ? 'Desert' : env === 'lava' ? 'Lava' : 'Grass'}Cell`](ctx, px, py, x, y);
@@ -830,5 +840,57 @@ export class GameMap {
                 ctx.fill();
             }
         }
+    }
+
+    // ── Atmosphere override cells ──────────────────────────
+
+    _drawAtmoGround(ctx, px, py, gx, gy, co) {
+        const g = co.ground;
+        const shade = seedRand(gx, gy, 0);
+        const v = g.variance || 0;
+        const r = Math.floor(g.base[0] + shade * v * 2 - v);
+        const gr = Math.floor(g.base[1] + shade * v * 2 - v);
+        const b = Math.floor(g.base[2] + shade * v * 2 - v);
+        ctx.fillStyle = `rgb(${r},${gr},${b})`;
+        ctx.fillRect(px, py, CELL, CELL);
+
+        // Subtle texture speckles
+        const count = 2 + Math.floor(seedRand(gx, gy, 1) * 3);
+        for (let i = 0; i < count; i++) {
+            const sx = px + seedRand(gx, gy, 10 + i) * (CELL - 4) + 2;
+            const sy = py + seedRand(gx, gy, 20 + i) * (CELL - 4) + 2;
+            ctx.fillStyle = seedRand(gx, gy, 30 + i) > 0.5
+                ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+            ctx.fillRect(sx, sy, 1.5, 1.5);
+        }
+    }
+
+    _drawAtmoObstacle(ctx, px, py, gx, gy, co) {
+        const cx = px + CELL / 2;
+        const cy = py + CELL / 2;
+        const baseRadius = 9;
+        ctx.fillStyle = co.obstacle.tint;
+        ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+            const a = (Math.PI * 2 * i) / 6;
+            const r = baseRadius * (0.7 + seedRand(gx, gy, i) * 0.5);
+            const rx = cx + Math.cos(a) * r;
+            const ry = cy + 2 + Math.sin(a) * r * 0.75;
+            if (i === 0) ctx.moveTo(rx, ry);
+            else ctx.lineTo(rx, ry);
+        }
+        ctx.closePath();
+        ctx.fill();
+
+        // Highlight facet
+        ctx.fillStyle = 'rgba(255,255,255,0.1)';
+        ctx.beginPath();
+        const r0 = baseRadius * (0.7 + seedRand(gx, gy, 0) * 0.5);
+        const r1 = baseRadius * (0.7 + seedRand(gx, gy, 1) * 0.5);
+        ctx.moveTo(cx, cy + 2);
+        ctx.lineTo(cx + r0, cy + 2);
+        ctx.lineTo(cx + Math.cos(Math.PI * 2 / 6) * r1, cy + 2 + Math.sin(Math.PI * 2 / 6) * r1 * 0.75);
+        ctx.closePath();
+        ctx.fill();
     }
 }

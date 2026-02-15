@@ -20,7 +20,7 @@ export class Renderer {
 
     drawTerrain() {
         this.ambients = [];
-        this.game.map.drawTerrain(this.terrainCtx);
+        this.game.map.drawTerrain(this.terrainCtx, this.game.atmosphereColors);
         // Draw tower bases on terrain layer
         for (const tower of this.game.towers.towers) {
             this.drawTowerBase(this.terrainCtx, tower);
@@ -2418,6 +2418,11 @@ export class Renderer {
     }
 
     spawnAmbient() {
+        const atmo = this.game.atmosphereParticles;
+        if (atmo) {
+            this._spawnAtmoAmbient(atmo);
+            return;
+        }
         const env = (this.game.map && this.game.map.def && this.game.map.def.environment) || 'forest';
         const r = Math.random();
         let p;
@@ -2485,6 +2490,64 @@ export class Renderer {
                     life, maxLife: life, size: 2.5 + Math.random() * 1.5,
                     color: '#aaff44', phase: Math.random() * Math.PI * 2, age: 0
                 };
+            }
+        }
+        if (p) this.ambients.push(p);
+    }
+
+    _spawnAtmoAmbient(atmo) {
+        const r = Math.random();
+        const spec = r < atmo.primary.weight ? atmo.primary : atmo.secondary;
+        const color = spec.colors[Math.random() * spec.colors.length | 0];
+        let p;
+        switch (spec.behavior) {
+            case 'leaf': {
+                const life = 8 + Math.random() * 4;
+                p = { type: 'leaf', x: Math.random() * CANVAS_W, y: -5,
+                    vx: 0, vy: 20 + Math.random() * 20,
+                    life, maxLife: life, size: 5 + Math.random() * 3,
+                    color, phase: Math.random() * Math.PI * 2, age: 0 };
+                break;
+            }
+            case 'firefly': {
+                const life = 4 + Math.random() * 2;
+                p = { type: 'firefly', x: Math.random() * CANVAS_W, y: Math.random() * CANVAS_H,
+                    vx: 0, vy: 0,
+                    life, maxLife: life, size: 2.5 + Math.random() * 1.5,
+                    color, phase: Math.random() * Math.PI * 2, age: 0 };
+                break;
+            }
+            case 'sand': {
+                const life = 5 + Math.random() * 3;
+                p = { type: 'sand', x: -10, y: Math.random() * CANVAS_H,
+                    vx: 60 + Math.random() * 60, vy: 0,
+                    life, maxLife: life, size: 3 + Math.random(),
+                    color, phase: Math.random() * Math.PI * 2, age: 0 };
+                break;
+            }
+            case 'dust': {
+                const life = 2 + Math.random();
+                p = { type: 'dust', x: Math.random() * CANVAS_W, y: Math.random() * CANVAS_H,
+                    vx: 0, vy: 0,
+                    life, maxLife: life, size: 4,
+                    color, phase: 0, age: 0 };
+                break;
+            }
+            case 'ember': {
+                const life = 3 + Math.random() * 2;
+                p = { type: 'ember', x: Math.random() * CANVAS_W, y: CANVAS_H + 5,
+                    vx: (Math.random() - 0.5) * 30, vy: -(30 + Math.random() * 30),
+                    life, maxLife: life, size: 2.5 + Math.random() * 1.5,
+                    color, phase: Math.random() * Math.PI * 2, age: 0 };
+                break;
+            }
+            case 'bubble': {
+                const life = 1.5 + Math.random();
+                p = { type: 'bubble', x: Math.random() * CANVAS_W, y: Math.random() * CANVAS_H,
+                    vx: 0, vy: 0,
+                    life, maxLife: life, size: 3,
+                    color, phase: 0, age: 0 };
+                break;
             }
         }
         if (p) this.ambients.push(p);

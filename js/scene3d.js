@@ -76,11 +76,46 @@ export class Scene3D {
     static get COS_TILT() { return COS_TILT; }
     static get SIN_TILT() { return SIN_TILT; }
 
-    updateTerrainTexture(map, towerRenderer) {
+    updateTerrainTexture(map, towerRenderer, colorOverride = null) {
         const ctx = this._terrainCtx;
-        map.drawTerrain(ctx);
+        map.drawTerrain(ctx, colorOverride);
         if (towerRenderer) towerRenderer(ctx);
         this._terrainTexture.needsUpdate = true;
+    }
+
+    applyAtmosphereLighting(config) {
+        if (!config) {
+            // Reset to defaults
+            this.ambientLight.color.set(0xffffff);
+            this.ambientLight.intensity = 2.0;
+            this.dirLight.color.set(0xffffff);
+            this.dirLight.intensity = 1.5;
+            this.fillLight.color.set(0xffffff);
+            this.fillLight.intensity = 0.8;
+            this.renderer.setClearColor(0x1a1a2e);
+            this.scene.fog = null;
+            return;
+        }
+        if (config.ambient) {
+            this.ambientLight.color.set(config.ambient.color);
+            this.ambientLight.intensity = config.ambient.intensity;
+        }
+        if (config.dir) {
+            this.dirLight.color.set(config.dir.color);
+            this.dirLight.intensity = config.dir.intensity;
+        }
+        if (config.fill) {
+            this.fillLight.color.set(config.fill.color);
+            this.fillLight.intensity = config.fill.intensity;
+        }
+        if (config.background != null) {
+            this.renderer.setClearColor(config.background);
+        }
+        if (config.fog) {
+            this.scene.fog = new THREE.Fog(config.fog.color, config.fog.near, config.fog.far);
+        } else {
+            this.scene.fog = null;
+        }
     }
 
     render() {

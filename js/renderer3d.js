@@ -91,6 +91,7 @@ export class Renderer3D {
                         this.game.renderer.drawTowerBase(ctx, tower);
                     }
                 },
+                this.game.atmosphereColors,
             );
             this._rebuildTerrainMeshes();
         }
@@ -448,6 +449,11 @@ export class Renderer3D {
     }
 
     _spawnAmbient() {
+        const atmo = this.game.atmosphereParticles;
+        if (atmo) {
+            this._spawnAtmoAmbient3D(atmo);
+            return;
+        }
         const env = (this.game.map && this.game.map.def && this.game.map.def.environment) || 'forest';
         const geo = getAmbientGeo();
         const scene = this.scene3d.scene;
@@ -585,6 +591,130 @@ export class Renderer3D {
 
         if (p) {
             // Set initial mesh position and disable frustum culling for small meshes
+            p.mesh.position.set(p.px, p.py, p.pz);
+            p.mesh.frustumCulled = false;
+            if (p.glow) {
+                p.glow.position.set(p.px, p.py, p.pz);
+                p.glow.frustumCulled = false;
+            }
+            this._ambientParticles.push(p);
+        }
+    }
+
+    _spawnAtmoAmbient3D(atmo) {
+        const geo = getAmbientGeo();
+        const scene = this.scene3d.scene;
+        const r = Math.random();
+        const spec = r < atmo.primary.weight ? atmo.primary : atmo.secondary;
+        const colorStr = spec.colors[Math.random() * spec.colors.length | 0];
+        const color = parseInt(colorStr.slice(1), 16);
+        let p = null;
+
+        switch (spec.behavior) {
+            case 'leaf': {
+                const life = 8 + Math.random() * 4;
+                const mesh = new THREE.Mesh(geo.leaf, new THREE.MeshStandardMaterial({
+                    color, emissive: color, emissiveIntensity: 0.2,
+                    transparent: true, opacity: 0.7, side: THREE.DoubleSide, depthWrite: false,
+                }));
+                const sz = 14 + Math.random() * 8;
+                mesh.scale.set(sz, sz, sz);
+                scene.add(mesh);
+                p = { mesh, glow: null, type: 'leaf',
+                    px: Math.random() * CANVAS_W, py: 30 + Math.random() * 20, pz: Math.random() * CANVAS_H,
+                    vx: 0, vy: -(3 + Math.random() * 4), vz: 8 + Math.random() * 12,
+                    rx: 0.8 + Math.random() * 1.5, ry: 0.5 + Math.random(), rz: 0.3 + Math.random() * 0.8,
+                    life, maxLife: life, size: sz, phase: Math.random() * Math.PI * 2, age: 0 };
+                break;
+            }
+            case 'firefly': {
+                const life = 4 + Math.random() * 2;
+                const mesh = new THREE.Mesh(geo.sphere, new THREE.MeshStandardMaterial({
+                    color, emissive: color, emissiveIntensity: 0.8,
+                    transparent: true, opacity: 0.8, depthWrite: false,
+                }));
+                const sz = 2 + Math.random();
+                mesh.scale.setScalar(sz);
+                scene.add(mesh);
+                const glow = new THREE.Mesh(geo.sphere, new THREE.MeshBasicMaterial({
+                    color, transparent: true, opacity: 0.12, depthWrite: false,
+                }));
+                glow.scale.setScalar(sz * 5);
+                scene.add(glow);
+                p = { mesh, glow, type: 'firefly',
+                    px: Math.random() * CANVAS_W, py: 10 + Math.random() * 15, pz: Math.random() * CANVAS_H,
+                    vx: 0, vy: 0, vz: 0, rx: 0, ry: 0, rz: 0,
+                    life, maxLife: life, size: sz, phase: Math.random() * Math.PI * 2, age: 0 };
+                break;
+            }
+            case 'sand': {
+                const life = 5 + Math.random() * 3;
+                const mesh = new THREE.Mesh(geo.leaf, new THREE.MeshStandardMaterial({
+                    color, emissive: color, emissiveIntensity: 0.2,
+                    transparent: true, opacity: 0.5, side: THREE.DoubleSide, depthWrite: false,
+                }));
+                const sz = 3 + Math.random() * 2;
+                mesh.scale.set(sz, sz, sz);
+                scene.add(mesh);
+                p = { mesh, glow: null, type: 'sand',
+                    px: -10, py: 2 + Math.random() * 4, pz: Math.random() * CANVAS_H,
+                    vx: 60 + Math.random() * 60, vy: 0, vz: 0, rx: 0, ry: 0, rz: 0,
+                    life, maxLife: life, size: sz, phase: Math.random() * Math.PI * 2, age: 0 };
+                break;
+            }
+            case 'dust': {
+                const life = 2 + Math.random();
+                const mesh = new THREE.Mesh(geo.sphere, new THREE.MeshStandardMaterial({
+                    color, emissive: color, emissiveIntensity: 0.15,
+                    transparent: true, opacity: 0.5, depthWrite: false,
+                }));
+                const sz = 3;
+                mesh.scale.setScalar(sz);
+                scene.add(mesh);
+                p = { mesh, glow: null, type: 'dust',
+                    px: Math.random() * CANVAS_W, py: 1 + Math.random() * 3, pz: Math.random() * CANVAS_H,
+                    vx: 0, vy: 0, vz: 0, rx: 0, ry: 0, rz: 0,
+                    life, maxLife: life, size: sz, phase: 0, age: 0 };
+                break;
+            }
+            case 'ember': {
+                const life = 3 + Math.random() * 2;
+                const mesh = new THREE.Mesh(geo.oct, new THREE.MeshStandardMaterial({
+                    color, emissive: color, emissiveIntensity: 0.6,
+                    transparent: true, opacity: 0.8, depthWrite: false,
+                }));
+                const sz = 2 + Math.random() * 1.5;
+                mesh.scale.setScalar(sz);
+                scene.add(mesh);
+                const glow = new THREE.Mesh(geo.sphere, new THREE.MeshBasicMaterial({
+                    color, transparent: true, opacity: 0.15, depthWrite: false,
+                }));
+                glow.scale.setScalar(sz * 4);
+                scene.add(glow);
+                p = { mesh, glow, type: 'ember',
+                    px: Math.random() * CANVAS_W, py: 0, pz: Math.random() * CANVAS_H,
+                    vx: (Math.random() - 0.5) * 20, vy: 30 + Math.random() * 30, vz: (Math.random() - 0.5) * 15,
+                    rx: 1 + Math.random() * 2, ry: 1.5 + Math.random() * 2, rz: 0,
+                    life, maxLife: life, size: sz, phase: Math.random() * Math.PI * 2, age: 0 };
+                break;
+            }
+            case 'bubble': {
+                const life = 1.5 + Math.random();
+                const mesh = new THREE.Mesh(geo.sphere, new THREE.MeshStandardMaterial({
+                    color, emissive: color, emissiveIntensity: 0.3,
+                    transparent: true, opacity: 0.5, depthWrite: false,
+                }));
+                const sz = 3;
+                mesh.scale.setScalar(sz);
+                scene.add(mesh);
+                p = { mesh, glow: null, type: 'bubble',
+                    px: Math.random() * CANVAS_W, py: 0.5, pz: Math.random() * CANVAS_H,
+                    vx: 0, vy: 2 + Math.random() * 3, vz: 0, rx: 0, ry: 0, rz: 0,
+                    life, maxLife: life, size: sz, phase: 0, age: 0 };
+                break;
+            }
+        }
+        if (p) {
             p.mesh.position.set(p.px, p.py, p.pz);
             p.mesh.frustumCulled = false;
             if (p.glow) {

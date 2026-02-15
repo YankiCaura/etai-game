@@ -756,3 +756,96 @@ export const TOWER_LIGHT_DEFS = {
     missilesniper:  { radius: 0.07, intensity: 0.45 },
     pulsecannon:    { radius: 0.05, intensity: 0.35 },
 };
+
+// ── Atmosphere Presets ──────────────────────────────────
+export const ATMOSPHERE_PRESETS = {
+    standard: {
+        name: 'Standard',
+        description: "Map's native theme",
+        themeColor: '#888888',
+    },
+    cyberpunk: {
+        name: 'Cyberpunk',
+        description: 'Neon-lit digital grid',
+        themeColor: '#ff00ff',
+        ground:  { base: [55, 30, 75], variance: 10 },
+        path:    { base: '#2a1848' },
+        obstacle: { tint: '#8830cc' },
+        particles: {
+            primary:   { behavior: 'sand', colors: ['#ff00ff', '#00ffff', '#aa00ff'], weight: 0.7 },
+            secondary: { behavior: 'firefly', colors: ['#ff00ff', '#00ffff', '#ffff00'], weight: 0.3 },
+        },
+        postfx: { mapTint: [0.9, 0.8, 1.1], ambientDarkness: 0.18, bloomIntensity: 0.5, bloomThreshold: 0.5, vignetteStrength: 0.4 },
+        lighting: { ambient: { color: 0x9944ff, intensity: 2.2 }, dir: { color: 0xff66ff, intensity: 1.5 }, fill: { color: 0x4488ff, intensity: 1.0 }, background: 0x140028, fog: { color: 0x140028, near: 1200, far: 4000 } },
+    },
+    ethereal: {
+        name: 'Ethereal',
+        description: 'Dreamy luminous mist',
+        themeColor: '#c0a0ff',
+        ground:  { base: [185, 170, 215], variance: 12 },
+        path:    { base: '#c8b8e0' },
+        obstacle: { tint: '#a090c0' },
+        particles: {
+            primary:   { behavior: 'firefly', colors: ['#e0d0ff', '#ffffff', '#c0b0ff'], weight: 0.6 },
+            secondary: { behavior: 'leaf', colors: ['#d0c0f0', '#b8a8e0', '#e8d8ff'], weight: 0.4 },
+        },
+        postfx: { mapTint: [0.95, 0.92, 1.08], ambientDarkness: 0.0, bloomIntensity: 0.5, bloomThreshold: 0.5, vignetteStrength: 0.2 },
+        lighting: { ambient: { color: 0xd8d0ff, intensity: 2.8 }, dir: { color: 0xfff0ff, intensity: 1.2 }, fill: { color: 0xd0b8ff, intensity: 1.2 }, background: 0x342850, fog: { color: 0x443060, near: 1500, far: 4500 } },
+    },
+    sinister: {
+        name: 'Sinister',
+        description: 'Oppressive crimson dark',
+        themeColor: '#8b0000',
+        ground:  { base: [70, 28, 28], variance: 10 },
+        path:    { base: '#3a1818' },
+        obstacle: { tint: '#602020' },
+        particles: {
+            primary:   { behavior: 'ember', colors: ['#aa2200', '#cc3300', '#882200'], weight: 0.6 },
+            secondary: { behavior: 'dust', colors: ['#6a3030', '#5a2525', '#4a1a1a'], weight: 0.4 },
+        },
+        postfx: { mapTint: [1.08, 0.85, 0.85], ambientDarkness: 0.2, bloomIntensity: 0.3, bloomThreshold: 0.65, vignetteStrength: 0.5 },
+        lighting: { ambient: { color: 0x882222, intensity: 2.0 }, dir: { color: 0xcc4444, intensity: 1.3 }, fill: { color: 0x662222, intensity: 0.8 }, background: 0x180808, fog: { color: 0x180808, near: 1000, far: 3800 } },
+    },
+    frozen: {
+        name: 'Frozen Wastes',
+        description: 'Icy blizzard tundra',
+        themeColor: '#88ccff',
+        ground:  { base: [195, 215, 235], variance: 10 },
+        path:    { base: '#b0d0e8' },
+        obstacle: { tint: '#80a0b8' },
+        particles: {
+            primary:   { behavior: 'leaf', colors: ['#ffffff', '#d0e8ff', '#b8d8f0'], weight: 0.7 },
+            secondary: { behavior: 'firefly', colors: ['#aaddff', '#ccefff', '#ffffff'], weight: 0.3 },
+        },
+        postfx: { mapTint: [0.88, 0.96, 1.12], ambientDarkness: 0.05, bloomIntensity: 0.35, bloomThreshold: 0.6, vignetteStrength: 0.3 },
+        lighting: { ambient: { color: 0xaaccee, intensity: 2.5 }, dir: { color: 0xddeeff, intensity: 1.5 }, fill: { color: 0x88aacc, intensity: 1.0 }, background: 0x243848, fog: { color: 0x344858, near: 1200, far: 4000 } },
+    },
+    solar: {
+        name: 'Solar Flare',
+        description: 'Blazing stellar heat',
+        themeColor: '#ff8800',
+        ground:  { base: [100, 55, 25], variance: 12 },
+        path:    { base: '#5a3018' },
+        obstacle: { tint: '#b06020' },
+        particles: {
+            primary:   { behavior: 'ember', colors: ['#ff6600', '#ffaa00', '#ffcc00'], weight: 0.7 },
+            secondary: { behavior: 'bubble', colors: ['#ff4400', '#ff8800', '#ffcc44'], weight: 0.3 },
+        },
+        postfx: { mapTint: [1.1, 0.95, 0.85], ambientDarkness: 0.1, bloomIntensity: 0.45, bloomThreshold: 0.5, vignetteStrength: 0.35 },
+        lighting: { ambient: { color: 0xee8833, intensity: 2.2 }, dir: { color: 0xffaa44, intensity: 1.5 }, fill: { color: 0xff8844, intensity: 1.0 }, background: 0x2a1400, fog: { color: 0x2a1400, near: 1200, far: 4000 } },
+    },
+    void: {
+        name: 'The Void',
+        description: 'Deep space emptiness',
+        themeColor: '#4444aa',
+        ground:  { base: [30, 28, 55], variance: 8 },
+        path:    { base: '#181630' },
+        obstacle: { tint: '#383870' },
+        particles: {
+            primary:   { behavior: 'firefly', colors: ['#ffffff', '#aaaaff', '#8888cc'], weight: 0.7 },
+            secondary: { behavior: 'dust', colors: ['#444466', '#555588', '#3a3a66'], weight: 0.3 },
+        },
+        postfx: { mapTint: [0.85, 0.88, 1.15], ambientDarkness: 0.25, bloomIntensity: 0.4, bloomThreshold: 0.55, vignetteStrength: 0.5 },
+        lighting: { ambient: { color: 0x4444aa, intensity: 1.8 }, dir: { color: 0x6666cc, intensity: 1.2 }, fill: { color: 0x4444aa, intensity: 0.8 }, background: 0x080818, fog: { color: 0x080818, near: 800, far: 3500 } },
+    },
+};
