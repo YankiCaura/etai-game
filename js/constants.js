@@ -553,8 +553,8 @@ export const HERO_STATS = {
 
 // ── Dual Spawn ────────────────────────────────────────────
 export const DUAL_SPAWN_WAVE = 15;
-export const DUAL_SPAWN_START_PCT = 0.025;  // 2.5% at wave 21 (start of % ramp)
-export const DUAL_SPAWN_RAMP_PCT = 0.015;   // +1.5% per wave
+export const DUAL_SPAWN_START_PCT = 0.02;   // 2% at wave 21 (start of % ramp)
+export const DUAL_SPAWN_RAMP_PCT = 0.01;    // +1% per wave
 export const DUAL_SPAWN_MAX_PCT = 0.20;     // cap at 20%
 export const FLYING_START_WAVE = 17;
 
@@ -587,7 +587,7 @@ export const SPEED_MAX = 3;
 export const ENEMY_TYPES = {
     grunt: {
         name: 'Grunt',
-        baseHP: 20,
+        baseHP: 18,
         speed: 70,     // px per second (+15%)
         reward: 6,
         livesCost: 1,
@@ -602,12 +602,12 @@ export const ENEMY_TYPES = {
         reward: 5,
         livesCost: 1,
         color: '#f39c12',
-        radius: 8,
+        radius: 10,
         armor: 0,
     },
     tank: {
         name: 'Tank',
-        baseHP: 80,
+        baseHP: 75,
         speed: 40,     // (+15%)
         reward: 14,
         livesCost: 2,
@@ -644,7 +644,7 @@ export const ENEMY_TYPES = {
         reward: 4,
         livesCost: 1,
         color: '#e67e22',
-        radius: 6,
+        radius: 8,
         armor: 0,
     },
     wobbler: {
