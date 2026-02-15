@@ -50,7 +50,13 @@ export class InputHandler {
                 this.selectedTower = tower;
                 this.selectedTowerType = null;
                 if (this.game.towers.upgradeTower(tower)) {
-                    this.game.ui.showTowerInfo(tower);
+                    const def = TOWER_TYPES[tower.type];
+                    if (tower.level >= def.levels.length - 1) {
+                        this.selectedTower = null;
+                        this.game.ui.hideTowerInfo();
+                    } else {
+                        this.game.ui.showTowerInfo(tower);
+                    }
                     this.game.ui.update();
                 } else {
                     this.game.ui.showTowerInfo(tower);
@@ -371,7 +377,13 @@ export class InputHandler {
             case 'U':
                 if (this.selectedTower) {
                     if (this.game.towers.upgradeTower(this.selectedTower)) {
-                        this.game.ui.showTowerInfo(this.selectedTower);
+                        const def = TOWER_TYPES[this.selectedTower.type];
+                        if (this.selectedTower.level >= def.levels.length - 1) {
+                            this.selectedTower = null;
+                            this.game.ui.hideTowerInfo();
+                        } else {
+                            this.game.ui.showTowerInfo(this.selectedTower);
+                        }
                         this.game.ui.update();
                     }
                 }

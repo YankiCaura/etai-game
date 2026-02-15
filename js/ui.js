@@ -587,15 +587,10 @@ export class UI {
         const exitBtn = document.getElementById('exit-btn');
         if (exitBtn) exitBtn.style.display = game.state === STATE.MENU ? 'none' : 'inline-flex';
 
-        // Next wave button with early-send bonus
+        // Next wave button
         if (waves.betweenWaves && game.state === STATE.PLAYING) {
             this.elNextWaveBtn.style.display = 'inline-block';
-            const bonus = Math.max(0, Math.floor(EARLY_SEND_MAX_BONUS - waves.betweenWaveTimer * EARLY_SEND_DECAY));
-            if (bonus > 0 && waves.currentWave > 0) {
-                this.elNextWaveBtn.textContent = `Next Wave (${waves.currentWave + 1}) +${bonus}g`;
-            } else {
-                this.elNextWaveBtn.textContent = `Next Wave (${waves.currentWave + 1})`;
-            }
+            this.elNextWaveBtn.textContent = `Next Wave (${waves.currentWave + 1})`;
         } else {
             this.elNextWaveBtn.style.display = 'none';
         }
@@ -792,7 +787,14 @@ export class UI {
         });
         document.getElementById('upgrade-btn')?.addEventListener('click', () => {
             if (this.game.towers.upgradeTower(tower)) {
-                this.showTowerInfo(tower);
+                const def = TOWER_TYPES[tower.type];
+                if (tower.level >= def.levels.length - 1) {
+                    // Maxed — close the card
+                    this.game.input.selectedTower = null;
+                    this.hideTowerInfo();
+                } else {
+                    this.showTowerInfo(tower);
+                }
                 this.update();
             }
         });

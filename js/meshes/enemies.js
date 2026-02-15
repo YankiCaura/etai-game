@@ -68,14 +68,40 @@ function runnerBody(color, r) {
 function tankBody(color, r) {
     const g = getGeo();
     const body = new THREE.Group();
-    // Chunky box
-    body.add(m(g.box, mat(color, { roughness: 0.8, metalness: 0.4 }), {
-        sx: r * 1.2, sy: H * 0.55, sz: r * 1.2, py: H * 0.3,
+    const armorMat = mat(color, { roughness: 0.8, metalness: 0.4 });
+    const darkMat = mat(0x333333, { roughness: 0.9, metalness: 0.1, emissiveIntensity: 0.05 });
+    const metalMat = mat(0x888888, { roughness: 0.5, metalness: 0.6, emissiveIntensity: 0.1 });
+
+    // Tracks — two dark low boxes on each side
+    body.add(m(g.box, darkMat, {
+        sx: r * 0.35, sy: H * 0.2, sz: r * 1.5, px: -r * 0.55, py: H * 0.1,
     }));
-    // Armor plate
-    body.add(m(g.box, mat(0x999999, { metalness: 0.2 }), {
-        sx: r * 0.9, sy: H * 0.12, sz: r * 0.9, py: H * 0.6,
+    body.add(m(g.box, darkMat.clone(), {
+        sx: r * 0.35, sy: H * 0.2, sz: r * 1.5, px: r * 0.55, py: H * 0.1,
     }));
+
+    // Hull — wide low armored chassis
+    body.add(m(g.box, armorMat, {
+        sx: r * 1.3, sy: H * 0.3, sz: r * 1.2, py: H * 0.25,
+    }));
+
+    // Front slope — angled armor plate
+    body.add(m(g.box, armorMat.clone(), {
+        sx: r * 1.0, sy: H * 0.2, sz: r * 0.3, py: H * 0.35, pz: -r * 0.6,
+        rx: -0.4,
+    }));
+
+    // Turret base — small cylinder on top
+    body.add(m(g.cyl, metalMat, {
+        sx: r * 0.5, sy: H * 0.2, sz: r * 0.5, py: H * 0.5, pz: r * 0.05,
+    }));
+
+    // Cannon barrel — cylinder pointing forward
+    body.add(m(g.cyl, metalMat.clone(), {
+        sx: 2.5, sy: r * 0.8, sz: 2.5, py: H * 0.5, pz: -r * 0.55,
+        rx: Math.PI / 2,
+    }));
+
     return body;
 }
 

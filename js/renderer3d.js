@@ -3,6 +3,7 @@ import { CANVAS_W, CANVAS_H, CELL } from './constants.js';
 import { Scene3D } from './scene3d.js';
 import { createTowerMesh } from './meshes/towers.js';
 import { createEnemyMesh } from './meshes/enemies.js';
+import { createPathWalls, createCastle } from './meshes/terrain.js';
 
 // Compensate for tilted camera: 3D height shifts objects up on screen.
 // Offset Z forward so turret appears centered in its cell.
@@ -46,6 +47,9 @@ export class Renderer3D {
         // Enemy mesh tracking: enemy.id → { group, body, shadow, type }
         this._enemyMeshes = new Map();
 
+        // Static terrain meshes (path walls, castle)
+        this._terrainMeshes = [];
+
         // 3D ambient particles
         this._ambientParticles = [];
         this._ambientSpawnTimer = 0;
@@ -77,7 +81,7 @@ export class Renderer3D {
 
     /** Main render call */
     drawFrame(interpolation) {
-        // Update terrain texture if dirty
+        // Update terrain texture + 3D terrain meshes if dirty
         if (this._terrainDirty) {
             this._terrainDirty = false;
             this.scene3d.updateTerrainTexture(
@@ -88,6 +92,7 @@ export class Renderer3D {
                     }
                 },
             );
+            this._rebuildTerrainMeshes();
         }
 
         // Update 3D ambient particles
@@ -309,6 +314,29 @@ export class Renderer3D {
         if (firstMesh && firstMesh.isMesh && firstMesh.material) {
             firstMesh.material.emissive.setHex(emissive);
             firstMesh.material.emissiveIntensity = emissiveIntensity;
+        }
+    }
+
+    // ── 3D Terrain Meshes (path walls, castle) ───────────────
+
+    _rebuildTerrainMeshes() {
+        const scene = this.scene3d.scene;
+
+        // Remove old terrain meshes
+        for (const m of this._terrainMeshes) {
+            scene.remove(m);
+            m.traverse(child => { if (child.isMesh) child.material?.dispose(); });
+            if (m.geometry) m.geometry.dispose();
+        }
+        this._terrainMeshes.length = 0;
+
+        if (!this.game.map) return;
+
+        // Path border walls
+        const walls = createPathWalls(this.game.map);
+        if (walls) {
+            scene.add(walls);
+            this._terrainMeshes.push(walls);
         }
     }
 
@@ -595,6 +623,14 @@ export class Renderer3D {
             this._disposeMeshGroup(entry.group);
         }
         this._enemyMeshes.clear();
+
+        // Clean up terrain meshes
+        for (const m of this._terrainMeshes) {
+            this.scene3d.scene.remove(m);
+            m.traverse(child => { if (child.isMesh) child.material?.dispose(); });
+            if (m.geometry) m.geometry.dispose();
+        }
+        this._terrainMeshes.length = 0;
 
         // Clean up ambient particles
         for (const p of this._ambientParticles) {
