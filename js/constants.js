@@ -653,7 +653,7 @@ export const ENEMY_TYPES = {
         name: 'Wobbler',
         baseHP: 8,
         speed: 29,
-        reward: 10,
+        reward: 20,
         livesCost: 1,
         color: '#ff69b4',
         radius: 14,
