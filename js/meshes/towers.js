@@ -15,10 +15,190 @@ function getGeo() {
         oct: new THREE.OctahedronGeometry(1),
         sphere: new THREE.SphereGeometry(1, 12, 8),
         torus: new THREE.TorusGeometry(1, 0.15, 8, 24),
-        hexPrism: new THREE.CylinderGeometry(1, 1, 1, 6),
-        octPrism: new THREE.CylinderGeometry(1, 1, 1, 8),
     };
     return _geoCache;
+}
+
+// Per-type LatheGeometry cache (created once per type)
+const _towerGeoCache = new Map();
+
+function getTowerGeo(type) {
+    if (_towerGeoCache.has(type)) return _towerGeoCache.get(type);
+    let geo = null;
+
+    switch (type) {
+        case 'arrow': {
+            // Compact military turret
+            const pts = [
+                new THREE.Vector2(0, 0),
+                new THREE.Vector2(0.7, 0),
+                new THREE.Vector2(0.75, 0.08),
+                new THREE.Vector2(0.6, 0.35),
+                new THREE.Vector2(0.65, 0.6),
+                new THREE.Vector2(0.5, 0.8),
+                new THREE.Vector2(0.3, 0.95),
+                new THREE.Vector2(0, 1.0),
+            ];
+            geo = { body: new THREE.LatheGeometry(pts, 8) };
+            break;
+        }
+        case 'firearrow': {
+            // Aggressive angular turret with wider base
+            const pts = [
+                new THREE.Vector2(0, 0),
+                new THREE.Vector2(0.8, 0),
+                new THREE.Vector2(0.85, 0.06),
+                new THREE.Vector2(0.6, 0.15),
+                new THREE.Vector2(0.7, 0.4),
+                new THREE.Vector2(0.65, 0.6),
+                new THREE.Vector2(0.45, 0.78),
+                new THREE.Vector2(0.2, 0.93),
+                new THREE.Vector2(0, 1.0),
+            ];
+            geo = { body: new THREE.LatheGeometry(pts, 8) };
+            break;
+        }
+        case 'cannon': {
+            // Squat heavy armored dome
+            const pts = [
+                new THREE.Vector2(0, 0),
+                new THREE.Vector2(0.85, 0),
+                new THREE.Vector2(0.9, 0.1),
+                new THREE.Vector2(0.8, 0.3),
+                new THREE.Vector2(0.6, 0.55),
+                new THREE.Vector2(0.35, 0.75),
+                new THREE.Vector2(0.15, 0.9),
+                new THREE.Vector2(0, 0.95),
+            ];
+            geo = { body: new THREE.LatheGeometry(pts, 10) };
+            break;
+        }
+        case 'bicannon': {
+            // Wide armored bunker turret
+            const pts = [
+                new THREE.Vector2(0, 0),
+                new THREE.Vector2(0.9, 0),
+                new THREE.Vector2(0.95, 0.08),
+                new THREE.Vector2(0.85, 0.2),
+                new THREE.Vector2(0.8, 0.5),
+                new THREE.Vector2(0.7, 0.65),
+                new THREE.Vector2(0.4, 0.85),
+                new THREE.Vector2(0, 0.9),
+            ];
+            geo = { body: new THREE.LatheGeometry(pts, 10) };
+            break;
+        }
+        case 'frost': {
+            // Faceted crystal (6 segments for gem-like look)
+            const pts = [
+                new THREE.Vector2(0, 0),
+                new THREE.Vector2(0.5, 0.05),
+                new THREE.Vector2(0.7, 0.25),
+                new THREE.Vector2(0.55, 0.5),
+                new THREE.Vector2(0.65, 0.7),
+                new THREE.Vector2(0.3, 0.9),
+                new THREE.Vector2(0, 1.0),
+            ];
+            geo = { body: new THREE.LatheGeometry(pts, 6) };
+            break;
+        }
+        case 'deepfrost': {
+            // Tall faceted crystal spire (6 segments)
+            const pts = [
+                new THREE.Vector2(0, 0),
+                new THREE.Vector2(0.55, 0.05),
+                new THREE.Vector2(0.5, 0.15),
+                new THREE.Vector2(0.6, 0.3),
+                new THREE.Vector2(0.45, 0.5),
+                new THREE.Vector2(0.55, 0.65),
+                new THREE.Vector2(0.3, 0.82),
+                new THREE.Vector2(0.1, 0.95),
+                new THREE.Vector2(0, 1.0),
+            ];
+            geo = { body: new THREE.LatheGeometry(pts, 6) };
+            break;
+        }
+        case 'lightning': {
+            // Tesla coil — narrow stem, wide top
+            const pts = [
+                new THREE.Vector2(0, 0),
+                new THREE.Vector2(0.5, 0),
+                new THREE.Vector2(0.55, 0.08),
+                new THREE.Vector2(0.3, 0.2),
+                new THREE.Vector2(0.25, 0.5),
+                new THREE.Vector2(0.55, 0.7),
+                new THREE.Vector2(0.6, 0.82),
+                new THREE.Vector2(0.4, 0.95),
+                new THREE.Vector2(0, 1.0),
+            ];
+            geo = { body: new THREE.LatheGeometry(pts, 8) };
+            break;
+        }
+        case 'superlightning': {
+            // Enhanced Tesla coil — taller, more dramatic
+            const pts = [
+                new THREE.Vector2(0, 0),
+                new THREE.Vector2(0.55, 0),
+                new THREE.Vector2(0.6, 0.06),
+                new THREE.Vector2(0.35, 0.15),
+                new THREE.Vector2(0.3, 0.35),
+                new THREE.Vector2(0.5, 0.55),
+                new THREE.Vector2(0.55, 0.7),
+                new THREE.Vector2(0.45, 0.82),
+                new THREE.Vector2(0.25, 0.92),
+                new THREE.Vector2(0, 1.0),
+            ];
+            geo = { body: new THREE.LatheGeometry(pts, 8) };
+            break;
+        }
+        case 'sniper': {
+            // Sleek tapered turret
+            const pts = [
+                new THREE.Vector2(0, 0),
+                new THREE.Vector2(0.6, 0),
+                new THREE.Vector2(0.65, 0.1),
+                new THREE.Vector2(0.5, 0.3),
+                new THREE.Vector2(0.45, 0.6),
+                new THREE.Vector2(0.35, 0.8),
+                new THREE.Vector2(0.2, 0.95),
+                new THREE.Vector2(0, 1.0),
+            ];
+            geo = { body: new THREE.LatheGeometry(pts, 8) };
+            break;
+        }
+        case 'missilesniper': {
+            // Bulky missile launcher body
+            const pts = [
+                new THREE.Vector2(0, 0),
+                new THREE.Vector2(0.8, 0),
+                new THREE.Vector2(0.85, 0.08),
+                new THREE.Vector2(0.75, 0.2),
+                new THREE.Vector2(0.7, 0.5),
+                new THREE.Vector2(0.6, 0.7),
+                new THREE.Vector2(0.35, 0.88),
+                new THREE.Vector2(0, 0.95),
+            ];
+            geo = { body: new THREE.LatheGeometry(pts, 8) };
+            break;
+        }
+        case 'pulsecannon': {
+            // Rounded energy weapon body
+            const pts = [
+                new THREE.Vector2(0, 0),
+                new THREE.Vector2(0.4, 0.05),
+                new THREE.Vector2(0.7, 0.25),
+                new THREE.Vector2(0.75, 0.5),
+                new THREE.Vector2(0.65, 0.7),
+                new THREE.Vector2(0.4, 0.88),
+                new THREE.Vector2(0.15, 0.97),
+                new THREE.Vector2(0, 1.0),
+            ];
+            geo = { body: new THREE.LatheGeometry(pts, 10) };
+            break;
+        }
+    }
+    if (geo) _towerGeoCache.set(type, geo);
+    return geo;
 }
 
 function mat(color, opts = {}) {
@@ -27,7 +207,6 @@ function mat(color, opts = {}) {
         color,
         roughness: opts.roughness ?? 0.4,
         metalness: opts.metalness ?? 0.1,
-        // Default subtle self-glow so tower parts are always readable
         emissive: opts.emissive ?? c,
         emissiveIntensity: opts.emissiveIntensity ?? 0.12,
     });
@@ -43,53 +222,22 @@ function mesh(geo, material, { sx = 1, sy = 1, sz = 1, px = 0, py = 0, pz = 0, r
     return m;
 }
 
-// ── Base platform (shared by all towers) ──────────────────────
-function createBase(color, level) {
-    const g = getGeo();
-    const maxed = level >= 2;
-    const group = new THREE.Group();
-
-    // Thin rim — just enough to lift the turret, doesn't obscure the 2D base on terrain
-    const rimColor = new THREE.Color(color);
-    const rim = mesh(g.cyl, mat(rimColor, {
-        emissive: rimColor, emissiveIntensity: maxed ? 0.5 : 0.2,
-        roughness: 0.3, metalness: 0.2,
-    }), {
-        sx: CELL * 0.42, sy: H * 0.12, sz: CELL * 0.42,
-        py: H * 0.06,
-    });
-    group.add(rim);
-
-    // Accent ring — bright colored glow, key visual identifier
-    const ringColor = new THREE.Color(color);
-    const ring = mesh(g.torus, mat(ringColor, {
-        emissive: ringColor, emissiveIntensity: maxed ? 0.8 : 0.4,
-        metalness: 0.3, roughness: 0.2,
-    }), {
-        sx: CELL * 0.4, sy: CELL * 0.4, sz: CELL * 0.4,
-        py: H * 0.14,
-        rx: Math.PI / 2,
-    });
-    group.add(ring);
-
-    return group;
-}
-
 // ── Turret factories per type ─────────────────────────────────
 
 function arrowTurret(color) {
     const g = getGeo();
+    const tg = getTowerGeo('arrow');
     const turret = new THREE.Group();
     const c = new THREE.Color(color);
-    // Body
-    turret.add(mesh(g.box, mat(c, { metalness: 0.4 }), {
-        sx: 10, sy: 10, sz: 16, pz: -2, py: H * 0.45,
+    // Lathed turret body
+    turret.add(mesh(tg.body, mat(c, { metalness: 0.4 }), {
+        sx: 9, sy: 12, sz: 9, py: H * 0.12,
     }));
     // Rail
     turret.add(mesh(g.cyl, mat(0xaaaaaa, { metalness: 0.2 }), {
         sx: 2, sy: 20, sz: 2, py: H * 0.45, rx: Math.PI / 2,
     }));
-    // Tip
+    // Arrow tip
     turret.add(mesh(g.cone, mat(0xdddddd, { metalness: 0.2 }), {
         sx: 3, sy: 8, sz: 3, pz: 14, py: H * 0.45, rx: Math.PI / 2,
     }));
@@ -98,11 +246,12 @@ function arrowTurret(color) {
 
 function firearrowTurret(color) {
     const g = getGeo();
+    const tg = getTowerGeo('firearrow');
     const turret = new THREE.Group();
     const c = new THREE.Color(color);
-    // Body
-    turret.add(mesh(g.box, mat(c, { metalness: 0.4, emissive: 0xff4400, emissiveIntensity: 0.3 }), {
-        sx: 12, sy: 11, sz: 18, pz: -2, py: H * 0.45,
+    // Lathed turret body with fire glow
+    turret.add(mesh(tg.body, mat(c, { metalness: 0.4, emissive: 0xff4400, emissiveIntensity: 0.3 }), {
+        sx: 10, sy: 13, sz: 10, py: H * 0.1,
     }));
     // Barrel
     turret.add(mesh(g.cyl, mat(0x993300, { metalness: 0.2, emissive: 0xff2200, emissiveIntensity: 0.3 }), {
@@ -117,13 +266,14 @@ function firearrowTurret(color) {
 
 function cannonTurret(color) {
     const g = getGeo();
+    const tg = getTowerGeo('cannon');
     const turret = new THREE.Group();
     const c = new THREE.Color(color);
-    // Body
-    turret.add(mesh(g.box, mat(c, { roughness: 0.7, metalness: 0.4 }), {
-        sx: 14, sy: 12, sz: 14, py: H * 0.45,
+    // Squat dome body
+    turret.add(mesh(tg.body, mat(c, { roughness: 0.7, metalness: 0.4 }), {
+        sx: 11, sy: 13, sz: 11, py: H * 0.1,
     }));
-    // Barrel (tapered)
+    // Thick barrel
     turret.add(mesh(g.cyl, mat(0x999999, { metalness: 0.3 }), {
         sx: 5, sy: 20, sz: 5, py: H * 0.45, rx: Math.PI / 2, pz: 8,
     }));
@@ -132,17 +282,17 @@ function cannonTurret(color) {
 
 function bicannonTurret(color) {
     const g = getGeo();
+    const tg = getTowerGeo('bicannon');
     const turret = new THREE.Group();
     const c = new THREE.Color(color);
-    // Chassis
-    turret.add(mesh(g.box, mat(c, { roughness: 0.7, metalness: 0.5 }), {
-        sx: 16, sy: 12, sz: 14, py: H * 0.45,
+    // Wide armored body
+    turret.add(mesh(tg.body, mat(c, { roughness: 0.7, metalness: 0.5 }), {
+        sx: 12, sy: 13, sz: 12, py: H * 0.1,
     }));
-    // Barrel left
+    // Twin barrels
     turret.add(mesh(g.cyl, mat(0x888888, { metalness: 0.3 }), {
         sx: 4, sy: 22, sz: 4, px: 5, py: H * 0.45, rx: Math.PI / 2, pz: 8,
     }));
-    // Barrel right
     turret.add(mesh(g.cyl, mat(0x888888, { metalness: 0.3 }), {
         sx: 4, sy: 22, sz: 4, px: -5, py: H * 0.45, rx: Math.PI / 2, pz: 8,
     }));
@@ -151,26 +301,28 @@ function bicannonTurret(color) {
 
 function frostTurret(color) {
     const g = getGeo();
+    const tg = getTowerGeo('frost');
     const turret = new THREE.Group();
     const c = new THREE.Color(color);
-    // Crystal
-    turret.add(mesh(g.oct, mat(c, { emissive: c, emissiveIntensity: 0.4, roughness: 0.2, metalness: 0.1 }), {
-        sx: 10, sy: 14, sz: 10, py: H * 0.55,
+    // Faceted crystal body (6-sided lathe)
+    turret.add(mesh(tg.body, mat(c, { emissive: c, emissiveIntensity: 0.4, roughness: 0.15, metalness: 0.1 }), {
+        sx: 9, sy: 14, sz: 9, py: H * 0.12,
     }));
-    // Barrel
-    turret.add(mesh(g.cyl, mat(0x88bbdd, { metalness: 0.5 }), {
-        sx: 2.5, sy: 16, sz: 2.5, py: H * 0.45, rx: Math.PI / 2, pz: 6,
+    // Icicle barrel
+    turret.add(mesh(g.cone, mat(0x88bbdd, { metalness: 0.5, emissive: 0x88ccee, emissiveIntensity: 0.2 }), {
+        sx: 2.5, sy: 18, sz: 2.5, py: H * 0.45, rx: Math.PI / 2, pz: 8,
     }));
     return turret;
 }
 
 function deepfrostTurret(color) {
     const g = getGeo();
+    const tg = getTowerGeo('deepfrost');
     const turret = new THREE.Group();
     const c = new THREE.Color(color);
-    // Hexagonal prism core
-    turret.add(mesh(g.hexPrism, mat(c, { emissive: c, emissiveIntensity: 0.5, roughness: 0.15 }), {
-        sx: 10, sy: 16, sz: 10, py: H * 0.55,
+    // Tall faceted crystal spire
+    turret.add(mesh(tg.body, mat(c, { emissive: c, emissiveIntensity: 0.5, roughness: 0.12 }), {
+        sx: 9, sy: 16, sz: 9, py: H * 0.1,
     }));
     // Orbiting crystal shards
     for (let i = 0; i < 3; i++) {
@@ -185,13 +337,14 @@ function deepfrostTurret(color) {
 
 function lightningTurret(color) {
     const g = getGeo();
+    const tg = getTowerGeo('lightning');
     const turret = new THREE.Group();
     const c = new THREE.Color(color);
-    // Sphere body
-    turret.add(mesh(g.sphere, mat(c, { emissive: c, emissiveIntensity: 0.3 }), {
-        sx: 10, sy: 10, sz: 10, py: H * 0.5,
+    // Tesla coil body
+    turret.add(mesh(tg.body, mat(c, { emissive: c, emissiveIntensity: 0.3 }), {
+        sx: 9, sy: 13, sz: 9, py: H * 0.1,
     }));
-    // 3 prongs
+    // 3 conductor prongs
     for (let i = 0; i < 3; i++) {
         const a = (Math.PI * 2 / 3) * i;
         turret.add(mesh(g.cyl, mat(0xdddddd, { metalness: 0.2 }), {
@@ -205,17 +358,18 @@ function lightningTurret(color) {
 
 function superlightningTurret(color) {
     const g = getGeo();
+    const tg = getTowerGeo('superlightning');
     const turret = new THREE.Group();
     const c = new THREE.Color(color);
-    // Octagonal prism
-    turret.add(mesh(g.octPrism, mat(c, { emissive: c, emissiveIntensity: 0.4 }), {
-        sx: 11, sy: 14, sz: 11, py: H * 0.5,
+    // Enhanced Tesla coil body
+    turret.add(mesh(tg.body, mat(c, { emissive: c, emissiveIntensity: 0.4 }), {
+        sx: 10, sy: 15, sz: 10, py: H * 0.1,
     }));
     // Plasma sphere on top
     turret.add(mesh(g.sphere, mat(0xeeddff, { emissive: 0xbb88ff, emissiveIntensity: 0.8, roughness: 0.1 }), {
         sx: 5, sy: 5, sz: 5, py: H * 0.85,
     }));
-    // 5 prongs
+    // 5 conductor prongs
     for (let i = 0; i < 5; i++) {
         const a = (Math.PI * 2 / 5) * i;
         turret.add(mesh(g.cyl, mat(0xccccee, { metalness: 0.2 }), {
@@ -229,11 +383,12 @@ function superlightningTurret(color) {
 
 function sniperTurret(color) {
     const g = getGeo();
+    const tg = getTowerGeo('sniper');
     const turret = new THREE.Group();
     const c = new THREE.Color(color);
-    // Long body
-    turret.add(mesh(g.box, mat(c, { metalness: 0.5 }), {
-        sx: 8, sy: 10, sz: 24, py: H * 0.45, pz: 2,
+    // Sleek lathed body
+    turret.add(mesh(tg.body, mat(c, { metalness: 0.5 }), {
+        sx: 8, sy: 12, sz: 8, py: H * 0.12,
     }));
     // Long barrel
     turret.add(mesh(g.cyl, mat(0x999999, { metalness: 0.3 }), {
@@ -248,11 +403,12 @@ function sniperTurret(color) {
 
 function misslesniperTurret(color) {
     const g = getGeo();
+    const tg = getTowerGeo('missilesniper');
     const turret = new THREE.Group();
     const c = new THREE.Color(color);
-    // Launcher body
-    turret.add(mesh(g.box, mat(c, { metalness: 0.5 }), {
-        sx: 16, sy: 12, sz: 18, py: H * 0.45,
+    // Bulky launcher body
+    turret.add(mesh(tg.body, mat(c, { metalness: 0.5 }), {
+        sx: 12, sy: 13, sz: 12, py: H * 0.1,
     }));
     // 4 missile tubes
     const offsets = [[-4, 3], [-4, -3], [4, 3], [4, -3]];
@@ -267,11 +423,12 @@ function misslesniperTurret(color) {
 
 function pulsecannonTurret(color) {
     const g = getGeo();
+    const tg = getTowerGeo('pulsecannon');
     const turret = new THREE.Group();
     const c = new THREE.Color(color);
-    // Sphere body
-    turret.add(mesh(g.sphere, mat(c, { emissive: c, emissiveIntensity: 0.3, roughness: 0.3 }), {
-        sx: 11, sy: 11, sz: 11, py: H * 0.5,
+    // Rounded energy body
+    turret.add(mesh(tg.body, mat(c, { emissive: c, emissiveIntensity: 0.3, roughness: 0.3 }), {
+        sx: 10, sy: 13, sz: 10, py: H * 0.1,
     }));
     // Wide barrel
     turret.add(mesh(g.cyl, mat(0x44aaaa, { metalness: 0.2, emissive: 0x115555, emissiveIntensity: 0.3 }), {
@@ -320,7 +477,6 @@ function createTowerFromGLTF(type, level) {
     });
 
     if (turret) {
-        // Remove turret from clone, clone becomes base
         turret.parent?.remove(turret);
         base = clone;
     } else {
@@ -348,7 +504,7 @@ function createTowerFromGLTF(type, level) {
 
 /**
  * Creates a complete tower mesh group for the given tower type and level.
- * Uses GLTF model if available, otherwise procedural geometry.
+ * Uses GLTF model if available, otherwise enhanced procedural geometry.
  * Returns { group, turret, base } for easy access.
  */
 export function createTowerMesh(type, level) {
@@ -362,12 +518,9 @@ export function createTowerMesh(type, level) {
     }
 
     // Procedural fallback
-    const color = def.color;
     const group = new THREE.Group();
-
-    // Turret (type-specific)
     const factory = TURRET_FACTORY[type];
-    const turret = factory ? factory(color) : arrowTurret(color);
+    const turret = factory ? factory(def.color) : arrowTurret(def.color);
     group.add(turret);
 
     return { group, turret, base: group };
@@ -375,9 +528,7 @@ export function createTowerMesh(type, level) {
 
 /**
  * Updates tower mesh materials/geometry when level changes.
- * Cheaper than recreating: just swaps the accent ring emissive intensity.
  */
 export function updateTowerLevel(towerMesh, type, level) {
-    // For simplicity in Phase 2, just recreate. Optimize later if needed.
     return createTowerMesh(type, level);
 }
