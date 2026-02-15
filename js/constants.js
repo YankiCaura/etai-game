@@ -769,7 +769,6 @@ export const ATMOSPHERE_PRESETS = {
         description: 'Neon-lit digital grid',
         themeColor: '#ff00ff',
         ground:  { base: [55, 30, 75], variance: 10 },
-        path:    { base: '#2a1848' },
         obstacle: { tint: '#8830cc' },
         particles: {
             primary:   { behavior: 'sand', colors: ['#ff00ff', '#00ffff', '#aa00ff'], weight: 0.7 },
@@ -783,7 +782,6 @@ export const ATMOSPHERE_PRESETS = {
         description: 'Dreamy luminous mist',
         themeColor: '#c0a0ff',
         ground:  { base: [185, 170, 215], variance: 12 },
-        path:    { base: '#c8b8e0' },
         obstacle: { tint: '#a090c0' },
         particles: {
             primary:   { behavior: 'firefly', colors: ['#e0d0ff', '#ffffff', '#c0b0ff'], weight: 0.6 },
@@ -797,7 +795,6 @@ export const ATMOSPHERE_PRESETS = {
         description: 'Oppressive crimson dark',
         themeColor: '#8b0000',
         ground:  { base: [70, 28, 28], variance: 10 },
-        path:    { base: '#3a1818' },
         obstacle: { tint: '#602020' },
         particles: {
             primary:   { behavior: 'ember', colors: ['#aa2200', '#cc3300', '#882200'], weight: 0.6 },
@@ -811,7 +808,6 @@ export const ATMOSPHERE_PRESETS = {
         description: 'Icy blizzard tundra',
         themeColor: '#88ccff',
         ground:  { base: [195, 215, 235], variance: 10 },
-        path:    { base: '#b0d0e8' },
         obstacle: { tint: '#80a0b8' },
         particles: {
             primary:   { behavior: 'leaf', colors: ['#ffffff', '#d0e8ff', '#b8d8f0'], weight: 0.7 },
@@ -825,7 +821,6 @@ export const ATMOSPHERE_PRESETS = {
         description: 'Blazing stellar heat',
         themeColor: '#ff8800',
         ground:  { base: [100, 55, 25], variance: 12 },
-        path:    { base: '#5a3018' },
         obstacle: { tint: '#b06020' },
         particles: {
             primary:   { behavior: 'ember', colors: ['#ff6600', '#ffaa00', '#ffcc00'], weight: 0.7 },
@@ -839,7 +834,6 @@ export const ATMOSPHERE_PRESETS = {
         description: 'Deep space emptiness',
         themeColor: '#4444aa',
         ground:  { base: [30, 28, 55], variance: 8 },
-        path:    { base: '#181630' },
         obstacle: { tint: '#383870' },
         particles: {
             primary:   { behavior: 'firefly', colors: ['#ffffff', '#aaaaff', '#8888cc'], weight: 0.7 },

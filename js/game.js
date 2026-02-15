@@ -43,7 +43,7 @@ export class Game {
 
         // Atmosphere override state
         this.selectedAtmosphere = localStorage.getItem('td_atmosphere') || 'standard';
-        this.atmosphereColors = null;    // { ground, path, obstacle } or null
+        this.atmosphereColors = null;    // { ground, obstacle } or null (path always map-native)
         this.atmosphereParticles = null; // { primary, secondary } or null
 
         // Track which wave thresholds have been triggered this run
@@ -144,7 +144,7 @@ export class Game {
             return;
         }
         // Apply atmosphere overrides
-        this.atmosphereColors = { ground: preset.ground, path: preset.path, obstacle: preset.obstacle };
+        this.atmosphereColors = { ground: preset.ground, obstacle: preset.obstacle };
         this.atmosphereParticles = preset.particles;
         if (this.postfx.enabled && preset.postfx) {
             const pf = preset.postfx;
