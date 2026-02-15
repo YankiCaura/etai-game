@@ -712,14 +712,7 @@ export const MAX_PARTICLES = 500;
 // ── HP Scaling ─────────────────────────────────────────────
 export function getWaveHPScale(wave) {
     // Wave 1≈1.10, Wave 10≈25.9, Wave 20≈134
-    let scale = wave * Math.pow(1.10, wave);
-    // Mid-game spike: +40% HP peak at wave 25, ramps in from 20, tapers out by 32
-    if (wave >= 20 && wave <= 32) {
-        const center = 25, halfWidth = 6;
-        const t = 1 - ((wave - center) / halfWidth) ** 2; // parabolic 0→1→0
-        scale *= 1 + 0.4 * Math.max(0, t);
-    }
-    return scale;
+    return wave * Math.pow(1.10, wave);
 }
 
 // ── Wave Modifiers ────────────────────────────────────────
