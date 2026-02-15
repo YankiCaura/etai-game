@@ -159,7 +159,11 @@ The `WAVES` array (5 entries) defines intro waves 1-5:
 ]
 ```
 
-Wave 6+ are procedurally generated via `WaveManager.generateWave()` in `wave.js`.
+Wave 6+ are procedurally generated via `WaveManager.generateWave()` in `wave.js`. Key generation constants (in `constants.js`):
+
+- `WAVE_GEN.COUNT_PER_WAVE`: 0.45 (enemy count scaling per wave)
+- `WAVE_GEN.GROUP_GAP_MIN`: 0.7 (minimum seconds between spawn groups)
+- `WAVE_GEN.GROUP_GAP_RANDOM`: 1.0 (additional random gap range)
 
 | Field | Meaning |
 |-------|---------|
@@ -172,7 +176,7 @@ Wave 6+ are procedurally generated via `WaveManager.generateWave()` in `wave.js`
 
 ```js
 export function getWaveHPScale(wave) {
-    return wave * Math.pow(1.10, wave);
+    return wave * Math.pow(1.11, wave);
 }
 ```
 
@@ -180,14 +184,14 @@ This exponential curve determines how much base HP is multiplied per wave number
 
 | Wave | HP Scale |
 |------|----------|
-| 1 | 1.10 |
-| 5 | 8.05 |
-| 10 | 25.9 |
-| 20 | 134.5 |
-| 50 | 5,839 |
-| 80 | 196,561 |
+| 1 | 1.11 |
+| 5 | 8.4 |
+| 10 | 28.3 |
+| 20 | 161 |
+| 50 | 3,295 |
+| 80 | 69,640 |
 
-**The exponent base (1.10) is the most impactful tuning knob in the game.**
+**The exponent base (1.11) is the most impactful tuning knob in the game.**
 
 ### Wave Unlock Thresholds
 
@@ -222,13 +226,13 @@ Defined in `ENEMY_TYPES`. Each enemy has:
 
 | Type | baseHP | Speed | Armor | Role |
 |------|--------|-------|-------|------|
-| Grunt | 30 | 70 | 0 | Baseline |
-| Runner | 15 | 125 | 0 | Fast, fragile |
-| Tank | 98 | 40 | 0.27 | Slow, tanky |
-| Healer | 50 | 65 | 0 | Heals nearby allies |
-| Boss | 388 | 26 | 0.20 | High HP, slow |
-| Swarm | 8 | 105 | 0 | Cheap, fast, overwhelming in numbers |
-| Flying | 28 | 88 | 0 | Airborne sortie, untargetable while flying |
+| Grunt | 18 | 70 | 0 | Baseline |
+| Runner | 6 | 125 | 0 | Fast, fragile |
+| Tank | 75 | 40 | 0.27 | Slow, tanky |
+| Healer | 25 | 65 | 0 | Heals nearby allies |
+| Boss | 349 | 26 | 0.20 | High HP, slow |
+| Swarm | 5 | 105 | 0 | Cheap, fast, overwhelming in numbers |
+| Flying | 10 | 97 | 0 | Airborne sortie, untargetable while flying |
 
 ---
 
@@ -272,10 +276,10 @@ arrow: {
 | Sniper | Wave 5 | $150 | Wave 19 |
 | Fire Arrow | Wave 10 | $200 | — |
 | Deep Frost | Wave 10 | $150 | — |
-| Missile Sniper | Wave 20 | $325 | — |
+| Missile Sniper | Wave 20 | $300 | — |
 | Super Lightning | Wave 25 | $250 | — |
 | Bi-Cannon | Wave 25 | $200 | — |
-| Pulse Cannon | Wave 30 | $300 | — |
+| Pulse Cannon | Wave 30 | $600 | — |
 
 **Special tower mechanics:**
 
@@ -298,8 +302,8 @@ The burn DoT is applied on hit and **bypasses armor entirely** — burn damage i
 
 Current burn stats:
 - Level 1: 3 DPS for 3.0s (9 total)
-- Level 2: 5 DPS for 3.5s (17.5 total)
-- Level 3: 8 DPS for 4.0s (32 total)
+- Level 2: 6 DPS for 3.5s (21 total)
+- Level 3: 9 DPS for 4.0s (36 total)
 
 ---
 
@@ -336,7 +340,7 @@ The hero unit (`hero.js`) is a player-controlled character that spawns at Wave 1
 ## 6. Economy
 
 ```js
-export const STARTING_GOLD = 275;
+export const STARTING_GOLD = 300;
 export const STARTING_LIVES = 20;
 export const SELL_REFUND = 0.6;       // 60% of total invested
 export const INTEREST_RATE = 0.01;    // 1% of gold between waves
@@ -348,7 +352,7 @@ export const WAVE_BONUS_PER = 6;      // additional per wave number
 
 **Kill income:** `enemy.reward × 1.10` (hardcoded 10% bonus in `enemy.js`)
 
-**Starting gold:** Fixed 275g for all worlds (no level-based scaling).
+**Starting gold:** Fixed 300g for all worlds (no level-based scaling).
 
 ---
 

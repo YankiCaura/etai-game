@@ -20,7 +20,7 @@ Open `http://localhost:8000` in a modern browser with WebGL2 support.
 ## Features
 
 - **11 tower types** with unique mechanics — burn, freeze, chain lightning, splash, knockback, homing missiles, and more
-- **7 enemy types** — grunts, runners, tanks, healers, bosses, swarms, and flying enemies
+- **9 enemy types** — grunts, runners, tanks, healers, bosses, mega bosses, swarms, wobblers, and flying enemies
 - **3 maps** with distinct strategic challenges — long winding paths, split forks, and short gauntlets
 - **Hero unit** (Wave 14+) — WASD-controlled character with AoE stun and gold magnet abilities
 - **Dual spawn points** (Wave 15+) — enemies gradually attack from two directions
@@ -28,6 +28,7 @@ Open `http://localhost:8000` in a modern browser with WebGL2 support.
 - **Procedural audio** — all sound generated via Web Audio API, no audio files
 - **Wave modifiers** — random buffs (armored, swift, regen, horde) keep each run fresh
 - **Achievement system** — 31 achievements across 6 categories
+- **7 atmosphere presets** — Cyberpunk, Ethereal, Sinister, Frozen Wastes, Solar Flare, The Void, or Standard (map native)
 - **Wave-based progression** — new towers and abilities unlock at wave thresholds mid-run
 
 ## Documentation
@@ -38,7 +39,7 @@ Open `http://localhost:8000` in a modern browser with WebGL2 support.
 ## Tech Stack
 
 - Vanilla JavaScript (ES6 modules)
-- HTML5 Canvas (4-layer system: terrain, game, WebGL2 FX, UI)
+- HTML5 Canvas (5-layer system: terrain, 3D, game, WebGL2 FX, UI)
 - WebGL2 for post-processing (graceful fallback to Canvas 2D)
 - Web Audio API for procedural sound
 - localStorage for persistence

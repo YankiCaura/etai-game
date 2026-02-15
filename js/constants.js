@@ -633,7 +633,7 @@ export const ENEMY_TYPES = {
         name: 'Boss',
         baseHP: 349,
         speed: 26,     // (+15%)
-        reward: 150,
+        reward: 200,
         livesCost: 5,
         color: '#8e44ad',
         radius: 24,
@@ -673,7 +673,7 @@ export const ENEMY_TYPES = {
         name: 'Mega Boss',
         baseHP: 392,
         speed: 58,
-        reward: 240,
+        reward: 400,
         livesCost: 5,
         color: '#8b0000',
         radius: 34,

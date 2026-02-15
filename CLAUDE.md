@@ -41,9 +41,9 @@ Every world is an **endless wave-based survival run**. No levels — you play un
 
 - **Wave-based unlocks:** Towers, hero, and dual spawn unlock at wave thresholds mid-run via `WAVE_UNLOCKS` in constants.js
 - `getEffectiveWave() = max(currentWave, MAP_DEFS[mapId].startingUnlocks)` determines what's available
-- **HP scaling:** `getWaveHPScale(wave + startingWaveHP) * mapHpMultiplier * hpModifier` where `getWaveHPScale(w) = w * 1.10^w`. Advanced maps add `startingWaveHP` (Split Creek: +5, Gauntlet: +10) to inflate enemy HP beyond their actual wave number, balancing the fact that you start with late-game towers pre-unlocked.
+- **HP scaling:** `getWaveHPScale(wave + startingWaveHP) * mapHpMultiplier * hpModifier` where `getWaveHPScale(w) = w * 1.11^w`. Advanced maps add `startingWaveHP` (Split Creek: +5, Gauntlet: +10) to inflate enemy HP beyond their actual wave number, balancing the fact that you start with late-game towers pre-unlocked.
 - Waves 1-5: hand-crafted intro waves. Wave 6+: procedural via `generateWave()`
-- **Special wave events:** Goldrush every 10 waves (2x kill gold). Boss every 5 waves (waves 5-20), replaced by Megaboss every 2 waves starting wave 25 (25, 27, 29...). Megaboss count scales: 1→2→2→3→4→5→5→6+
+- **Special wave events:** Goldrush every 10 waves (2x kill gold). Boss every 5 waves (waves 5-20), replaced by Megaboss every 2 waves starting wave 25 (25, 27, 29...). Megaboss count scales: 1→1→2→3→4→5→5→6+
 - **Starting gold:** 300g (STARTING_GOLD constant). Advanced maps override: Split Creek & Gauntlet start with 1000g
 - **Auto-wave:** Enabled by default (`game.autoWave`), auto-starts next wave after 5s. Early-send bonus: max +30g, decays by 5g/sec waited
 - Wave record saved per map in `td_wave_record` localStorage key (JSON object `{mapId: wave}`)
@@ -125,7 +125,7 @@ WASD-controlled hero spawns when `getEffectiveWave() >= 14` (unlockWave in HERO_
 
 Flying enemies begin appearing at wave 17 by default (`FLYING_START_WAVE`), but advanced maps can override via `MAP_DEFS[mapId].flyingStartWave` (Split Creek: wave 7, Gauntlet: wave 2). They scale from 1 to 20 over 13 waves. They spawn at the castle (exit), fly a curvy sine-wave path backward to a random midpoint (30-50% of path via `landingIndex`), then land and walk normally to the exit. While airborne they are **untargetable** — towers, hero, splash, chain lightning, scorch zones, and knockback all skip them. After landing they become normal ground enemies.
 
-- **Stats in `ENEMY_TYPES.flying`:** HP 10, speed 97, reward 10, radius 11, purple color
+- **Stats in `ENEMY_TYPES.flying`:** HP 10, speed 97, reward 30, radius 11, purple color
 - Flight: 110 px/s, 2-3 sine oscillations with 60-100px amplitude, 40px altitude at midpoint
 - Always uses primary path (ignores dual-spawn secondary roll)
 - `enemy.flying` boolean gates all targeting/damage checks
@@ -159,6 +159,10 @@ Enemies are tagged with `isSecondary` on spawn for tracking. Logic lives in `Wav
 
 Per-environment animated particles drawn on the game canvas (ground layer, before scorch zones). Forest: falling leaves + fireflies. Desert: sand wisps + dust puffs. Lava: rising embers + bubbles. Pool capped at 40, spawned at ~6-7/sec. Fixed dt (1/60) — not affected by game speed. Pool cleared on `drawTerrain()`. Self-contained in `renderer.js` (`updateAmbients`, `spawnAmbient`, `drawAmbients`).
 
+## Atmosphere Presets
+
+7 visual atmosphere presets (Standard, Cyberpunk, Ethereal, Sinister, Frozen Wastes, Solar Flare, The Void) override map visuals — ground colors, obstacle tints, ambient particles, PostFX params, and 3D lighting. "Standard" preserves native map look. Selected on menu page or cycled in-game via the atmosphere badge in the top bar. Persisted in `localStorage.td_atmosphere`. Data in `ATMOSPHERE_PRESETS` in constants.js. Path cells always use map-native colors regardless of atmosphere for gameplay readability.
+
 ## Common Pitfalls & Gotchas
 
 - Wave completion check needs `currentWave > 0` guard to avoid false triggers before the game starts
@@ -188,20 +192,21 @@ Per-environment animated particles drawn on the game canvas (ground layer, befor
 - **Unlock screen:** HTML overlay shown when wave thresholds are crossed. Displays tower icons, stats, replacement info, hero/dual spawn extras. Pauses game (STATE.PAUSED + `_unlockScreenActive = true`) until Continue is clicked. Hides top/bottom bars during display. When continued, `_beginWave()` is called if pending.
 - **Game over screen:** Shows "Reached Wave X" + best record for the map. Wave record saved per-map in localStorage on both game over and mid-wave restart.
 - **3D toggle button:** Top-right button toggles between 2D Canvas and Three.js 3D rendering (if available). Persisted in `localStorage.td_use3d`
+- **Atmosphere selector:** Menu page shows atmosphere chips below map cards. In-game badge in top bar cycles through presets.
 
 ## Enemy Types Reference
 
 | Type | Base HP | Speed | Armor | Reward | Lives | Special |
 |------|---------|-------|-------|--------|-------|---------|
-| Grunt | 18 | 70 | 0% | 6g | 1 | Basic enemy |
-| Runner | 6 | 125 | 0% | 5g | 1 | Fast, low HP |
+| Grunt | 18 | 70 | 0% | 7g | 1 | Basic enemy |
+| Runner | 6 | 125 | 0% | 6g | 1 | Fast, low HP |
 | Tank | 75 | 40 | 27% | 14g | 2 | High armor, slow |
-| Healer | 25 | 65 | 0% | 10g | 1 | Heals nearby allies 3 HP/s (1.5 cell radius) |
-| Boss | 349 | 26 | 20% | 42g | 5 | Spawns every 5 waves (5-20) |
-| Swarm | 5 | 105 | 0% | 4g | 1 | Tiny, fast |
-| Wobbler | 8 | 29 | 0% | 3g | 1 | Secondary-path intro enemy (waves 16-20) |
-| Flying | 10 | 97 | 0% | 10g | 1 | Untargetable while airborne (110 px/s flight), scales 1→20 count over 13 waves |
-| Megaboss | 392 | 58 | 25% | 80g | 5 | Replaces boss at wave 25+ (every 2 waves) |
+| Healer | 25 | 65 | 0% | 12g | 1 | Heals nearby allies 3 HP/s (1.5 cell radius) |
+| Boss | 349 | 26 | 20% | 200g | 5 | Spawns every 5 waves (5-20) |
+| Swarm | 5 | 105 | 0% | 5g | 1 | Tiny, fast |
+| Wobbler | 8 | 29 | 0% | 30g | 1 | Secondary-path intro enemy (waves 16-20) |
+| Flying | 10 | 97 | 0% | 30g | 1 | Untargetable while airborne (110 px/s flight), scales 1→20 count over 13 waves |
+| Megaboss | 392 | 58 | 25% | 400g | 5 | Replaces boss at wave 25+ (every 2 waves) |
 
 ## Wave Modifiers (Wave 3+)
 

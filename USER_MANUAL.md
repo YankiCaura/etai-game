@@ -71,9 +71,9 @@ Your bread-and-butter tower. Fast fire rate, decent range, cheap to build and up
 
 | Level | Damage | Range | Fire Rate | Upgrade Cost |
 |-------|--------|-------|-----------|-------------|
-| 1 | 12 | 3.5 | 2.5/s | — |
-| 2 | 18 | 4.0 | 3.0/s | $35 |
-| 3 | 28 | 4.5 | 4.0/s | $70 |
+| 1 | 13 | 3.5 | 2.5/s | — |
+| 2 | 19 | 4.0 | 3.0/s | $35 |
+| 3 | 29 | 4.5 | 4.0/s | $70 |
 
 **Total investment:** $155 fully upgraded. Best DPS per gold in the game.
 
@@ -135,9 +135,9 @@ Premium arrow tower that sets enemies on fire. High damage with a burn damage-ov
 
 | Level | Damage | Range | Fire Rate | Burn DPS | Burn Duration | Upgrade Cost |
 |-------|--------|-------|-----------|----------|---------------|-------------|
-| 1 | 16 | 3.5 | 3.3/s | 3/s | 3.0s | — |
-| 2 | 25 | 4.0 | 4.0/s | 5/s | 3.5s | $120 |
-| 3 | 36 | 4.5 | 5.0/s | 8/s | 4.0s | $200 |
+| 1 | 18 | 3.5 | 3.3/s | 3/s | 3.0s | — |
+| 2 | 28 | 4.0 | 4.0/s | 6/s | 3.5s | $120 |
+| 3 | 40 | 4.5 | 5.0/s | 9/s | 4.0s | $200 |
 
 **Total investment:** $520 fully upgraded. Burn damage ignores armor — strong against tanks and bosses. If a stronger burn is applied while burning, the enemy takes the stronger one.
 
@@ -147,25 +147,25 @@ An aura-based tower that pulses cold damage to ALL enemies in range simultaneous
 
 | Level | Damage | Range | Slow | Freeze Chance | Freeze Duration | Upgrade Cost |
 |-------|--------|-------|------|---------------|-----------------|-------------|
-| 1 | 11 | 3.0 | 34% | 10% | 0.8s | — |
-| 2 | 17 | 3.5 | 43% | 15% | 1.0s | $100 |
-| 3 | 25 | 4.0 | 51% | 20% | 1.2s | $175 |
+| 1 | 15 | 3.0 | 34% | 10% | 0.8s | — |
+| 2 | 24 | 3.5 | 43% | 15% | 1.0s | $100 |
+| 3 | 33 | 4.0 | 51% | 20% | 1.2s | $175 |
 
 **Total investment:** $425 fully upgraded. The aura pulse hits all enemies in range — no projectiles to miss. Frozen enemies stop completely (speed = 0). Place at chokepoints for maximum crowd control.
 
 ### Wave 20 Unlock
 
-#### Missile Sniper ($325)
+#### Missile Sniper ($300)
 
 A precision emplacement that fires homing missiles dealing splash damage with a chance to crit. Combines the best of sniper range and cannon splash. Replaces the basic Sniper.
 
 | Level | Damage | Range | Fire Rate | Splash Radius | Crit Chance | Crit Multi | Upgrade Cost |
 |-------|--------|-------|-----------|---------------|-------------|------------|-------------|
-| 1 | 80 | 7.0 | 0.4/s | 1.2 | 12% | 2.5x | — |
-| 2 | 120 | 8.0 | 0.45/s | 1.5 | 16% | 2.8x | $200 |
-| 3 | 180 | 9.0 | 0.56/s | 1.8 | 20% | 3.2x | $300 |
+| 1 | 102 | 7.0 | 0.4/s | 1.2 | 12% | 2.5x | — |
+| 2 | 152 | 8.0 | 0.45/s | 1.5 | 16% | 2.8x | $200 |
+| 3 | 229 | 9.0 | 0.56/s | 1.8 | 20% | 3.2x | $300 |
 
-**Total investment:** $825 fully upgraded. Homing missiles never miss. At max level, crits hit for 576 splash damage. Dominates late-game waves.
+**Total investment:** $800 fully upgraded. Homing missiles never miss. At max level, crits hit for 576 splash damage. Dominates late-game waves.
 
 ### Wave 25 Unlocks
 
@@ -175,9 +175,9 @@ An upgraded lightning tower with forking chain attacks. Hits branch out in a tre
 
 | Level | Damage | Range | Forks | Fork Depth | Shock Chance | Upgrade Cost |
 |-------|--------|-------|-------|------------|--------------|-------------|
-| 1 | 18 | 4.0 | 4 | 2 | 15% | — |
-| 2 | 28 | 4.5 | 6 | 2 | 20% | $150 |
-| 3 | 42 | 5.0 | 8 | 3 | 25% | $250 |
+| 1 | 21 | 4.0 | 4 | 2 | 15% | — |
+| 2 | 33 | 4.5 | 6 | 2 | 20% | $150 |
+| 3 | 48 | 5.0 | 8 | 3 | 25% | $250 |
 
 **Total investment:** $650 fully upgraded. Forking chains spread damage across many enemies. Overcharge builds 10-12% bonus damage over time. Shock briefly stuns enemies (0.3-0.4s).
 
@@ -187,15 +187,15 @@ A dual-barreled cannon that fires twice as fast as a regular cannon. Every 3-4 s
 
 | Level | Damage | Range | Fire Rate | Armor Shred | Scorch DPS | Upgrade Cost |
 |-------|--------|-------|-----------|-------------|------------|-------------|
-| 1 | 35 | 3.5 | 1.7/s | 10% for 3s | 5/s for 2s | — |
-| 2 | 55 | 4.0 | 2.0/s | 12% for 3.5s | 8/s for 2.5s | $120 |
-| 3 | 85 | 4.5 | 2.5/s | 15% for 4s | 12/s for 3s | $200 |
+| 1 | 38 | 3.5 | 1.7/s | 10% for 3s | 6/s for 2s | — |
+| 2 | 60 | 4.0 | 2.0/s | 12% for 3.5s | 9/s for 2.5s | $120 |
+| 3 | 93 | 4.5 | 2.5/s | 15% for 4s | 14/s for 3s | $200 |
 
 **Total investment:** $520 fully upgraded. Armor shred reduces enemy armor temporarily — devastating when paired with other damage towers. Scorch zones bypass armor like burn damage.
 
 ### Wave 30 Unlock
 
-#### Pulse Cannon ($300)
+#### Pulse Cannon ($600)
 
 A teal energy cannon that fires shockwave pulses, dealing splash damage and knocking enemies backward along the path. Forces enemies to re-walk sections of the path, giving all your towers extra shots.
 
@@ -205,21 +205,21 @@ A teal energy cannon that fires shockwave pulses, dealing splash damage and knoc
 | 2 | 30 | 4.0 | 0.67/s | 1.5 | 1.5 cells | $150 |
 | 3 | 45 | 4.5 | 0.77/s | 1.8 | 2.0 cells | $250 |
 
-**Total investment:** $700 fully upgraded. Knockback pushes enemies backward along their path — bosses are immune, tanks resist 50%. Each enemy can only be knocked back twice, then becomes immune to further pushback. Best placed mid-path where knockback forces enemies back through your killzone.
+**Total investment:** $1000 fully upgraded. Knockback pushes enemies backward along their path — bosses are immune, tanks resist 50%. Each enemy can only be knocked back twice, then becomes immune to further pushback. Best placed mid-path where knockback forces enemies back through your killzone.
 
 ## Enemies
 
 | Type | Shape | HP | Speed | Armor | Special | Lives Lost |
 |------|-------|----|-------|-------|---------|-----------|
-| **Grunt** | Pentagon | 30 | Medium (70) | 0% | — | 1 |
-| **Runner** | Diamond | 15 | Fast (125) | 0% | — | 1 |
-| **Tank** | Square | 98 | Slow (40) | 27% | — | 2 |
-| **Healer** | Cross | 50 | Medium (65) | 0% | Heals nearby allies (3 HP/s) | 1 |
-| **Boss** | Hexagon | 388 | Very slow (26) | 20% | Screen shake + shockwave on death | 5 |
-| **Swarm** | Triangle | 8 | Fast (105) | 0% | Comes in large numbers | 1 |
-| **Flying** | Wings | 28 | Medium (88) | 0% | Airborne until landing — untargetable while flying | 1 |
+| **Grunt** | Pentagon | 18 | Medium (70) | 0% | — | 1 |
+| **Runner** | Diamond | 6 | Fast (125) | 0% | — | 1 |
+| **Tank** | Square | 75 | Slow (40) | 27% | — | 2 |
+| **Healer** | Cross | 25 | Medium (65) | 0% | Heals nearby allies (3 HP/s) | 1 |
+| **Boss** | Hexagon | 349 | Very slow (26) | 20% | Screen shake + shockwave on death | 5 |
+| **Swarm** | Triangle | 5 | Fast (105) | 0% | Comes in large numbers | 1 |
+| **Flying** | Wings | 10 | Medium (97) | 0% | Airborne until landing — untargetable while flying | 1 |
 
-HP scales exponentially each wave. By wave 20, enemies have roughly 134x the HP of wave 1.
+HP scales exponentially each wave. By wave 20, enemies have roughly 161x the HP of wave 1.
 
 Armor reduces all incoming damage by its percentage (e.g., 27% armor means the enemy takes only 73% damage from every hit). **Note:** Fire Arrow burn, Deep Frost freeze, and Bi-Cannon scorch all bypass armor entirely.
 
@@ -242,7 +242,7 @@ When a wave ends, pressing N to send the next wave early earns bonus gold. The b
 
 ## Economy
 
-- **Starting gold:** 275g (same for all worlds)
+- **Starting gold:** 300g (same for all worlds)
 - **Kill rewards:** Base reward + 10% bonus
 - **Wave completion bonus:** 25 + (wave number x 6) gold
 - **Interest:** 1% of your gold at end of each wave
