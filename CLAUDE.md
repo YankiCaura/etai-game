@@ -70,11 +70,12 @@ When a threshold is crossed, `onWaveThreshold()` in game.js:
 
 ### World Unlock & Starting Bonuses
 
-| World | Required Record | Starting Unlocks | Starting Gold | HP Inflation | Effect |
-|-------|----------------|-----------------|---------------|--------------|--------|
-| Serpentine | Always open | 0 | 300g | +0 waves | Full progression from wave 1 |
-| Split Creek | Wave 30 on any map | 30 | 1000g | +5 waves | Wave 1-30 towers unlocked, enemies HP scaled as wave 6-35 |
-| Gauntlet | Wave 40 on any map | 50 | 1000g | +10 waves | Wave 1-50 towers unlocked, enemies HP scaled as wave 11-60 |
+| World | Required Record | Starting Unlocks | Starting Gold | HP Multiplier | Effect |
+|-------|----------------|-----------------|---------------|---------------|--------|
+| Serpentine | Always open | 0 | 300g | 1.0x | Full progression from wave 1 |
+| The Citadel | Wave 5 on any map | 0 | 300g | 0.5x | 4-direction siege, no dual spawn, full progression |
+| Split Creek | Wave 30 on any map | 30 | 1000g | 1.0x (+5 HP waves) | Wave 1-30 towers unlocked, enemies HP scaled as wave 6-35 |
+| Gauntlet | Wave 40 on any map | 50 | 1000g | 1.0x (+10 HP waves) | Wave 1-50 towers unlocked, enemies HP scaled as wave 11-60 |
 
 Advanced maps use `startingWaveHP` to inflate enemy HP, preventing trivial difficulty when starting with late-game towers. Maps with `startingUnlocks > 0` pre-populate `_triggeredThresholds` so those unlocks aren't announced again.
 
@@ -103,8 +104,8 @@ Press backtick (`` ` ``) to toggle the admin panel with real-time DPS/efficiency
 - `postfx.setTerrainDirty()` must be called after any terrain redraw (tower place/sell/upgrade) — this is done automatically in `renderer.drawTerrain()`
 - `UNPACK_FLIP_Y_WEBGL` is set to `true` to prevent Y-inversion when uploading canvas textures
 - Effect triggers: `flash(intensity, duration)`, `shockwave(nx, ny, intensity)`, `aberration(intensity, duration)`
-- Per-map tints set in `game.selectMap()`: Serpentine warm green, Split Creek cool blue, Gauntlet hot red
-- **Point lighting:** Up to 32 dynamic lights computed in the composite pass (pass 1). Towers emit colored glow (scales with upgrade level), projectiles carry moving lights, hero has cyan aura, scorch zones glow orange-red. Per-map ambient darkness dims the scene (Serpentine 0.25, Creek 0.10, Gauntlet 0.35); lights restore/amplify brightness. Quartic attenuation `(1-t²)²` with aspect ratio correction. Flash lights (`addFlashLight`) decay over time for explosions, boss deaths, and hero abilities. All light methods bail with `if (!this.enabled) return` — zero cost when PostFX off. Light registration happens in `game.registerLights()` called before `postfx.render()` in `tick()`.
+- Per-map tints set in `game.selectMap()`: Serpentine warm green, Split Creek cool blue, Gauntlet hot red, Citadel cool gray
+- **Point lighting:** Up to 32 dynamic lights computed in the composite pass (pass 1). Towers emit colored glow (scales with upgrade level), projectiles carry moving lights, hero has cyan aura, scorch zones glow orange-red. Per-map ambient darkness dims the scene (Serpentine 0.25, Creek 0.10, Gauntlet 0.35, Citadel 0.20); lights restore/amplify brightness. Quartic attenuation `(1-t²)²` with aspect ratio correction. Flash lights (`addFlashLight`) decay over time for explosions, boss deaths, and hero abilities. All light methods bail with `if (!this.enabled) return` — zero cost when PostFX off. Light registration happens in `game.registerLights()` called before `postfx.render()` in `tick()`.
 
 ## Hero Unit (Wave 14+)
 
@@ -135,7 +136,7 @@ Flying enemies begin appearing at wave 17 by default (`FLYING_START_WAVE`), but 
 
 ## Dual Spawn Points (Wave 15+)
 
-At `getEffectiveWave() >= DUAL_SPAWN_WAVE` (15), enemies can spawn from a second entry point. Each layout in `MAP_DEFS` has `secondaryWaypoints` entering from x=29 (right edge), converging at the same exit. Unlock triggers a full unlock screen (bold warning + Continue button). Secondary paths are always carved in `GameMap` (so they appear on previews). Split Creek primary enemies still fork upper/lower; secondary enemies use a single right-side path.
+At `getEffectiveWave() >= DUAL_SPAWN_WAVE` (15), enemies can spawn from a second entry point. Each layout in `MAP_DEFS` has `secondaryWaypoints` entering from x=29 (right edge), converging at the same exit. Unlock triggers a full unlock screen (bold warning + Continue button). Secondary paths are always carved in `GameMap` (so they appear on previews). Split Creek primary enemies still fork upper/lower; secondary enemies use a single right-side path. **Disabled on maps with `noDualSpawn: true`** (e.g. Citadel) — unlock screen, secondary spawning, and reinforcement bursts are all skipped.
 
 **Secondary spawn ramp schedule:**
 - Wave 15: Build phase (0% secondary)
@@ -155,9 +156,24 @@ This continues every 4 seconds for the entire duration until all primary enemies
 
 Enemies are tagged with `isSecondary` on spawn for tracking. Logic lives in `WaveManager.update()` (`reinforceTimer`, `reinforceBursts`). Only active at effectiveWave >= 20 and after main wave spawning completes.
 
+## Multi-Path Maps (The Citadel)
+
+The Citadel introduces a `multiPaths` layout system where enemies attack from all 4 edges (N/S/E/W), each trail winding toward one of 4 mini-castles clustered near the center. This replaces the single-path/split-path/secondary-path model used by other maps.
+
+- **Layout data:** `layout.multiPaths` is an array of 4 waypoint arrays (one per direction). Each array's first waypoint is on a map edge (entry), last waypoint is near center (castle exit)
+- **`map.multiPaths`:** Built in `GameMap.buildGrid()` — array of 4 world-coordinate path arrays. `map.path` defaults to `multiPaths[0]` for fallback/preview
+- **`getEnemyPath(useSecondary, pathIndex)`:** If `multiPaths`, returns `multiPaths[pathIndex]` (or random if no index). The `pathIndex` parameter is new — only used by multi-path maps
+- **Round-robin spawning:** In `wave.js`, each spawn increments `spawnCounter`; `pathIndex = spawnCounter % multiPaths.length` distributes enemies evenly across all 4 paths
+- **`noDualSpawn: true`:** Skips wave 15 dual-spawn unlock screen, all secondary spawn logic, and reinforcement bursts. Checked in `game.onWaveThreshold()`, `wave.js` spawn section, and reinforcement burst logic
+- **Mini castles:** `drawMiniCastle(ctx, cx, cy)` in map.js — scaled-down castle (1.2x vs 2.2x) with single tower, wall, gate, flag. 3D version via `createMiniCastle(exitPt)` in meshes/terrain.js
+- **Entry markers:** `drawEntryMarker(ctx, wp)` draws directional green arrows at each edge entry point
+- **Flying enemies:** Spawn from random castle (via random `pathIndex`), fly backward along their assigned path — works naturally with multiPaths
+- **Balance:** `worldHpMultiplier: 0.50` — enemies have half HP to compensate for defending 4 directions simultaneously
+- **3 layout variants** with different castle positions and path configurations. Shared kill zones in the center where paths cross/run parallel
+
 ## Ambient Map Effects
 
-Per-environment animated particles drawn on the game canvas (ground layer, before scorch zones). Forest: falling leaves + fireflies. Desert: sand wisps + dust puffs. Lava: rising embers + bubbles. Pool capped at 40, spawned at ~6-7/sec. Fixed dt (1/60) — not affected by game speed. Pool cleared on `drawTerrain()`. Self-contained in `renderer.js` (`updateAmbients`, `spawnAmbient`, `drawAmbients`).
+Per-environment animated particles drawn on the game canvas (ground layer, before scorch zones). Forest: falling leaves + fireflies. Desert: sand wisps + dust puffs. Lava: rising embers + bubbles. Ruins: dust motes + spirit wisps. Pool capped at 40, spawned at ~6-7/sec. Fixed dt (1/60) — not affected by game speed. Pool cleared on `drawTerrain()`. Self-contained in `renderer.js` (`updateAmbients`, `spawnAmbient`, `drawAmbients`).
 
 ## Atmosphere Presets
 
@@ -223,7 +239,7 @@ Horde modifier applies to wave definition **after generation**, multiplying grou
 
 ## Map Environments
 
-Three visual themes with different ground/path/obstacle rendering:
+Four visual themes with different ground/path/obstacle rendering:
 
 **Forest** (Serpentine):
 - Grass cells with procedural blade patterns
@@ -243,7 +259,13 @@ Three visual themes with different ground/path/obstacle rendering:
 - Obstacles: obsidian rocks / lava vents (glowing tops)
 - Ambient: rising embers + bubbles
 
-Per-map lighting darkness: Serpentine 0.25, Split Creek 0.10, Gauntlet 0.35. All three use procedural `seedRand(gx, gy, i)` for deterministic decoration placement.
+**Ruins** (Citadel):
+- Gray stone tile ground with moss patches
+- Worn cobblestone paths with stone outlines
+- Obstacles: crumbled stone pillars / ruined wall fragments with ivy
+- Ambient: dust motes + spirit wisps (blue-green)
+
+Per-map lighting darkness: Serpentine 0.25, Split Creek 0.10, Citadel 0.20, Gauntlet 0.35. All four use procedural `seedRand(gx, gy, i)` for deterministic decoration placement.
 
 ## Known Issues & Bugs
 
