@@ -525,8 +525,8 @@ export const TOWER_TYPES = {
         unlockWave: 25,
         levels: [
             { damage: 21, range: 4.0, fireRate: 1.1, projSpeed: 600, forkCount: 4, forkDepth: 2, chainRange: 2.5, overcharge: 0.10, shockChance: 0.15, shockDuration: 0.3 },
-            { damage: 33, range: 4.5, fireRate: 0.9, projSpeed: 650, forkCount: 6, forkDepth: 2, chainRange: 3.0, overcharge: 0.10, shockChance: 0.20, shockDuration: 0.3, upgradeCost: 150 },
-            { damage: 48, range: 5.0, fireRate: 0.75, projSpeed: 700, forkCount: 8, forkDepth: 3, chainRange: 3.5, overcharge: 0.12, shockChance: 0.25, shockDuration: 0.4, upgradeCost: 250 },
+            { damage: 33, range: 4.5, fireRate: 0.9, projSpeed: 650, forkCount: 6, forkDepth: 2, chainRange: 3.0, overcharge: 0.10, shockChance: 0.20, shockDuration: 0.3, upgradeCost: 120 },
+            { damage: 48, range: 5.0, fireRate: 0.75, projSpeed: 700, forkCount: 8, forkDepth: 3, chainRange: 3.5, overcharge: 0.12, shockChance: 0.25, shockDuration: 0.4, upgradeCost: 200 },
         ],
     },
     cannon: {
@@ -551,8 +551,8 @@ export const TOWER_TYPES = {
         unlockWave: 25,
         levels: [
             { damage: 38, range: 3.5, fireRate: 0.6, projSpeed: 220, splashRadius: 1.4, heavyEvery: 4, armorShred: 0.10, shredDuration: 3.0, scorchDPS: 6, scorchDuration: 2.0 },
-            { damage: 60, range: 4.0, fireRate: 0.5, projSpeed: 240, splashRadius: 1.7, heavyEvery: 4, armorShred: 0.12, shredDuration: 3.5, scorchDPS: 9, scorchDuration: 2.5, upgradeCost: 120 },
-            { damage: 93, range: 4.5, fireRate: 0.4, projSpeed: 260, splashRadius: 2.0, heavyEvery: 3, armorShred: 0.15, shredDuration: 4.0, scorchDPS: 14, scorchDuration: 3.0, upgradeCost: 200 },
+            { damage: 60, range: 4.0, fireRate: 0.5, projSpeed: 240, splashRadius: 1.7, heavyEvery: 4, armorShred: 0.12, shredDuration: 3.5, scorchDPS: 9, scorchDuration: 2.5, upgradeCost: 110 },
+            { damage: 93, range: 4.5, fireRate: 0.4, projSpeed: 260, splashRadius: 2.0, heavyEvery: 3, armorShred: 0.15, shredDuration: 4.0, scorchDPS: 14, scorchDuration: 3.0, upgradeCost: 175 },
         ],
     },
     sniper: {
@@ -687,7 +687,7 @@ export const ENEMY_TYPES = {
         name: 'Tank',
         baseHP: 75,
         speed: 40,     // (+15%)
-        reward: 14,
+        reward: 13,
         livesCost: 2,
         color: '#2c3e50',
         radius: 13,
@@ -709,7 +709,7 @@ export const ENEMY_TYPES = {
         name: 'Boss',
         baseHP: 349,
         speed: 26,     // (+15%)
-        reward: 200,
+        reward: 207,
         livesCost: 5,
         color: '#8e44ad',
         radius: 24,
