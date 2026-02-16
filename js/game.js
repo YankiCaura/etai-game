@@ -129,6 +129,7 @@ export class Game {
                 serpentine: [0.95, 1.0, 0.9],
                 splitcreek: [0.9, 0.95, 1.05],
                 gauntlet: [1.05, 0.95, 0.9],
+                citadel: [0.92, 0.95, 1.0],
             };
             if (this.postfx.enabled) {
                 const t = tints[mapId] || [1, 1, 1];
@@ -306,6 +307,8 @@ export class Game {
             const threshold = parseInt(thresholdStr);
             if (effectiveWave >= threshold && !this._triggeredThresholds.has(threshold)) {
                 this._triggeredThresholds.add(threshold);
+                // Skip dual spawn unlock on maps that disable it
+                if (unlock.dualSpawn && this.map?.def?.noDualSpawn) continue;
                 unlocksBatch.push(unlock);
 
                 // Auto-upgrade placed towers to their replacements

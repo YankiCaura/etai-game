@@ -352,10 +352,10 @@ export class EnemyManager {
         this.enemies = [];
     }
 
-    spawn(typeName, hpScale, modifier, useSecondary) {
+    spawn(typeName, hpScale, modifier, useSecondary, pathIndex) {
         // Flying enemies always use primary path (they start at the exit)
         const actualSecondary = typeName === 'flying' ? false : useSecondary;
-        const enemy = new Enemy(typeName, hpScale, this.game.map.getEnemyPath(actualSecondary));
+        const enemy = new Enemy(typeName, hpScale, this.game.map.getEnemyPath(actualSecondary, pathIndex));
         enemy.isSecondary = actualSecondary;
         if (modifier) enemy.applyModifier(modifier);
         // Armor break wave tag — halve armor

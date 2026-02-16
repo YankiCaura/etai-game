@@ -24,6 +24,9 @@ export class GameMap {
         this.pathLower = null;
         this.secondaryPath = null;
 
+        // Multi-path data (null for non-multi maps like citadel)
+        this.multiPaths = null;
+
         this.buildGrid();
     }
 
@@ -35,7 +38,18 @@ export class GameMap {
             Array.from({ length: COLS }, () => CELL_TYPE.BUILDABLE)
         );
 
-        if (layout.paths) {
+        if (layout.multiPaths) {
+            // Multi-path map (e.g. citadel): carve all paths, build world-coord arrays
+            this.multiPaths = [];
+            for (const wpArr of layout.multiPaths) {
+                for (let i = 0; i < wpArr.length - 1; i++) {
+                    this.carveLine(wpArr[i].x, wpArr[i].y, wpArr[i + 1].x, wpArr[i + 1].y);
+                }
+                this.multiPaths.push(wpArr.map(wp => gridToWorld(wp.x, wp.y)));
+            }
+            // Default path for preview/fallback = first path
+            this.path = this.multiPaths[0];
+        } else if (layout.paths) {
             // Split map: carve prefix, upper, lower, suffix
             const prefix = layout.waypoints;
             const upper = layout.paths.upper;
@@ -116,7 +130,13 @@ export class GameMap {
         }
     }
 
-    getEnemyPath(useSecondary) {
+    getEnemyPath(useSecondary, pathIndex) {
+        if (this.multiPaths) {
+            if (pathIndex !== undefined && pathIndex >= 0 && pathIndex < this.multiPaths.length) {
+                return this.multiPaths[pathIndex];
+            }
+            return this.multiPaths[Math.floor(Math.random() * this.multiPaths.length)];
+        }
         if (useSecondary && this.secondaryPath) {
             return this.secondaryPath;
         }
@@ -166,10 +186,11 @@ export class GameMap {
                 const py = y * CELL;
                 const type = this.grid[y][x];
 
+                const envPrefix = env === 'desert' ? 'Desert' : env === 'lava' ? 'Lava' : env === 'ruins' ? 'Ruins' : '';
                 if (colorOverride) {
                     if (type === CELL_TYPE.PATH) {
                         // Always use map-native path for contrast with enemies
-                        this[`draw${env === 'desert' ? 'Desert' : env === 'lava' ? 'Lava' : ''}PathCell`](ctx, px, py, x, y);
+                        this[`draw${envPrefix}PathCell`](ctx, px, py, x, y);
                     } else {
                         this._drawAtmoGround(ctx, px, py, x, y, colorOverride);
                         if (type === CELL_TYPE.BLOCKED) {
@@ -177,11 +198,12 @@ export class GameMap {
                         }
                     }
                 } else if (type === CELL_TYPE.PATH) {
-                    this[`draw${env === 'desert' ? 'Desert' : env === 'lava' ? 'Lava' : ''}PathCell`](ctx, px, py, x, y);
+                    this[`draw${envPrefix}PathCell`](ctx, px, py, x, y);
                 } else {
-                    this[`draw${env === 'desert' ? 'Desert' : env === 'lava' ? 'Lava' : 'Grass'}Cell`](ctx, px, py, x, y);
+                    const groundPrefix = env === 'desert' ? 'Desert' : env === 'lava' ? 'Lava' : env === 'ruins' ? 'Ruins' : 'Grass';
+                    this[`draw${groundPrefix}Cell`](ctx, px, py, x, y);
                     if (type === CELL_TYPE.BLOCKED) {
-                        this[`draw${env === 'desert' ? 'Desert' : env === 'lava' ? 'Lava' : ''}Obstacle`](ctx, px, py, x, y);
+                        this[`draw${envPrefix}Obstacle`](ctx, px, py, x, y);
                     }
                 }
             }
@@ -189,6 +211,13 @@ export class GameMap {
 
         // Draw castle at path exit
         this.drawCastle(ctx);
+
+        // Draw entry markers for multi-path maps
+        if (this.layout.multiPaths) {
+            for (const wpArr of this.layout.multiPaths) {
+                this.drawEntryMarker(ctx, wpArr[0]);
+            }
+        }
 
         // Draw secondary entry marker (dual spawn)
         if (this.secondaryPath) {
@@ -213,6 +242,14 @@ export class GameMap {
     }
 
     drawCastle(ctx) {
+        if (this.layout.multiPaths) {
+            // Draw mini castles at each path's exit (last waypoint)
+            for (const wpArr of this.layout.multiPaths) {
+                const exitPt = wpArr[wpArr.length - 1];
+                this.drawMiniCastle(ctx, exitPt.x * CELL + CELL / 2, exitPt.y * CELL + CELL / 2);
+            }
+            return;
+        }
         const layout = this.layout;
         const exitPt = layout.paths
             ? layout.paths.suffix[layout.paths.suffix.length - 1]
@@ -839,6 +876,279 @@ export class GameMap {
                 ctx.arc(cx + offsets[i].x, cy + offsets[i].y, offsets[i].r, 0, Math.PI * 2);
                 ctx.fill();
             }
+        }
+    }
+
+    // ── Mini Castle (for multi-path maps) ─────────────────
+
+    drawMiniCastle(ctx, cx, cy) {
+        const s = 1.2; // smaller scale than main castle (2.2)
+
+        // Ground shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+        ctx.fillRect(cx - 20 * s, cy + 10 * s, 40 * s, 3 * s);
+
+        // Stone base
+        ctx.fillStyle = '#4a4a5a';
+        ctx.fillRect(cx - 18 * s, cy - 2 * s, 36 * s, 14 * s);
+
+        // Main wall
+        ctx.fillStyle = '#6e6e7e';
+        ctx.fillRect(cx - 15 * s, cy - 12 * s, 30 * s, 22 * s);
+
+        // Lighter front face
+        ctx.fillStyle = '#7e7e8e';
+        ctx.fillRect(cx - 13 * s, cy - 10 * s, 26 * s, 18 * s);
+
+        // Stone texture lines
+        ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+        ctx.lineWidth = 0.5;
+        for (let i = 0; i < 3; i++) {
+            const ly = cy - 7 * s + i * 5 * s;
+            ctx.beginPath();
+            ctx.moveTo(cx - 12 * s, ly);
+            ctx.lineTo(cx + 12 * s, ly);
+            ctx.stroke();
+        }
+
+        // Gate (dark arch)
+        ctx.fillStyle = '#1a1a2a';
+        ctx.beginPath();
+        ctx.moveTo(cx - 6 * s, cy + 10 * s);
+        ctx.lineTo(cx - 6 * s, cy - 1 * s);
+        ctx.arc(cx, cy - 1 * s, 6 * s, Math.PI, 0);
+        ctx.lineTo(cx + 6 * s, cy + 10 * s);
+        ctx.closePath();
+        ctx.fill();
+
+        // Portcullis bars
+        ctx.strokeStyle = '#555';
+        ctx.lineWidth = 1;
+        for (let i = -1; i <= 1; i++) {
+            ctx.beginPath();
+            ctx.moveTo(cx + i * 3 * s, cy - 1 * s);
+            ctx.lineTo(cx + i * 3 * s, cy + 10 * s);
+            ctx.stroke();
+        }
+
+        // Battlements (5 merlons)
+        ctx.fillStyle = '#5e5e6e';
+        const bw = 3.5 * s, bh = 3.5 * s, gap = 1.5 * s;
+        for (let i = -2; i <= 2; i++) {
+            ctx.fillRect(cx + i * (bw + gap) - bw / 2, cy - 12 * s - bh, bw, bh);
+        }
+
+        // Central tower
+        ctx.fillStyle = '#626272';
+        ctx.beginPath();
+        ctx.moveTo(cx - 5 * s, cy + 10 * s);
+        ctx.lineTo(cx - 5 * s, cy - 22 * s);
+        ctx.arc(cx, cy - 22 * s, 5 * s, Math.PI, 0);
+        ctx.lineTo(cx + 5 * s, cy + 10 * s);
+        ctx.closePath();
+        ctx.fill();
+
+        // Tower highlight
+        ctx.fillStyle = '#72727f';
+        ctx.fillRect(cx - 2 * s, cy - 20 * s, 4 * s, 28 * s);
+
+        // Conical roof
+        ctx.fillStyle = '#3a3a4a';
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - 32 * s);
+        ctx.lineTo(cx - 7 * s, cy - 22 * s);
+        ctx.lineTo(cx + 7 * s, cy - 22 * s);
+        ctx.closePath();
+        ctx.fill();
+
+        // Arrow slit
+        ctx.fillStyle = '#e8c84a';
+        ctx.fillRect(cx - 1 * s, cy - 14 * s, 2 * s, 4 * s);
+
+        // Flag
+        ctx.strokeStyle = '#aaa';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - 32 * s);
+        ctx.lineTo(cx, cy - 38 * s);
+        ctx.stroke();
+        ctx.fillStyle = '#e74c3c';
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - 38 * s);
+        ctx.lineTo(cx + 7 * s, cy - 35 * s);
+        ctx.lineTo(cx, cy - 32 * s);
+        ctx.closePath();
+        ctx.fill();
+    }
+
+    drawEntryMarker(ctx, wp) {
+        const cx = wp.x * CELL + CELL / 2;
+        const cy = wp.y * CELL + CELL / 2;
+
+        // Determine arrow direction based on which edge the entry is on
+        let dx = 0, dy = 0;
+        if (wp.x === 0) dx = 1;       // left edge → points right
+        else if (wp.x >= COLS - 1) dx = -1; // right edge → points left
+        else if (wp.y === 0) dy = 1;   // top edge → points down
+        else if (wp.y >= ROWS - 1) dy = -1; // bottom edge → points up
+
+        ctx.fillStyle = '#2ecc71';
+        ctx.beginPath();
+        if (dx !== 0) {
+            // Horizontal arrow
+            ctx.moveTo(cx - dx * 8, cy - 10);
+            ctx.lineTo(cx + dx * 12, cy);
+            ctx.lineTo(cx - dx * 8, cy + 10);
+        } else {
+            // Vertical arrow
+            ctx.moveTo(cx - 10, cy - dy * 8);
+            ctx.lineTo(cx, cy + dy * 12);
+            ctx.lineTo(cx + 10, cy - dy * 8);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+    }
+
+    // ── Ruins environment cells ─────────────────────────────
+
+    drawRuinsCell(ctx, px, py, gx, gy) {
+        // Gray stone ground with subtle moss
+        const shade = seedRand(gx, gy, 0);
+        const r = Math.floor(120 + shade * 20 - 10);
+        const g = Math.floor(125 + shade * 20 - 10);
+        const b = Math.floor(115 + shade * 15 - 7);
+        ctx.fillStyle = `rgb(${r},${g},${b})`;
+        ctx.fillRect(px, py, CELL, CELL);
+
+        // Stone tile lines
+        ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+        ctx.lineWidth = 0.5;
+        const midX = px + CELL * (0.4 + seedRand(gx, gy, 1) * 0.2);
+        const midY = py + CELL * (0.4 + seedRand(gx, gy, 2) * 0.2);
+        ctx.beginPath();
+        ctx.moveTo(midX, py);
+        ctx.lineTo(midX, py + CELL);
+        ctx.moveTo(px, midY);
+        ctx.lineTo(px + CELL, midY);
+        ctx.stroke();
+
+        // Moss patches
+        if (seedRand(gx, gy, 3) > 0.6) {
+            const mx = px + seedRand(gx, gy, 4) * (CELL - 8) + 4;
+            const my = py + seedRand(gx, gy, 5) * (CELL - 8) + 4;
+            ctx.fillStyle = `rgba(80,130,70,${0.15 + seedRand(gx, gy, 6) * 0.15})`;
+            ctx.beginPath();
+            ctx.ellipse(mx, my, 3 + seedRand(gx, gy, 7) * 4, 2 + seedRand(gx, gy, 8) * 3,
+                seedRand(gx, gy, 9) * Math.PI, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    drawRuinsPathCell(ctx, px, py, gx, gy) {
+        // Worn cobblestone path — warm gray
+        const shade = seedRand(gx, gy, 0);
+        const v = Math.floor(155 + shade * 15 - 7);
+        ctx.fillStyle = `rgb(${v},${v - 5},${v - 10})`;
+        ctx.fillRect(px, py, CELL, CELL);
+
+        // Cobblestone pattern
+        ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+        ctx.lineWidth = 0.5;
+        const stoneCount = 3 + Math.floor(seedRand(gx, gy, 1) * 3);
+        for (let i = 0; i < stoneCount; i++) {
+            const sx = px + seedRand(gx, gy, 10 + i) * (CELL - 6) + 3;
+            const sy = py + seedRand(gx, gy, 20 + i) * (CELL - 6) + 3;
+            const sw = 6 + seedRand(gx, gy, 30 + i) * 8;
+            const sh = 4 + seedRand(gx, gy, 40 + i) * 6;
+            ctx.strokeRect(sx, sy, sw, sh);
+        }
+
+        // Edge borders
+        const edgeW = 3;
+        ctx.fillStyle = 'rgba(0,0,0,0.1)';
+        if (!this.isPath(gx, gy - 1)) ctx.fillRect(px, py, CELL, edgeW);
+        if (!this.isPath(gx, gy + 1)) ctx.fillRect(px, py + CELL - edgeW, CELL, edgeW);
+        if (!this.isPath(gx - 1, gy)) ctx.fillRect(px, py, edgeW, CELL);
+        if (!this.isPath(gx + 1, gy)) ctx.fillRect(px + CELL - edgeW, py, edgeW, CELL);
+    }
+
+    drawRuinsObstacle(ctx, px, py, gx, gy) {
+        const cx = px + CELL / 2;
+        const cy = py + CELL / 2;
+        const seed = gx + gy;
+
+        if (seed % 2 === 0) {
+            // Crumbled stone pillar
+            ctx.fillStyle = 'rgba(0,0,0,0.1)';
+            ctx.beginPath();
+            ctx.ellipse(cx + 1, cy + 10, 8, 3, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#8a8a8a';
+            ctx.fillRect(cx - 5, cy - 4, 10, 16);
+
+            // Broken top
+            ctx.fillStyle = '#9a9a9a';
+            ctx.beginPath();
+            ctx.moveTo(cx - 5, cy - 4);
+            ctx.lineTo(cx - 3, cy - 9);
+            ctx.lineTo(cx + 2, cy - 7);
+            ctx.lineTo(cx + 5, cy - 4);
+            ctx.closePath();
+            ctx.fill();
+
+            // Cracks
+            ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+            ctx.lineWidth = 0.6;
+            ctx.beginPath();
+            ctx.moveTo(cx - 2, cy - 3);
+            ctx.lineTo(cx, cy + 4);
+            ctx.lineTo(cx + 2, cy + 8);
+            ctx.stroke();
+
+            // Moss at base
+            ctx.fillStyle = 'rgba(70,120,60,0.3)';
+            ctx.beginPath();
+            ctx.ellipse(cx - 3, cy + 8, 4, 2, 0, 0, Math.PI * 2);
+            ctx.fill();
+        } else {
+            // Ruined wall fragment
+            ctx.fillStyle = 'rgba(0,0,0,0.08)';
+            ctx.beginPath();
+            ctx.ellipse(cx, cy + 10, 10, 3, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#7a7a7a';
+            const wallH = 8 + seedRand(gx, gy, 0) * 6;
+            ctx.fillRect(cx - 8, cy + 2 - wallH, 16, wallH);
+
+            // Broken top edge (irregular)
+            ctx.fillStyle = '#8a8a8a';
+            for (let i = 0; i < 4; i++) {
+                const bx = cx - 7 + i * 4;
+                const bh = 2 + seedRand(gx, gy, 10 + i) * 4;
+                ctx.fillRect(bx, cy + 2 - wallH - bh, 3, bh);
+            }
+
+            // Stone lines
+            ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+            ctx.lineWidth = 0.5;
+            for (let i = 0; i < 2; i++) {
+                const ly = cy + 2 - wallH + (i + 1) * (wallH / 3);
+                ctx.beginPath();
+                ctx.moveTo(cx - 7, ly);
+                ctx.lineTo(cx + 7, ly);
+                ctx.stroke();
+            }
+
+            // Ivy/moss on wall
+            ctx.fillStyle = 'rgba(60,110,50,0.25)';
+            ctx.beginPath();
+            ctx.ellipse(cx + 4, cy - 2, 3, 4, 0.3, 0, Math.PI * 2);
+            ctx.fill();
         }
     }
 

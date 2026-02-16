@@ -2469,6 +2469,28 @@ export class Renderer {
                     color: '#ff6030', phase: 0, age: 0
                 };
             }
+        } else if (env === 'ruins') {
+            if (r < 0.7) {
+                // Dust motes — gray/tan floating particles
+                const life = 4 + Math.random() * 3;
+                const colors = ['#a0a0a0', '#b0a890', '#908880', '#c0b8a0'];
+                p = {
+                    type: 'dust', x: Math.random() * CANVAS_W, y: Math.random() * CANVAS_H,
+                    vx: 0, vy: 0,
+                    life, maxLife: life, size: 3 + Math.random(),
+                    color: colors[Math.random() * colors.length | 0], phase: 0, age: 0
+                };
+            } else {
+                // Spirit wisp — blue-green firefly-like glow
+                const life = 5 + Math.random() * 3;
+                const colors = ['#60c0a0', '#80d0b0', '#50b0c0', '#70e0c0'];
+                p = {
+                    type: 'firefly', x: Math.random() * CANVAS_W, y: Math.random() * CANVAS_H,
+                    vx: 0, vy: 0,
+                    life, maxLife: life, size: 2.5 + Math.random() * 1.5,
+                    color: colors[Math.random() * colors.length | 0], phase: Math.random() * Math.PI * 2, age: 0
+                };
+            }
         } else {
             // Forest (default)
             if (r < 0.7) {

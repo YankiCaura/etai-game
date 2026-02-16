@@ -25,16 +25,24 @@ export function createPathWalls(map) {
     const env = (map.def && map.def.environment) || 'forest';
     const layout = map.layout;
 
-    // Find exit point to exclude castle area from walls
-    const exitPt = layout.paths
-        ? layout.paths.suffix[layout.paths.suffix.length - 1]
-        : layout.waypoints[layout.waypoints.length - 1];
-    const exX = exitPt.x;
-    const exY = exitPt.y;
+    // Find exit point(s) to exclude castle area from walls
+    const exitPoints = [];
+    if (layout.multiPaths) {
+        for (const wpArr of layout.multiPaths) {
+            const ep = wpArr[wpArr.length - 1];
+            exitPoints.push({ x: ep.x, y: ep.y });
+        }
+    } else {
+        const exitPt = layout.paths
+            ? layout.paths.suffix[layout.paths.suffix.length - 1]
+            : layout.waypoints[layout.waypoints.length - 1];
+        exitPoints.push({ x: exitPt.x, y: exitPt.y });
+    }
 
     // Light colors that blend with terrain — not dark outlines
     const wallColor = env === 'desert' ? 0xa89060
         : env === 'lava' ? 0x5a4040
+        : env === 'ruins' ? 0x8a8a80
         : 0x7a8a60; // forest: light mossy stone
 
     const boxes = [];
@@ -44,8 +52,12 @@ export function createPathWalls(map) {
         for (let x = 0; x < COLS; x++) {
             if (grid[y][x] !== CELL_TYPE.PATH) continue;
 
-            // Skip cells near the castle exit (2-cell radius)
-            if (Math.abs(x - exX) <= 2 && Math.abs(y - exY) <= 2) continue;
+            // Skip cells near any castle exit (2-cell radius)
+            let nearExit = false;
+            for (const ep of exitPoints) {
+                if (Math.abs(x - ep.x) <= 2 && Math.abs(y - ep.y) <= 2) { nearExit = true; break; }
+            }
+            if (nearExit) continue;
 
             const wx = x * CELL + CELL / 2;
             const wz = y * CELL + CELL / 2;
@@ -106,6 +118,85 @@ export function createPathWalls(map) {
         roughness: 0.75, metalness: 0.05,
     }));
     return mesh;
+}
+
+// ── 3D Mini Castle (for multi-path maps) ─────────────────
+
+/**
+ * Creates a smaller 3D castle at a given exit point.
+ * ~40% the size of a normal castle — fits within ~1x1 cell.
+ */
+export function createMiniCastle(exitPt) {
+    let cx = exitPt.x * CELL + CELL / 2;
+    let cz = exitPt.y * CELL + CELL / 2;
+
+    const margin = CELL * 0.5;
+    cx = Math.max(margin, Math.min(COLS * CELL - margin, cx));
+    cz = Math.max(margin, Math.min(ROWS * CELL - margin, cz));
+
+    const group = new THREE.Group();
+    group.position.set(cx, 0, cz);
+
+    const geo = {
+        box: new THREE.BoxGeometry(1, 1, 1),
+        cyl: new THREE.CylinderGeometry(1, 1, 1, 8),
+        cone: new THREE.ConeGeometry(1, 1, 8),
+        plane: new THREE.PlaneGeometry(1, 1),
+    };
+
+    const stoneMat = mat(0x7e7e8e, { roughness: 0.75, metalness: 0.15, emissiveIntensity: 0.1 });
+    const roofMat = mat(0x8b4513, { roughness: 0.7, emissiveIntensity: 0.06 });
+    const gateMat = mat(0x1a1a2a, { roughness: 0.9, emissiveIntensity: 0.02 });
+    const flagMat = mat(0xcc3333, { emissive: 0xcc3333, emissiveIntensity: 0.3, roughness: 0.5 });
+
+    const C = CELL * 0.22; // ~40% of normal castle's half-cell unit
+
+    // Foundation
+    const foundation = new THREE.Mesh(geo.box, stoneMat.clone());
+    foundation.scale.set(C * 2.8, 2, C * 2.0);
+    foundation.position.set(0, 1, 0);
+    group.add(foundation);
+
+    // Wall
+    const wall = new THREE.Mesh(geo.box, stoneMat.clone());
+    wall.scale.set(C * 2.2, 8, C * 1.4);
+    wall.position.set(0, 5, 0);
+    group.add(wall);
+
+    // Gate
+    const gate = new THREE.Mesh(geo.box, gateMat.clone());
+    gate.scale.set(C * 0.5, 5, 1.5);
+    gate.position.set(0, 3.5, -C * 0.7);
+    group.add(gate);
+
+    // Central tower
+    const tower = new THREE.Mesh(geo.cyl, stoneMat.clone());
+    tower.scale.set(C * 0.35, 12, C * 0.35);
+    tower.position.set(0, 7, 0);
+    group.add(tower);
+
+    // Tower roof
+    const roof = new THREE.Mesh(geo.cone, roofMat.clone());
+    roof.scale.set(C * 0.45, 4, C * 0.45);
+    roof.position.set(0, 15, 0);
+    group.add(roof);
+
+    // Flag
+    const flag = new THREE.Mesh(geo.plane, flagMat.clone());
+    flag.scale.set(4, 2.5, 1);
+    flag.position.set(3, 18, 0);
+    flag.material.side = THREE.DoubleSide;
+    group.add(flag);
+
+    // Battlements
+    for (let i = -1; i <= 1; i++) {
+        const merlon = new THREE.Mesh(geo.box, stoneMat.clone());
+        merlon.scale.set(C * 0.25, 2, C * 0.25);
+        merlon.position.set(i * C * 0.5, 10, 0);
+        group.add(merlon);
+    }
+
+    return group;
 }
 
 // ── 3D Castle ──────────────────────────────────────────────

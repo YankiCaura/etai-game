@@ -122,7 +122,7 @@ export class UI {
             const g = atmo.ground;
             ctx.fillStyle = `rgb(${g.base[0]},${g.base[1]},${g.base[2]})`;
         } else {
-            ctx.fillStyle = env === 'desert' ? '#c8a878' : env === 'lava' ? '#c05020' : '#2a3a2a';
+            ctx.fillStyle = env === 'desert' ? '#c8a878' : env === 'lava' ? '#c05020' : env === 'ruins' ? '#707568' : '#2a3a2a';
         }
         ctx.fillRect(0, 0, w, h);
 
@@ -146,7 +146,13 @@ export class UI {
         };
 
         // Carve all waypoint segments
-        if (layout.paths) {
+        if (layout.multiPaths) {
+            for (const wpArr of layout.multiPaths) {
+                for (let i = 0; i < wpArr.length - 1; i++) {
+                    carve(wpArr[i].x, wpArr[i].y, wpArr[i + 1].x, wpArr[i + 1].y);
+                }
+            }
+        } else if (layout.paths) {
             const prefix = layout.waypoints;
             for (let i = 0; i < prefix.length - 1; i++) carve(prefix[i].x, prefix[i].y, prefix[i + 1].x, prefix[i + 1].y);
             const prefixEnd = prefix[prefix.length - 1];
@@ -174,7 +180,7 @@ export class UI {
         }
 
         // Draw path cells — always map-native for enemy contrast
-        ctx.fillStyle = env === 'desert' ? '#e0b050' : env === 'lava' ? '#ff6a30' : '#d4a840';
+        ctx.fillStyle = env === 'desert' ? '#e0b050' : env === 'lava' ? '#ff6a30' : env === 'ruins' ? '#b0a898' : '#d4a840';
         for (let y = 0; y < ROWS; y++) {
             for (let x = 0; x < COLS; x++) {
                 if (grid[y][x] === CELL_TYPE.PATH) {
@@ -187,7 +193,7 @@ export class UI {
         if (atmo && atmo.obstacle) {
             ctx.fillStyle = atmo.obstacle.tint;
         } else {
-            ctx.fillStyle = env === 'desert' ? '#a08060' : env === 'lava' ? '#1a1a2a' : '#4a5a4a';
+            ctx.fillStyle = env === 'desert' ? '#a08060' : env === 'lava' ? '#1a1a2a' : env === 'ruins' ? '#808080' : '#4a5a4a';
         }
         for (const c of layout.blocked) {
             if (c.x >= 0 && c.x < COLS && c.y >= 0 && c.y < ROWS && grid[c.y][c.x] !== CELL_TYPE.PATH) {
@@ -196,18 +202,30 @@ export class UI {
         }
 
         // Entry/exit markers
-        const entry = layout.waypoints[0];
-        const exitPt = layout.paths ? layout.paths.suffix[layout.paths.suffix.length - 1] : layout.waypoints[layout.waypoints.length - 1];
-        ctx.fillStyle = '#2ecc71';
-        ctx.fillRect(entry.x * cellW, entry.y * cellH, cellW + 0.5, cellH + 0.5);
-        ctx.fillStyle = '#e74c3c';
-        ctx.fillRect(exitPt.x * cellW, exitPt.y * cellH, cellW + 0.5, cellH + 0.5);
-
-        // Secondary entry marker (dual spawn)
-        if (layout.secondaryWaypoints) {
-            const secEntry = layout.secondaryWaypoints[0];
+        if (layout.multiPaths) {
+            // Multi-path: draw 4 green entries + 4 red exits
+            for (const wpArr of layout.multiPaths) {
+                const entry = wpArr[0];
+                const exit = wpArr[wpArr.length - 1];
+                ctx.fillStyle = '#2ecc71';
+                ctx.fillRect(entry.x * cellW, entry.y * cellH, cellW + 0.5, cellH + 0.5);
+                ctx.fillStyle = '#e74c3c';
+                ctx.fillRect(exit.x * cellW, exit.y * cellH, cellW + 0.5, cellH + 0.5);
+            }
+        } else {
+            const entry = layout.waypoints[0];
+            const exitPt = layout.paths ? layout.paths.suffix[layout.paths.suffix.length - 1] : layout.waypoints[layout.waypoints.length - 1];
             ctx.fillStyle = '#2ecc71';
-            ctx.fillRect(secEntry.x * cellW, secEntry.y * cellH, cellW + 0.5, cellH + 0.5);
+            ctx.fillRect(entry.x * cellW, entry.y * cellH, cellW + 0.5, cellH + 0.5);
+            ctx.fillStyle = '#e74c3c';
+            ctx.fillRect(exitPt.x * cellW, exitPt.y * cellH, cellW + 0.5, cellH + 0.5);
+
+            // Secondary entry marker (dual spawn)
+            if (layout.secondaryWaypoints) {
+                const secEntry = layout.secondaryWaypoints[0];
+                ctx.fillStyle = '#2ecc71';
+                ctx.fillRect(secEntry.x * cellW, secEntry.y * cellH, cellW + 0.5, cellH + 0.5);
+            }
         }
     }
 

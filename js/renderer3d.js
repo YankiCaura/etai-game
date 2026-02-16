@@ -3,7 +3,7 @@ import { CANVAS_W, CANVAS_H, CELL } from './constants.js';
 import { Scene3D } from './scene3d.js';
 import { createTowerMesh } from './meshes/towers.js';
 import { createEnemyMesh } from './meshes/enemies.js';
-import { createPathWalls, createCastle } from './meshes/terrain.js';
+import { createPathWalls, createCastle, createMiniCastle } from './meshes/terrain.js';
 
 // Compensate for tilted camera: 3D height shifts objects up on screen.
 // Offset Z forward so turret appears centered in its cell.
@@ -342,6 +342,17 @@ export class Renderer3D {
             scene.add(walls);
             this._terrainMeshes.push(walls);
         }
+
+        // Castle(s)
+        if (this.game.map.multiPaths) {
+            // Multi-path: mini castles at each path's exit
+            for (const wpArr of this.game.map.layout.multiPaths) {
+                const exitPt = wpArr[wpArr.length - 1];
+                const miniCastle = createMiniCastle(exitPt);
+                scene.add(miniCastle);
+                this._terrainMeshes.push(miniCastle);
+            }
+        }
     }
 
     // ── 3D Ambient Particles ─────────────────────────────────
@@ -540,6 +551,51 @@ export class Renderer3D {
                     vx: 0, vy: 2 + Math.random() * 3, vz: 0,
                     rx: 0, ry: 0, rz: 0,
                     life, maxLife: life, size: sz, phase: 0, age: 0,
+                };
+            }
+        } else if (env === 'ruins') {
+            if (r < 0.7) {
+                // Dust mote — small floating sphere
+                const life = 4 + Math.random() * 3;
+                const colors = [0xa0a0a0, 0xb0a890, 0x908880, 0xc0b8a0];
+                const color = colors[Math.random() * colors.length | 0];
+                const mesh = new THREE.Mesh(geo.sphere, new THREE.MeshStandardMaterial({
+                    color, emissive: color, emissiveIntensity: 0.15,
+                    transparent: true, opacity: 0.5, depthWrite: false,
+                }));
+                const sz = 2 + Math.random();
+                mesh.scale.setScalar(sz);
+                scene.add(mesh);
+                p = {
+                    mesh, glow: null, type: 'dust',
+                    px: Math.random() * CANVAS_W, py: 3 + Math.random() * 10, pz: Math.random() * CANVAS_H,
+                    vx: 0, vy: 0, vz: 0,
+                    rx: 0, ry: 0, rz: 0,
+                    life, maxLife: life, size: sz, phase: 0, age: 0,
+                };
+            } else {
+                // Spirit wisp — blue-green emissive sphere with glow
+                const life = 5 + Math.random() * 3;
+                const colors = [0x60c0a0, 0x80d0b0, 0x50b0c0, 0x70e0c0];
+                const color = colors[Math.random() * colors.length | 0];
+                const mesh = new THREE.Mesh(geo.sphere, new THREE.MeshStandardMaterial({
+                    color, emissive: color, emissiveIntensity: 0.7,
+                    transparent: true, opacity: 0.7, depthWrite: false,
+                }));
+                const sz = 2 + Math.random();
+                mesh.scale.setScalar(sz);
+                scene.add(mesh);
+                const glow = new THREE.Mesh(geo.sphere, new THREE.MeshBasicMaterial({
+                    color, transparent: true, opacity: 0.1, depthWrite: false,
+                }));
+                glow.scale.setScalar(sz * 5);
+                scene.add(glow);
+                p = {
+                    mesh, glow, type: 'firefly',
+                    px: Math.random() * CANVAS_W, py: 8 + Math.random() * 12, pz: Math.random() * CANVAS_H,
+                    vx: 0, vy: 0, vz: 0,
+                    rx: 0, ry: 0, rz: 0,
+                    life, maxLife: life, size: sz, phase: Math.random() * Math.PI * 2, age: 0,
                 };
             }
         } else {
