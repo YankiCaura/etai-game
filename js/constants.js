@@ -377,27 +377,19 @@ export const MAP_DEFS = {
         startingUnlocks: 0,
         environment: 'ruins',
         noDualSpawn: true,
-        description: 'Defend 4 outposts from all directions.',
+        description: 'Defend the central citadel from all directions.',
         layouts: [
-            // Layout 0: Diamond castle cluster, winding 4-direction paths
+            // Layout 0: Winding 4-direction paths, all converge to center castle (14,10)
             {
                 multiPaths: [
-                    // North entry → castle at (13,8)
-                    [
-                        {x:13,y:0},{x:13,y:2},{x:8,y:2},{x:8,y:5},{x:13,y:5},{x:13,y:8}
-                    ],
-                    // South entry → castle at (16,11)
-                    [
-                        {x:16,y:19},{x:16,y:17},{x:21,y:17},{x:21,y:14},{x:16,y:14},{x:16,y:11}
-                    ],
-                    // West entry → castle at (11,11)
-                    [
-                        {x:0,y:11},{x:2,y:11},{x:2,y:16},{x:5,y:16},{x:5,y:11},{x:8,y:11},{x:11,y:11}
-                    ],
-                    // East entry → castle at (18,8)
-                    [
-                        {x:29,y:8},{x:27,y:8},{x:27,y:3},{x:24,y:3},{x:24,y:8},{x:21,y:8},{x:18,y:8}
-                    ],
+                    // North entry → center
+                    [{x:13,y:0},{x:13,y:2},{x:8,y:2},{x:8,y:5},{x:14,y:5},{x:14,y:10}],
+                    // South entry → center
+                    [{x:16,y:19},{x:16,y:17},{x:21,y:17},{x:21,y:14},{x:14,y:14},{x:14,y:10}],
+                    // West entry → center
+                    [{x:0,y:11},{x:2,y:11},{x:2,y:16},{x:5,y:16},{x:5,y:10},{x:14,y:10}],
+                    // East entry → center
+                    [{x:29,y:8},{x:27,y:8},{x:27,y:3},{x:24,y:3},{x:24,y:10},{x:14,y:10}],
                 ],
                 blocked: [
                     {x:3,y:0},{x:4,y:0},{x:25,y:0},{x:26,y:0},
@@ -408,25 +400,17 @@ export const MAP_DEFS = {
                     {x:10,y:15},{x:11,y:15},{x:18,y:15},{x:19,y:15},
                 ],
             },
-            // Layout 1: Offset castle cluster, zigzag paths
+            // Layout 1: Zigzag paths, all converge to center castle (14,10)
             {
                 multiPaths: [
-                    // North entry → castle at (12,9)
-                    [
-                        {x:10,y:0},{x:10,y:3},{x:6,y:3},{x:6,y:6},{x:12,y:6},{x:12,y:9}
-                    ],
-                    // South entry → castle at (17,10)
-                    [
-                        {x:19,y:19},{x:19,y:16},{x:23,y:16},{x:23,y:13},{x:17,y:13},{x:17,y:10}
-                    ],
-                    // West entry → castle at (12,12)
-                    [
-                        {x:0,y:14},{x:3,y:14},{x:3,y:18},{x:7,y:18},{x:7,y:12},{x:12,y:12}
-                    ],
-                    // East entry → castle at (17,7)
-                    [
-                        {x:29,y:5},{x:26,y:5},{x:26,y:1},{x:22,y:1},{x:22,y:7},{x:17,y:7}
-                    ],
+                    // North entry → center
+                    [{x:10,y:0},{x:10,y:3},{x:6,y:3},{x:6,y:6},{x:14,y:6},{x:14,y:10}],
+                    // South entry → center
+                    [{x:19,y:19},{x:19,y:16},{x:23,y:16},{x:23,y:13},{x:14,y:13},{x:14,y:10}],
+                    // West entry → center
+                    [{x:0,y:14},{x:3,y:14},{x:3,y:18},{x:7,y:18},{x:7,y:10},{x:14,y:10}],
+                    // East entry → center
+                    [{x:29,y:5},{x:26,y:5},{x:26,y:1},{x:22,y:1},{x:22,y:10},{x:14,y:10}],
                 ],
                 blocked: [
                     {x:1,y:0},{x:2,y:0},{x:27,y:0},{x:28,y:0},
@@ -437,25 +421,17 @@ export const MAP_DEFS = {
                     {x:4,y:9},{x:5,y:9},{x:24,y:10},{x:25,y:10},
                 ],
             },
-            // Layout 2: Square castle cluster, L-shaped paths
+            // Layout 2: L-shaped paths, all converge to center castle (14,10)
             {
                 multiPaths: [
-                    // North entry → castle at (13,7)
-                    [
-                        {x:15,y:0},{x:15,y:2},{x:20,y:2},{x:20,y:5},{x:13,y:5},{x:13,y:7}
-                    ],
-                    // South entry → castle at (16,12)
-                    [
-                        {x:14,y:19},{x:14,y:17},{x:9,y:17},{x:9,y:14},{x:16,y:14},{x:16,y:12}
-                    ],
-                    // West entry → castle at (13,12)
-                    [
-                        {x:0,y:8},{x:3,y:8},{x:3,y:12},{x:7,y:12},{x:7,y:15},{x:10,y:15},{x:10,y:12},{x:13,y:12}
-                    ],
-                    // East entry → castle at (16,7)
-                    [
-                        {x:29,y:11},{x:26,y:11},{x:26,y:7},{x:22,y:7},{x:22,y:4},{x:19,y:4},{x:19,y:7},{x:16,y:7}
-                    ],
+                    // North entry → center
+                    [{x:15,y:0},{x:15,y:2},{x:20,y:2},{x:20,y:5},{x:14,y:5},{x:14,y:10}],
+                    // South entry → center
+                    [{x:14,y:19},{x:14,y:17},{x:9,y:17},{x:9,y:14},{x:14,y:14},{x:14,y:10}],
+                    // West entry → center
+                    [{x:0,y:8},{x:3,y:8},{x:3,y:12},{x:7,y:12},{x:7,y:10},{x:14,y:10}],
+                    // East entry → center
+                    [{x:29,y:11},{x:26,y:11},{x:26,y:7},{x:22,y:7},{x:22,y:10},{x:14,y:10}],
                 ],
                 blocked: [
                     {x:5,y:0},{x:6,y:0},{x:23,y:0},{x:24,y:0},

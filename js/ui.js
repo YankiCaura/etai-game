@@ -203,15 +203,14 @@ export class UI {
 
         // Entry/exit markers
         if (layout.multiPaths) {
-            // Multi-path: draw 4 green entries + 4 red exits
+            // Multi-path: 4 green entries + 1 red exit (all paths converge)
             for (const wpArr of layout.multiPaths) {
-                const entry = wpArr[0];
-                const exit = wpArr[wpArr.length - 1];
                 ctx.fillStyle = '#2ecc71';
-                ctx.fillRect(entry.x * cellW, entry.y * cellH, cellW + 0.5, cellH + 0.5);
-                ctx.fillStyle = '#e74c3c';
-                ctx.fillRect(exit.x * cellW, exit.y * cellH, cellW + 0.5, cellH + 0.5);
+                ctx.fillRect(wpArr[0].x * cellW, wpArr[0].y * cellH, cellW + 0.5, cellH + 0.5);
             }
+            const exit = layout.multiPaths[0][layout.multiPaths[0].length - 1];
+            ctx.fillStyle = '#e74c3c';
+            ctx.fillRect(exit.x * cellW, exit.y * cellH, cellW + 0.5, cellH + 0.5);
         } else {
             const entry = layout.waypoints[0];
             const exitPt = layout.paths ? layout.paths.suffix[layout.paths.suffix.length - 1] : layout.waypoints[layout.waypoints.length - 1];

@@ -242,18 +242,15 @@ export class GameMap {
     }
 
     drawCastle(ctx) {
-        if (this.layout.multiPaths) {
-            // Draw mini castles at each path's exit (last waypoint)
-            for (const wpArr of this.layout.multiPaths) {
-                const exitPt = wpArr[wpArr.length - 1];
-                this.drawMiniCastle(ctx, exitPt.x * CELL + CELL / 2, exitPt.y * CELL + CELL / 2);
-            }
-            return;
-        }
         const layout = this.layout;
-        const exitPt = layout.paths
-            ? layout.paths.suffix[layout.paths.suffix.length - 1]
-            : layout.waypoints[layout.waypoints.length - 1];
+        let exitPt;
+        if (layout.multiPaths) {
+            exitPt = layout.multiPaths[0][layout.multiPaths[0].length - 1];
+        } else if (layout.paths) {
+            exitPt = layout.paths.suffix[layout.paths.suffix.length - 1];
+        } else {
+            exitPt = layout.waypoints[layout.waypoints.length - 1];
+        }
         const cx = exitPt.x * CELL + CELL / 2;
         const cy = exitPt.y * CELL + CELL / 2;
         const s = 2.2; // scale factor
