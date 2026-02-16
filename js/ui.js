@@ -1092,26 +1092,69 @@ export class UI {
             this.refreshMapRecords();
         }
 
-        // Populate game-over screen
+        // Populate game-over screen with milestone-style summary
         if (name === 'game-over') {
-            const eco = this.game.economy;
-            const wave = this.game.waves.currentWave;
-            const mapName = MAP_DEFS[this.game.selectedMapId]?.name || this.game.selectedMapId;
-            const record = Economy.getWaveRecord(this.game.selectedMapId);
+            const container = document.getElementById('game-over-content');
+            if (container) {
+                const eco = this.game.economy;
+                const wave = this.game.waves.currentWave;
+                const mapName = MAP_DEFS[this.game.selectedMapId]?.name || this.game.selectedMapId;
+                const record = Economy.getWaveRecord(this.game.selectedMapId);
+                const isNewRecord = wave >= record && wave > 0;
+                const kills = this.game.runKills || 0;
+                const towers = this.game.towers.towers.length;
+                const elapsed = this.game.elapsedTime || 0;
+                const mins = Math.floor(elapsed / 60);
+                const secs = Math.floor(elapsed % 60);
+                const timeStr = `${mins}:${secs.toString().padStart(2, '0')}`;
 
-            const goEl = document.getElementById('game-over-score');
-            if (goEl) {
-                const isNew = eco.score >= eco.record && eco.score > 0;
-                goEl.textContent = `Score: ${eco.score}${isNew ? ' (New Record!)' : ''} | Record: ${eco.record}`;
-            }
+                container.style.maxWidth = '560px';
+                container.style.padding = '44px 56px';
 
-            const waveInfoEl = document.getElementById('game-over-wave');
-            if (waveInfoEl) {
-                const isNewRecord = wave >= record;
-                waveInfoEl.innerHTML = `
-                    <div class="wave-reached">Reached Wave ${wave}${isNewRecord ? ' — New Record!' : ''}</div>
-                    <div class="wave-record">Best: Wave ${record} (${mapName})</div>
+                container.innerHTML = `
+                    <div style="font-size:44px;font-weight:800;color:#e74c3c;margin-bottom:4px;text-shadow:0 0 30px rgba(231,76,60,0.6),0 2px 8px rgba(0,0,0,0.5);letter-spacing:2px">
+                        GAME OVER
+                    </div>
+                    <div style="font-size:22px;font-weight:600;color:#aaa;margin-bottom:6px">
+                        ${mapName}
+                    </div>
+                    <div style="font-size:36px;font-weight:800;color:#ffd700;margin-bottom:4px;text-shadow:0 0 20px rgba(255,215,0,0.4)">
+                        Wave ${wave}
+                    </div>
+                    ${isNewRecord ? '<div style="font-size:20px;font-weight:700;color:#2ecc71;margin-bottom:16px;text-shadow:0 0 12px rgba(46,204,113,0.4)">NEW RECORD!</div>' : `<div style="font-size:15px;color:#888;margin-bottom:16px">Best: Wave ${record}</div>`}
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px 28px;margin:0 auto 28px;max-width:460px;text-align:center">
+                        <div>
+                            <div style="color:#ff6b6b;font-size:28px;font-weight:800">${kills}</div>
+                            <div style="color:#888;font-size:12px;text-transform:uppercase;letter-spacing:1px">Kills</div>
+                        </div>
+                        <div>
+                            <div style="color:#3498db;font-size:28px;font-weight:800">${towers}</div>
+                            <div style="color:#888;font-size:12px;text-transform:uppercase;letter-spacing:1px">Towers</div>
+                        </div>
+                        <div>
+                            <div style="color:#ffd750;font-size:28px;font-weight:800">${eco.score}</div>
+                            <div style="color:#888;font-size:12px;text-transform:uppercase;letter-spacing:1px">Score</div>
+                        </div>
+                        <div>
+                            <div style="color:#e74c3c;font-size:28px;font-weight:800">${eco.lives}</div>
+                            <div style="color:#888;font-size:12px;text-transform:uppercase;letter-spacing:1px">Lives</div>
+                        </div>
+                        <div>
+                            <div style="color:#eee;font-size:28px;font-weight:800">${timeStr}</div>
+                            <div style="color:#888;font-size:12px;text-transform:uppercase;letter-spacing:1px">Time</div>
+                        </div>
+                        <div>
+                            <div style="color:#ffd750;font-size:28px;font-weight:800">${eco.gold}</div>
+                            <div style="color:#888;font-size:12px;text-transform:uppercase;letter-spacing:1px">Gold</div>
+                        </div>
+                    </div>
+                    <button class="unlock-btn" id="restart-btn" style="padding:16px 60px;font-size:22px">Try Again</button>
                 `;
+                document.getElementById('restart-btn').addEventListener('click', () => {
+                    container.style.maxWidth = '';
+                    container.style.padding = '';
+                    this.game.restart();
+                }, { once: true });
             }
         }
     }

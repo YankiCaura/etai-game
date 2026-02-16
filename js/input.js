@@ -422,7 +422,7 @@ export class InputHandler {
                 break;
             case 'g':
             case 'G':
-                if (this.game.adminMode && this.game.state === STATE.PLAYING) {
+                if (this.game.adminMode && (this.game.state === STATE.PLAYING || this.game.state === STATE.PAUSED)) {
                     this.game.economy.addGold(1000);
                     this.game.particles.spawnBigFloatingText(CANVAS_W / 2, CANVAS_H / 3, '+1000g', '#ffd700');
                 }

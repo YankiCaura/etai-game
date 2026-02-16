@@ -179,16 +179,28 @@ export class WaveManager {
             });
         }
 
-        // Mega boss every 2 waves starting at 25 — arrives mid-wave
-        if (waveNum >= 25 && (waveNum - 25) % 2 === 0) {
-            const megaSchedule = [1, 1, 2, 3, 4, 5, 5, 6];
+        // Mega boss every 2 waves starting at 25, replaced by quantum boss at 32
+        if (waveNum >= 25 && waveNum < 32 && (waveNum - 25) % 2 === 0) {
+            const megaSchedule = [1, 1, 2, 3];
             const megaIdx = Math.floor((waveNum - 25) / 2);
-            const megaCount = megaIdx < megaSchedule.length ? megaSchedule[megaIdx] : 6;
+            const megaCount = megaIdx < megaSchedule.length ? megaSchedule[megaIdx] : 3;
             groups.push({
                 type: 'megaboss',
                 count: megaCount,
                 interval: W.BOSS_INTERVAL,
                 delay: runningDelay * 0.4,
+            });
+        }
+
+        // Quantum boss every wave starting at 32 — escalates fast
+        if (waveNum >= 32) {
+            const wavesIn = waveNum - 31; // 1 at wave 32
+            const quantumCount = Math.floor(wavesIn * 1.5); // 1,3,4,6,7,9,...
+            groups.push({
+                type: 'quantumboss',
+                count: Math.max(1, quantumCount),
+                interval: W.BOSS_INTERVAL * 0.8,
+                delay: runningDelay * 0.3,
             });
         }
 

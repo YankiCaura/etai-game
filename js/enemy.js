@@ -124,7 +124,7 @@ export class Enemy {
     }
 
     applyFreeze(duration) {
-        const effectiveDuration = this.type === 'megaboss' ? duration * 0.5 : duration;
+        const effectiveDuration = (this.type === 'megaboss' || this.type === 'quantumboss') ? duration * 0.5 : duration;
         this.freezeTimer = Math.max(this.freezeTimer, effectiveDuration);
         this.isFrozen = true;
     }
@@ -152,7 +152,7 @@ export class Enemy {
 
     applyKnockback(cells, towerId) {
         // Bosses and mega bosses immune, tanks 50% resistance
-        if (this.type === 'boss' || this.type === 'megaboss') return;
+        if (this.type === 'boss' || this.type === 'megaboss' || this.type === 'quantumboss') return;
         // Each pulse tower can only knockback this enemy once
         if (towerId !== undefined && this.knockbackSources.has(towerId)) return;
         if (towerId !== undefined) this.knockbackSources.add(towerId);
@@ -434,10 +434,10 @@ export class EnemyManager {
         const enemy = new Enemy(typeName, hpScale, this.game.map.getEnemyPath(actualSecondary, pathIndex));
         enemy.isSecondary = actualSecondary;
         if (modifier) enemy.applyModifier(modifier);
-        // Late-game speed ramp: +1% per wave starting at wave 26
+        // Late-game speed ramp: exponential +2% per wave starting at wave 26
         const wave = this.game.waves.currentWave;
         if (wave >= 26) {
-            const speedMul = 1 + (wave - 25) * 0.01;
+            const speedMul = Math.pow(1.03, wave - 25);
             enemy.speed *= speedMul;
             enemy.baseSpeed *= speedMul;
         }
@@ -458,7 +458,7 @@ export class EnemyManager {
         for (const e of this.enemies) {
             if (e.alive && e.deathTimer < 0) {
                 aliveCount++;
-                if (e.type === 'boss' || e.type === 'megaboss') lastBoss = e;
+                if (e.type === 'boss' || e.type === 'megaboss' || e.type === 'quantumboss') lastBoss = e;
             }
         }
         if (aliveCount === 1 && lastBoss && !lastBoss.enraged && !this.game.waves.spawning) {
@@ -507,7 +507,7 @@ export class EnemyManager {
                 // Kill counter & achievement tracking
                 this.game.runKills++;
                 this.game.achievements.increment('totalKills');
-                if (e.type === 'boss' || e.type === 'megaboss') this.game.achievements.increment('bossKills');
+                if (e.type === 'boss' || e.type === 'megaboss' || e.type === 'quantumboss') this.game.achievements.increment('bossKills');
                 else if (e.type === 'swarm') this.game.achievements.increment('swarmKills');
                 else if (e.type === 'tank') this.game.achievements.increment('tankKills');
 
@@ -539,8 +539,8 @@ export class EnemyManager {
                 }
 
                 // Boss/megaboss death screen shake + PostFX
-                if (e.type === 'boss' || e.type === 'megaboss') {
-                    const isMega = e.type === 'megaboss';
+                if (e.type === 'boss' || e.type === 'megaboss' || e.type === 'quantumboss') {
+                    const isMega = e.type === 'megaboss' || e.type === 'quantumboss';
                     this.game.triggerShake(isMega ? 15 : 10, isMega ? 0.6 : 0.4);
                     this.game.postfx?.flash(isMega ? 0.25 : 0.15, isMega ? 0.3 : 0.2);
                     this.game.postfx?.shockwave(e.x / CANVAS_W, e.y / CANVAS_H, isMega ? 0.8 : 0.5);

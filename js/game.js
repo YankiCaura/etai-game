@@ -528,8 +528,8 @@ export class Game {
             const lvl = t.level;
             pfx.addLight(
                 t.x, t.y, r, g, b,
-                lightDef.radius + lvl * 0.02,
-                lightDef.intensity + lvl * 0.15,
+                lightDef.radius + lvl * 0.015,
+                lightDef.intensity + lvl * 0.12,
             );
         }
 
@@ -562,8 +562,8 @@ export class Game {
             pfx.addLight(
                 zone.x, zone.y,
                 1.0, 0.3, 0,
-                zone.radius / CANVAS_H * 1.5,
-                0.4 * fade,
+                zone.radius / CANVAS_H * 1.2,
+                0.3 * fade,
             );
         }
     }

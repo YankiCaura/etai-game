@@ -588,6 +588,19 @@ export class Renderer {
         ctx.closePath();
     }
 
+    drawStar(ctx, x, y, r) {
+        ctx.beginPath();
+        for (let i = 0; i < 10; i++) {
+            const a = (Math.PI * 2 * i) / 10 - Math.PI / 2;
+            const rad = i % 2 === 0 ? r : r * 0.45;
+            const px = x + Math.cos(a) * rad;
+            const py = y + Math.sin(a) * rad;
+            if (i === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+    }
+
     drawTriangle(ctx, x, y, r, angle) {
         ctx.beginPath();
         // Point in movement direction
@@ -664,6 +677,9 @@ export class Renderer {
             case 'megaboss':
                 this.drawOctagon(ctx, x, y, r);
                 break;
+            case 'quantumboss':
+                this.drawStar(ctx, x, y, r);
+                break;
             default:
                 ctx.beginPath();
                 ctx.arc(x, y, r, 0, Math.PI * 2);
@@ -735,6 +751,24 @@ export class Renderer {
                 ctx.stroke();
             }
 
+            // Quantum boss void aura
+            if (e.type === 'quantumboss' && !isDying) {
+                const pulse = 0.2 + 0.12 * Math.sin(this.game.elapsedTime * 5);
+                ctx.fillStyle = `rgba(20, 0, 40, ${pulse})`;
+                ctx.beginPath();
+                ctx.arc(drawX, drawY, r + 10, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = `rgba(100, 0, 255, ${pulse + 0.2})`;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                // Outer flickering ring
+                ctx.strokeStyle = `rgba(180, 0, 255, ${0.1 + 0.1 * Math.sin(this.game.elapsedTime * 8)})`;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(drawX, drawY, r + 16, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
             // Mega boss crimson aura
             if (e.type === 'megaboss' && !isDying) {
                 const pulse = 0.15 + 0.1 * Math.sin(this.game.elapsedTime * 4);
@@ -756,6 +790,16 @@ export class Renderer {
             }
             this.drawEnemyShape(ctx, e, drawX, drawY, r);
             ctx.fill();
+
+            // Bold outline on bosses so they stand out through glow
+            if (!isDying && (e.type === 'boss' || e.type === 'megaboss' || e.type === 'quantumboss')) {
+                ctx.lineWidth = 2.5;
+                ctx.strokeStyle = e.type === 'quantumboss' ? 'rgba(160, 0, 255, 0.8)' :
+                                  e.type === 'megaboss' ? 'rgba(255, 80, 0, 0.8)' :
+                                  'rgba(255, 215, 0, 0.7)';
+                this.drawEnemyShape(ctx, e, drawX, drawY, r);
+                ctx.stroke();
+            }
 
             // White flash overlay at start of death
             if (isDying && e.deathTimer < 0.05) {
@@ -824,6 +868,35 @@ export class Renderer {
                 ctx.fillStyle = 'rgba(0,0,0,0.3)';
                 ctx.beginPath();
                 ctx.arc(drawX, drawY, r * 0.4, 0, Math.PI * 2);
+                ctx.fill();
+            } else if (e.type === 'quantumboss' && !isDying) {
+                // Void tendrils — 5 rotating dark spikes
+                const rot = this.game.elapsedTime * 1.5;
+                ctx.fillStyle = 'rgba(80, 0, 160, 0.6)';
+                for (let i = 0; i < 5; i++) {
+                    const a = (Math.PI * 2 * i) / 5 + rot;
+                    const sx = drawX + Math.cos(a) * r * 0.5;
+                    const sy = drawY + Math.sin(a) * r * 0.5;
+                    const tx = drawX + Math.cos(a) * r * 1.4;
+                    const ty = drawY + Math.sin(a) * r * 1.4;
+                    const perpX = -Math.sin(a) * r * 0.1;
+                    const perpY = Math.cos(a) * r * 0.1;
+                    ctx.beginPath();
+                    ctx.moveTo(sx + perpX, sy + perpY);
+                    ctx.lineTo(tx, ty);
+                    ctx.lineTo(sx - perpX, sy - perpY);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+                // Inner void core
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.beginPath();
+                ctx.arc(drawX, drawY, r * 0.35, 0, Math.PI * 2);
+                ctx.fill();
+                // Glowing eye
+                ctx.fillStyle = `rgba(180, 0, 255, ${0.6 + 0.3 * Math.sin(this.game.elapsedTime * 6)})`;
+                ctx.beginPath();
+                ctx.arc(drawX, drawY, r * 0.15, 0, Math.PI * 2);
                 ctx.fill();
             } else if (e.type === 'runner' && !isDying) {
                 // Speed lines behind

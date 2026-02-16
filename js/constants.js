@@ -618,7 +618,7 @@ export const HERO_STATS = {
     damage: 15,  range: 3.5,  fireRate: 0.5,  projSpeed: 350,
     // Contact damage (DPS tick every 0.5s)
     contactTick: 0.5,  contactBase: 10,
-    contactMultipliers: { grunt: 1, runner: 0.8, tank: 2, healer: 0.6, boss: 3, swarm: 0.5, wobbler: 0.3, megaboss: 4 },
+    contactMultipliers: { grunt: 1, runner: 0.8, tank: 2, healer: 0.6, boss: 3, swarm: 0.5, wobbler: 0.3, megaboss: 4, quantumboss: 5 },
     // Respawn
     respawnDelay: 5.0,
     // Q: AoE Stun
@@ -754,6 +754,16 @@ export const ENEMY_TYPES = {
         color: '#8b0000',
         radius: 34,
         armor: 0.25,
+    },
+    quantumboss: {
+        name: 'Quantum Boss',
+        baseHP: 392,
+        speed: 64,
+        reward: 500,
+        livesCost: 5,
+        color: '#0a0a0a',
+        radius: 36,
+        armor: 0.30,
     },
 };
 

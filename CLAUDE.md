@@ -42,7 +42,7 @@ Every world is an **endless wave-based survival run**. No levels — you play un
 - **Wave-based unlocks:** Towers, hero, and dual spawn unlock at wave thresholds mid-run via `WAVE_UNLOCKS` in constants.js
 - **HP scaling:** `getWaveHPScale(currentWave) * worldHpMultiplier * hpModifier` where `getWaveHPScale(w) = w * 1.11^w`. All maps use the same natural HP curve; `worldHpMultiplier` adjusts per-map (Citadel 0.5x, Creek/Gauntlet 1.1x).
 - Waves 1-5: hand-crafted intro waves. Wave 6+: procedural via `generateWave()`
-- **Special wave events:** Goldrush every 10 waves (2x kill gold). Boss every 5 waves (waves 5-20), replaced by Megaboss every 2 waves starting wave 25 (25, 27, 29...). Megaboss count scales: 1→1→2→3→4→5→5→6+
+- **Special wave events:** Goldrush every 10 waves (2x kill gold). Boss every 5 waves (waves 5-20), replaced by Megaboss every 2 waves at waves 25-31 (count: 1→1→2→3), replaced by Quantum Boss every wave from wave 32+ (count: wave-31, scaled by 1.5x)
 - **Starting gold:** Per-map via `startingGold` in MAP_DEFS (Serpentine 300g, Citadel 400g, Creek/Gauntlet 1000g)
 - **Auto-wave:** Enabled by default (`game.autoWave`), auto-starts next wave after 5s. Early-send bonus: max +30g, decays by 5g/sec waited
 - Wave record saved per map in `td_wave_record` localStorage key (JSON object `{mapId: wave}`)
@@ -94,7 +94,7 @@ Pushes enemies backward along their path by N grid cells. Bosses/megabosses immu
 
 ## Admin/Debug Mode
 
-Press backtick (`` ` ``) to toggle the admin panel with real-time DPS/efficiency stats and post-wave analysis. Hotkeys: `K` kill all, `W` set wave, `G` add 1000 gold, `D` download CSV analytics. See `ADMIN_GUIDE.md` for full reference.
+Press backtick (`` ` ``) to toggle the admin panel with real-time DPS/efficiency stats and post-wave analysis. Hotkeys: `K` kill all, `W` set wave, `G` add 1000 gold (works while paused), `D` download CSV analytics. See `ADMIN_GUIDE.md` for full reference.
 
 ## PostFX (WebGL2 Post-Processing)
 
@@ -111,7 +111,7 @@ Press backtick (`` ` ``) to toggle the admin panel with real-time DPS/efficiency
 WASD-controlled hero spawns when `getEffectiveWave() >= 14` (unlockWave in HERO_STATS). Auto-attacks nearest enemy (15 dmg, 3.5 range, 2/s). Three abilities: Q = AoE stun (3-cell radius, 1.5s, 15s cooldown), E = gold magnet (2x kill gold in 4-cell radius, 8s duration, 20s cooldown), Z = execute (instant-kill nearest boss/megaboss within 15-cell range, 2min cooldown). Takes contact damage from enemies (type-dependent multipliers). Dies at 0 HP, respawns after 5s. Managed by `hero.js`, updated after enemies/before towers in game loop.
 
 ### Execute Ability (Z key)
-- Instantly kills the nearest boss or megaboss (not flying) within 15 grid cells
+- Instantly kills the nearest boss, megaboss, or quantum boss (not flying) within 15 grid cells
 - 0.8s animation: 0-0.6s charge (hero grows 1x→3x, red/gold color), 0.6s strike, 0.6-0.8s shrink
 - 120s (2 minute) cooldown — strategic decision
 - **No target in range → "NO TARGET" text, cooldown NOT consumed** (can spam Z to check for targets)
@@ -185,14 +185,14 @@ Per-environment animated particles drawn on the game canvas (ground layer, befor
 - Hero WASD keys conflict with admin hotkeys (W=wave, D=download) when admin mode is active
 - PostFX canvas textures need `UNPACK_FLIP_Y_WEBGL = true` or the image renders upside-down
 - Screen flash in `renderer.js` is gated behind `!postfx.enabled` — the PostFX shader handles flash when active
-- Knockback is tracked per-tower (`enemy.knockbackSources` Set) — each pulse cannon can knockback an enemy once. Multiple pulse cannons each get one knockback per enemy. Bosses/megabosses always immune.
+- Knockback is tracked per-tower (`enemy.knockbackSources` Set) — each pulse cannon can knockback an enemy once. Multiple pulse cannons each get one knockback per enemy. Bosses/megabosses/quantum bosses always immune.
 - Flying enemies (`e.flying`) must be skipped in ALL targeting/damage loops — `findTarget`, `getEnemiesInRange`, `doSplash`, `findChainTarget`, `doForkChain`, `updateScorchZones`, `checkContactDamage`. Check pattern: `if (!e.alive || e.flying) continue;`
 - `_nextWaveCache` in wave.js must be cleared before `startNextWave()` when jumping waves (e.g. `adminSetWave`)
 - Tower icon cache (`towerIconsLg`) is pre-generated for ALL tower types on first `setupTowerPanel()` call — needed for unlock screen
 - Burn/scorch zone damage bypasses `takeDamage()` — directly modifies `enemy.hp`, so armor is ignored
 - Projectile trails use circular buffer to avoid O(n) shift() — overwrites oldest position when full
 - Healer logic throttled to 0.1s intervals instead of every frame — reduces checks by ~83% (6/sec vs 60/sec)
-- Boss enrage triggers only when boss/megaboss is last living enemy AND spawning is complete. Increases speed +50%, reduces armor -30%, plays once per boss
+- Boss enrage triggers only when boss/megaboss/quantum boss is last living enemy AND spawning is complete. Increases speed +50%, reduces armor -30%, plays once per boss
 - Wave modifiers (armored/swift/regen/horde) can stack with goldrush — both systems are independent
 - Hero contact damage timer can drift due to accumulation: `contactTimer -= dt` then reset to 0.5s loses negative overflow
 
@@ -204,7 +204,10 @@ Per-environment animated particles drawn on the game canvas (ground layer, befor
 - **Wave modifier badge:** Active modifier name shown inline in wave counter during the wave (armored/swift/regen/horde)
 - **Tower info card:** Shows all tower stats with upgrade preview arrows — damage, range, fire rate, burn, splash, slow %, freeze %, chain count, fork count, shock %, heavy round interval, armor shred %, crit %, knockback. Displayed when hovering/clicking towers.
 - **Unlock screen:** HTML overlay shown when wave thresholds are crossed. Displays tower icons, stats, replacement info, hero/dual spawn extras. Pauses game (STATE.PAUSED + `_unlockScreenActive = true`) until Continue is clicked. Hides top/bottom bars during display. When continued, `_beginWave()` is called if pending.
-- **Game over screen:** Shows "Reached Wave X" + best record for the map. Wave record saved per-map in localStorage on both game over and mid-wave restart.
+- **Kill counter badge:** Real-time kill count (`game.runKills`) displayed in top bar's info-items section. Reset per run. Incremented in enemy.js on kill.
+- **Wave milestone banners:** Every 10 waves (10, 20, 30...) shows a milestone-style congratulations screen with stats (kills, towers, lives, gold, time, record) and featured tower icon. Pauses game via `_unlockScreenActive`. Fires in `onWaveComplete()` after wave rewards.
+- **Personal best notification:** When beating a previous wave record, shows "NEW RECORD!" floating text with PostFX flash + shockwave. Checked in `onWaveComplete()` before `Economy.setWaveRecord()`.
+- **Game over screen:** Milestone-style summary with map name, wave reached, new record badge, 3x2 stat grid (kills, towers, score, lives, time, gold), and Try Again button. Uses `unlock-dialog` styling via `game-over-content` container. Wave record saved per-map in localStorage on both game over and mid-wave restart.
 - **3D toggle button:** Top-right button toggles between 2D Canvas and Three.js 3D rendering (if available). Persisted in `localStorage.td_use3d`
 - **Atmosphere selector:** Menu page shows atmosphere chips below map cards. In-game badge in top bar cycles through presets.
 
@@ -220,7 +223,15 @@ Per-environment animated particles drawn on the game canvas (ground layer, befor
 | Swarm | 5 | 105 | 0% | 5g | 1 | Tiny, fast |
 | Wobbler | 8 | 29 | 0% | 30g | 1 | Secondary-path intro enemy (waves 16-20) |
 | Flying | 10 | 97 | 0% | 30g | 1 | Untargetable while airborne (110 px/s flight), scales 1→20 count over 13 waves |
-| Megaboss | 392 | 58 | 25% | 400g | 5 | Replaces boss at wave 25+ (every 2 waves) |
+| Megaboss | 392 | 58 | 25% | 400g | 5 | Waves 25-31 only (every 2 waves, count 1→3) |
+| Quantum Boss | 392 | 64 | 30% | 500g | 5 | Wave 32+, every wave, count escalates fast |
+
+## Late-Game Acceleration (Wave 26+)
+
+- **Exponential speed ramp:** All enemies gain `1.03^(wave-25)` speed multiplier from wave 26+. Doubles speed by wave 48. Stacks with Swift modifier and boss enrage.
+- **Quantum Boss (wave 32+):** Replaces megaboss. Black star shape with void aura and rotating purple tendrils. 10% faster than megaboss (64 vs 58 base speed), 30% armor. Count = `floor((wave-31) * 1.5)`, spawning faster (0.8x boss interval) and earlier in the wave (0.3x delay). Freeze halved, knockback immune. Hero execute targets them. Contact damage multiplier: 5x.
+- **Quantum Boss schedule:** Wave 32: 1, Wave 33: 3, Wave 34: 4, Wave 35: 6, Wave 36: 7... Designed so wave ~35 is a practical end for most runs.
+- **Combined effect:** Exponential speed + escalating quantum boss count + exponential HP scaling creates a "walls closing in" endgame.
 
 ## Wave Modifiers (Wave 3+)
 
