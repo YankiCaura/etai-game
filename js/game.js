@@ -196,13 +196,6 @@ export class Game {
         this.ui.setupTowerPanel();
         this.ui.hideAllScreens();
 
-        // Play intro voice
-        const introVoice = document.getElementById('intro-voice');
-        if (introVoice) {
-            introVoice.currentTime = 0;
-            introVoice.play().catch(() => {});
-        }
-
         this.waves.startNextWave();
         this.ui.update();
     }

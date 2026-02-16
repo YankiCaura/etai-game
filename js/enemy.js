@@ -427,6 +427,7 @@ export class EnemyManager {
                 // Calculate gold reward with gold rush + hero magnet multipliers
                 const waveTag = this.game.waves.waveTag;
                 let goldMulti = waveTag === 'goldrush' ? GOLD_RUSH_MULTIPLIER : 1;
+                if (this.game.waves.modifier === 'horde') goldMulti *= this.game.waves.modifierDef.goldMulti;
                 const heroMulti = this.game.hero?.getGoldMultiplier(e.x, e.y) || 1;
                 goldMulti *= heroMulti;
                 const goldReward = Math.round(e.reward * KILL_GOLD_BONUS * goldMulti);

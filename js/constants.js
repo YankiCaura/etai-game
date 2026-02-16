@@ -372,9 +372,9 @@ export const MAP_DEFS = {
     citadel: {
         name: 'The Citadel',
         themeColor: '#7f8c8d',
-        worldHpMultiplier: 0.50,
+        worldHpMultiplier: 0.42,
         requiredRecord: 5,
-        startingGold: 400,
+        startingGold: 800,
         dualSpawnWave: Infinity,
         flyingStartWave: 10,
         environment: 'ruins',
@@ -796,7 +796,7 @@ export const WAVE_MODIFIERS = {
     armored: { name: 'Armored', desc: '+20% armor', color: '#95a5a6', armorBonus: 0.20 },
     swift:   { name: 'Swift',   desc: '+30% speed', color: '#e67e22', speedMulti: 1.30 },
     regen:   { name: 'Regen',   desc: 'HP regen',   color: '#2ecc71', regenPercent: 0.005 },
-    horde:   { name: 'Horde',   desc: 'More enemies, less HP', color: '#e74c3c', countMulti: 1.4, hpMulti: 0.75 },
+    horde:   { name: 'Horde',   desc: 'More enemies, less HP, more gold', color: '#e74c3c', countMulti: 1.3, hpMulti: 0.75, goldMulti: 1.2 },
 };
 export const MODIFIER_START_WAVE = 3;
 export const MODIFIER_CHANCE = 0.35;
