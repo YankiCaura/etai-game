@@ -504,7 +504,8 @@ export class EnemyManager {
                 e.deathTimer = 0;
                 this.game.debug.onEnemyKilled(e);
 
-                // Achievement tracking
+                // Kill counter & achievement tracking
+                this.game.runKills++;
                 this.game.achievements.increment('totalKills');
                 if (e.type === 'boss' || e.type === 'megaboss') this.game.achievements.increment('bossKills');
                 else if (e.type === 'swarm') this.game.achievements.increment('swarmKills');

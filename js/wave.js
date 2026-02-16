@@ -343,8 +343,26 @@ export class WaveManager {
 
         this.game.particles.spawnFloatingText(CANVAS_W / 2, CANVAS_H / 3, `Wave ${this.currentWave} Complete! +${bonus + interest}g`, '#ffd700');
 
+        // Personal best check — before saving so we can compare
+        const previousRecord = Economy.getWaveRecord(this.game.selectedMapId) || 0;
+
         // Save wave record as you progress
         Economy.setWaveRecord(this.game.selectedMapId, this.currentWave);
+
+        // New record notification
+        if (this.currentWave > previousRecord && previousRecord > 0) {
+            this.game.particles.spawnBigFloatingText(CANVAS_W / 2, CANVAS_H / 4, `NEW RECORD! Wave ${this.currentWave}`, '#ffd700');
+            this.game.audio.playExplosion();
+            if (this.game.postfx.enabled) {
+                this.game.postfx.flash(0.15, 0.25);
+                this.game.postfx.shockwave(0.5, 0.5, 0.6);
+            }
+        }
+
+        // Wave milestone banner every 10 waves
+        if (this.currentWave % 10 === 0) {
+            this.game.showMilestone(this.currentWave);
+        }
 
         this.game.ui.update();
     }

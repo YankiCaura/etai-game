@@ -38,6 +38,9 @@ export class Game {
         this.shakeOffsetX = 0;
         this.shakeOffsetY = 0;
 
+        // Per-run kill counter
+        this.runKills = 0;
+
         // Scorch zones (from Bi-Cannon heavy rounds)
         this.scorchZones = [];
 
@@ -189,6 +192,7 @@ export class Game {
         this.refreshTerrain();
 
         this.heroDeathsThisLevel = 0;
+        this.runKills = 0;
         this.hero.reset();
 
         this.state = STATE.PLAYING;
@@ -364,6 +368,7 @@ export class Game {
         this.shakeOffsetX = 0;
         this.shakeOffsetY = 0;
         this._triggeredThresholds = new Set();
+        this.runKills = 0;
         this.debug.reset();
         this.economy.reset();
         this.enemies.reset();
@@ -561,6 +566,19 @@ export class Game {
                 0.4 * fade,
             );
         }
+    }
+
+    showMilestone(wave) {
+        const stats = {
+            kills: this.runKills,
+            towers: this.towers.towers.length,
+            lives: this.economy.lives,
+            gold: this.economy.gold,
+            elapsed: this.elapsedTime,
+        };
+        this.state = STATE.PAUSED;
+        this._unlockScreenActive = true;
+        this.ui.showMilestoneScreen(wave, stats);
     }
 
     run() {

@@ -11,6 +11,7 @@ export class UI {
         this.elLivesFill = document.getElementById('lives-fill');
         this.elLivesText = document.getElementById('lives-text');
         this.elGold = document.getElementById('gold-info');
+        this.elKills = document.getElementById('kills-info');
         this.elTowerPanel = document.getElementById('tower-panel');
         this.elTowerInfo = document.getElementById('tower-info');
         this.elSpeedBtn = document.getElementById('speed-btn');
@@ -628,6 +629,7 @@ export class UI {
         this.elLivesFill.style.width = livesPercent + '%';
         this.elLives.classList.toggle('lives-critical', eco.lives <= 5 && eco.lives > 0);
         this.elGold.textContent = `\u{1FA99} ${eco.gold}`;
+        if (this.elKills) this.elKills.textContent = `\u{1F480} ${game.runKills}`;
         // Toggle hero-active class for mobile controls (only shows on mobile when hero is active)
         const canvasWrapper = document.getElementById('canvas-wrapper');
         if (canvasWrapper) {
@@ -984,6 +986,88 @@ export class UI {
             // Resume deferred wave setup if unlock screen interrupted startNextWave
             if (this.game.waves._pendingWaveSetup) {
                 this.game.waves._beginWave();
+            }
+            this.game.audio.ensureContext();
+        }, { once: true });
+    }
+
+    showMilestoneScreen(wave, stats) {
+        const container = document.getElementById('unlock-content');
+        if (!container) return;
+
+        // Make the dialog wider for milestone
+        container.style.maxWidth = '560px';
+        container.style.padding = '44px 56px';
+
+        // Format elapsed time
+        const mins = Math.floor(stats.elapsed / 60);
+        const secs = Math.floor(stats.elapsed % 60);
+        const timeStr = `${mins}:${secs.toString().padStart(2, '0')}`;
+
+        // Pick a featured tower icon for this milestone
+        const milestoneTowers = { 10: 'firearrow', 20: 'missilesniper', 30: 'pulsecannon', 40: 'superlightning', 50: 'bicannon' };
+        const featuredKey = milestoneTowers[wave] || 'firearrow';
+        const iconSrc = this.towerIconsLg?.[featuredKey] || '';
+        const towerDef = TOWER_TYPES[featuredKey];
+        const towerColor = towerDef?.color || '#ffd700';
+
+        container.innerHTML = `
+            <div style="font-size:48px;font-weight:800;color:#ffd700;margin-bottom:4px;text-shadow:0 0 30px rgba(255,215,0,0.6),0 2px 8px rgba(0,0,0,0.5);letter-spacing:2px">
+                WAVE ${wave}
+            </div>
+            <div style="font-size:28px;font-weight:700;color:#fff;margin-bottom:20px;text-shadow:0 0 15px rgba(255,255,255,0.3)">
+                Congratulations!
+            </div>
+            ${iconSrc ? `<div style="margin:0 auto 20px;width:120px;height:120px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:radial-gradient(circle,${towerColor}33 0%,transparent 70%);box-shadow:0 0 30px ${towerColor}44;animation:towerIconPulse 2.5s ease-in-out infinite">
+                <img src="${iconSrc}" width="96" height="96" style="filter:drop-shadow(0 4px 12px rgba(0,0,0,0.6))">
+            </div>` : ''}
+            <div style="font-size:15px;color:#bbb;margin-bottom:24px">You survived ${wave} waves. Keep going!</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px 28px;margin:0 auto 28px;max-width:460px;text-align:center">
+                <div>
+                    <div style="color:#ff6b6b;font-size:28px;font-weight:800">${stats.kills}</div>
+                    <div style="color:#888;font-size:12px;text-transform:uppercase;letter-spacing:1px">Kills</div>
+                </div>
+                <div>
+                    <div style="color:#3498db;font-size:28px;font-weight:800">${stats.towers}</div>
+                    <div style="color:#888;font-size:12px;text-transform:uppercase;letter-spacing:1px">Towers</div>
+                </div>
+                <div>
+                    <div style="color:#e74c3c;font-size:28px;font-weight:800">${stats.lives}</div>
+                    <div style="color:#888;font-size:12px;text-transform:uppercase;letter-spacing:1px">Lives</div>
+                </div>
+                <div>
+                    <div style="color:#ffd750;font-size:28px;font-weight:800">${stats.gold}</div>
+                    <div style="color:#888;font-size:12px;text-transform:uppercase;letter-spacing:1px">Gold</div>
+                </div>
+                <div>
+                    <div style="color:#eee;font-size:28px;font-weight:800">${timeStr}</div>
+                    <div style="color:#888;font-size:12px;text-transform:uppercase;letter-spacing:1px">Time</div>
+                </div>
+                <div>
+                    <div style="color:#2ecc71;font-size:28px;font-weight:800">Wave ${wave}</div>
+                    <div style="color:#888;font-size:12px;text-transform:uppercase;letter-spacing:1px">Record</div>
+                </div>
+            </div>
+            <button class="unlock-btn" id="milestone-continue-btn" style="padding:16px 60px;font-size:22px">Continue</button>
+        `;
+
+        document.querySelectorAll('.game-screen').forEach(s => s.classList.remove('visible'));
+        document.getElementById('unlock-screen').classList.add('visible');
+        const topBar = document.getElementById('top-bar');
+        const bottomBar = document.getElementById('bottom-bar');
+        if (topBar) topBar.style.display = 'none';
+        if (bottomBar) bottomBar.style.display = 'none';
+
+        document.getElementById('milestone-continue-btn').addEventListener('click', () => {
+            document.getElementById('unlock-screen').classList.remove('visible');
+            // Reset container overrides so unlock screen uses default sizing
+            container.style.maxWidth = '';
+            container.style.padding = '';
+            if (topBar) topBar.style.display = 'flex';
+            if (bottomBar) bottomBar.style.display = 'flex';
+            this.game._unlockScreenActive = false;
+            if (this.game.state === STATE.PAUSED) {
+                this.game.state = STATE.PLAYING;
             }
             this.game.audio.ensureContext();
         }, { once: true });
