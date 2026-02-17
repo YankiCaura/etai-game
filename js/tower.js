@@ -4,10 +4,11 @@ import { distance, angle } from './utils.js';
 let nextTowerId = 0;
 
 export class Tower {
-    constructor(typeName, gx, gy) {
+    constructor(typeName, gx, gy, assignedId) {
         const def = TOWER_TYPES[typeName];
-        this.id = nextTowerId++;
+        this.id = assignedId != null ? assignedId : nextTowerId++;
         this.type = typeName;
+        this.ownerId = 0; // 0 = solo, 1 = host, 2 = client
         this.name = def.name;
         this.color = def.color;
         this.gx = gx;
@@ -257,13 +258,20 @@ export class TowerManager {
         return true;
     }
 
-    place(typeName, gx, gy) {
+    place(typeName, gx, gy, opts) {
         const def = TOWER_TYPES[typeName];
         if (!this.canPlace(gx, gy, typeName)) return null;
-        if (!this.game.economy.canAfford(def.cost)) return null;
 
-        this.game.economy.spendGold(def.cost);
-        const tower = new Tower(typeName, gx, gy);
+        // opts: { ownerId, assignedId, skipGold } for multiplayer
+        const ownerId = opts?.ownerId || 0;
+        const assignedId = opts?.assignedId;
+        const skipGold = opts?.skipGold || false;
+
+        if (!skipGold && !this.game.economy.canAfford(def.cost)) return null;
+        if (!skipGold) this.game.economy.spendGold(def.cost);
+
+        const tower = new Tower(typeName, gx, gy, assignedId);
+        tower.ownerId = ownerId;
         this.towers.push(tower);
 
         // Register all cells for size >= 1
@@ -336,6 +344,10 @@ export class TowerManager {
 
     getTowerAt(gx, gy) {
         return this.towerGrid.get(`${gx},${gy}`) || null;
+    }
+
+    getTowerById(id) {
+        return this.towers.find(t => t.id === id) || null;
     }
 
     update(dt) {

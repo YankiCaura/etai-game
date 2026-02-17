@@ -19,6 +19,7 @@ export class WaveManager {
         // Special wave tag (goldrush)
         this.waveTag = null;
         this._pendingWaveSetup = false;
+        this._pendingNetWaveDef = null;
 
         // Spawn state
         this.spawnGroups = [];
@@ -35,6 +36,12 @@ export class WaveManager {
     }
 
     startNextWave() {
+        // Multiplayer client: request wave start from host (don't start locally)
+        if (this.game.isMultiplayer && !this.game.net?.isHost) {
+            this.game.net.sendWaveStart();
+            return;
+        }
+
         // Early-send bonus (only between waves, not the first wave)
         if (this.betweenWaves && this.currentWave > 0) {
             const bonus = Math.max(0, Math.floor(EARLY_SEND_MAX_BONUS - this.betweenWaveTimer * EARLY_SEND_DECAY));
@@ -107,6 +114,72 @@ export class WaveManager {
             }
             this.hpModifier = this.modifierDef.hpMulti;
         }
+
+        this.spawnGroups = waveDef;
+        this.groupTimers = waveDef.map(g => g.delay || 0);
+        this.groupIndices = waveDef.map(() => 0);
+
+        this.game.debug.onWaveStart(this.game);
+        this.game.audio.playWaveStart();
+
+        // Multiplayer: host sends wave definition to client
+        if (this.game.isMultiplayer && this.game.net?.isHost) {
+            this.game.net.sendWaveDef(this.spawnGroups, this.modifier, this.modifierDef, this.waveTag, this.hpModifier);
+        }
+    }
+
+    /** Client applies wave definition received from host */
+    applyWaveDef(data) {
+        const { IDX_ENEMY_TYPE } = this.game._netTypes;
+        this.currentWave++;
+        this.game.ui.setupTowerPanel();
+        this.game.onWaveThreshold(this.currentWave);
+
+        if (this.game.state === STATE.PAUSED && this.game._unlockScreenActive) {
+            this._pendingNetWaveDef = data;
+            this._pendingWaveSetup = true;
+            return;
+        }
+        this._applyWaveDefInner(data);
+    }
+
+    _applyWaveDefInner(data) {
+        const { IDX_ENEMY_TYPE } = this.game._netTypes;
+        this._pendingWaveSetup = false;
+        this._pendingNetWaveDef = null;
+
+        this.spawning = true;
+        this.waveComplete = false;
+        this.betweenWaves = false;
+        this.betweenWaveTimer = 0;
+        this.reinforceTimer = 0;
+        this.reinforceBursts = 0;
+        this.secondaryCount = 0;
+        this.game.waveElapsed = 0;
+
+        this.waveTag = data.tag;
+        if (this.waveTag === 'goldrush') {
+            this.game.particles.spawnBigFloatingText(CANVAS_W / 2, CANVAS_H / 3, 'GOLD RUSH!', '#ffd700');
+        }
+
+        this.modifier = data.mod;
+        this.modifierDef = data.modDef;
+        this.hpModifier = data.hpMod || 1.0;
+
+        if (this.modifier && this.modifierDef) {
+            this.game.particles.spawnBigFloatingText(
+                CANVAS_W / 2, CANVAS_H / 2.5,
+                `${this.modifierDef.name.toUpperCase()}! ${this.modifierDef.desc}`,
+                this.modifierDef.color
+            );
+        }
+
+        const waveDef = data.def.map(g => ({
+            type: IDX_ENEMY_TYPE[g.type] || 'grunt',
+            count: g.count,
+            interval: g.interval,
+            delay: g.delay || 0,
+        }));
 
         this.spawnGroups = waveDef;
         this.groupTimers = waveDef.map(g => g.delay || 0);
@@ -211,8 +284,8 @@ export class WaveManager {
         // Track time between waves for early-send bonus
         if (this.betweenWaves) {
             this.betweenWaveTimer += dt;
-            // Auto-start next wave after 5 seconds
-            if (this.game.autoWave && this.betweenWaveTimer >= 5) {
+            // Auto-start next wave after 5 seconds (host-only in multiplayer)
+            if (this.game.autoWave && this.betweenWaveTimer >= 5 && (!this.game.isMultiplayer || this.game.net?.isHost)) {
                 this.startNextWave();
             }
             return;
@@ -220,6 +293,9 @@ export class WaveManager {
 
         const mapMul = this.game.map.def.worldHpMultiplier || 1;
         const hpScale = getWaveHPScale(this.currentWave) * mapMul * this.hpModifier;
+
+        // Multiplayer client: host owns spawning, client gets enemies via state sync
+        const isNetClient = this.game.isMultiplayer && !this.game.net?.isHost;
 
         if (this.spawning) {
             let allDone = true;
@@ -271,7 +347,10 @@ export class WaveManager {
                     // Early dual spawn waves: send wobblers on secondary instead of normal enemies
                     const wavesIntoDualForType = this.currentWave - mapDualWave;
                     const spawnType = (useSecondary && wavesIntoDualForType <= 5) ? 'wobbler' : group.type;
-                    this.game.enemies.spawn(spawnType, hpScale, this.modifier, useSecondary, pathIndex);
+                    // Client skips actual spawn — enemies arrive via state sync
+                    if (!isNetClient) {
+                        this.game.enemies.spawn(spawnType, hpScale, this.modifier, useSecondary, pathIndex);
+                    }
                     this.spawnCounter++;
                     this.groupIndices[g]++;
                     this.groupTimers[g] = group.interval;
@@ -285,8 +364,9 @@ export class WaveManager {
 
         // Secondary reinforcement bursts: when secondary lane is cleared
         // but primary enemies remain, send reinforcements to keep pressure up
+        // (host-only in multiplayer — client gets enemies via state sync)
         const mapDualWaveReinf = this.game.map?.def?.dualSpawnWave ?? DUAL_SPAWN_WAVE;
-        if (!this.spawning && isFinite(mapDualWaveReinf) && this.currentWave >= mapDualWaveReinf + 5) {
+        if (!isNetClient && !this.spawning && isFinite(mapDualWaveReinf) && this.currentWave >= mapDualWaveReinf + 5) {
             const enemies = this.game.enemies.enemies;
             const hasPrimary = enemies.some(e => e.alive && !e.isSecondary && e.deathTimer < 0);
             const hasSecondary = enemies.some(e => e.alive && e.isSecondary && e.deathTimer < 0);
@@ -345,15 +425,25 @@ export class WaveManager {
 
         // Rewards
         const bonus = WAVE_BONUS_BASE + this.currentWave * WAVE_BONUS_PER;
-        this.game.economy.addGold(bonus);
         this.game.economy.addScore(this.currentWave * 50);
-
-        // Interest
-        const interest = Math.floor(this.game.economy.gold * INTEREST_RATE);
-        this.game.economy.addGold(interest);
-        this.game.achievements.increment('totalGoldEarned', bonus + interest);
-
-        this.game.particles.spawnFloatingText(CANVAS_W / 2, CANVAS_H / 3, `Wave ${this.currentWave} Complete! +${bonus + interest}g`, '#ffd700');
+        if (this.game.isMultiplayer) {
+            const halfBonus = Math.floor(bonus / 2);
+            this.game.economy.addGold(halfBonus);
+            this.game.economy.partnerGold += halfBonus;
+            // Interest on own gold pools
+            const myInterest = Math.floor(this.game.economy.gold * INTEREST_RATE);
+            const partnerInterest = Math.floor(this.game.economy.partnerGold * INTEREST_RATE);
+            this.game.economy.addGold(myInterest);
+            this.game.economy.partnerGold += partnerInterest;
+            this.game.achievements.increment('totalGoldEarned', halfBonus + myInterest);
+            this.game.particles.spawnFloatingText(CANVAS_W / 2, CANVAS_H / 3, `Wave ${this.currentWave} Complete! +${halfBonus + myInterest}g`, '#ffd700');
+        } else {
+            this.game.economy.addGold(bonus);
+            const interest = Math.floor(this.game.economy.gold * INTEREST_RATE);
+            this.game.economy.addGold(interest);
+            this.game.achievements.increment('totalGoldEarned', bonus + interest);
+            this.game.particles.spawnFloatingText(CANVAS_W / 2, CANVAS_H / 3, `Wave ${this.currentWave} Complete! +${bonus + interest}g`, '#ffd700');
+        }
 
         // Personal best check — before saving so we can compare
         const previousRecord = Economy.getWaveRecord(this.game.selectedMapId) || 0;
@@ -394,6 +484,7 @@ export class WaveManager {
         this.groupIndices = [];
         this.spawnCounter = 0;
         this._nextWaveCache = null;
+        this._pendingNetWaveDef = null;
         this.reinforceTimer = 0;
         this.reinforceBursts = 0;
     }

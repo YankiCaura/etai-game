@@ -481,13 +481,16 @@ export class EnemyManager {
 
             if (e.reached) {
                 this.game.debug.onEnemyLeaked(e);
-                this.game.economy.loseLives(e.livesCost);
-                this.game.particles.spawnBigFloatingText(e.x, e.y - 10, `-${e.livesCost}`, '#ffffff');
-                if (this.game.economy.lives > 0 && this.game.economy.lives <= 5) {
-                    this.game.audio.playLowLivesWarning();
-                }
-                if (this.game.economy.lives <= 0) {
-                    this.game.gameOver();
+                // Multiplayer client: host handles lives/game-over via state sync
+                if (!this.game.isMultiplayer || this.game.net?.isHost) {
+                    this.game.economy.loseLives(e.livesCost);
+                    this.game.particles.spawnBigFloatingText(e.x, e.y - 10, `-${e.livesCost}`, '#ffffff');
+                    if (this.game.economy.lives > 0 && this.game.economy.lives <= 5) {
+                        this.game.audio.playLowLivesWarning();
+                    }
+                    if (this.game.economy.lives <= 0) {
+                        this.game.gameOver();
+                    }
                 }
                 this.enemies.splice(i, 1);
                 continue;
@@ -504,30 +507,42 @@ export class EnemyManager {
                 e.deathTimer = 0;
                 this.game.debug.onEnemyKilled(e);
 
-                // Kill counter & achievement tracking
-                this.game.runKills++;
-                this.game.achievements.increment('totalKills');
-                if (e.type === 'boss' || e.type === 'megaboss' || e.type === 'quantumboss') this.game.achievements.increment('bossKills');
-                else if (e.type === 'swarm') this.game.achievements.increment('swarmKills');
-                else if (e.type === 'tank') this.game.achievements.increment('tankKills');
+                // Multiplayer client: host handles gold/score — client only does visuals
+                const isNetClient = this.game.isMultiplayer && !this.game.net?.isHost;
 
-                // Calculate gold reward with gold rush + hero magnet multipliers
-                const waveTag = this.game.waves.waveTag;
-                let goldMulti = waveTag === 'goldrush' ? GOLD_RUSH_MULTIPLIER : 1;
-                if (this.game.waves.modifier === 'horde') goldMulti *= this.game.waves.modifierDef.goldMulti;
-                const heroMulti = this.game.hero?.getGoldMultiplier(e.x, e.y) || 1;
-                goldMulti *= heroMulti;
-                const goldReward = Math.round(e.reward * KILL_GOLD_BONUS * goldMulti);
-                this.game.economy.addGold(goldReward);
-                this.game.economy.addScore(e.reward);
-                this.game.achievements.increment('totalGoldEarned', goldReward);
-                const goldColor = heroMulti > 1 ? '#00e5ff' : (goldMulti > 1 ? '#ffaa00' : '#ffd700');
-                this.game.particles.spawnFloatingText(e.x, e.y - 10, `+${goldReward}`, goldColor);
+                if (!isNetClient) {
+                    // Kill counter & achievement tracking
+                    this.game.runKills++;
+                    this.game.achievements.increment('totalKills');
+                    if (e.type === 'boss' || e.type === 'megaboss' || e.type === 'quantumboss') this.game.achievements.increment('bossKills');
+                    else if (e.type === 'swarm') this.game.achievements.increment('swarmKills');
+                    else if (e.type === 'tank') this.game.achievements.increment('tankKills');
 
-                // Bounty boss bonus
-                if (e.type === 'boss' && waveTag === 'midboss') {
-                    this.game.economy.addGold(MIDBOSS_BOUNTY);
-                    this.game.particles.spawnBigFloatingText(e.x, e.y - 30, `BOUNTY +${MIDBOSS_BOUNTY}g`, '#2ecc71');
+                    // Calculate gold reward with gold rush + hero magnet multipliers
+                    const waveTag = this.game.waves.waveTag;
+                    let goldMulti = waveTag === 'goldrush' ? GOLD_RUSH_MULTIPLIER : 1;
+                    if (this.game.waves.modifier === 'horde') goldMulti *= this.game.waves.modifierDef.goldMulti;
+                    const heroMulti = this.game.hero?.getGoldMultiplier(e.x, e.y) || 1;
+                    goldMulti *= heroMulti;
+                    const goldReward = Math.round(e.reward * KILL_GOLD_BONUS * goldMulti);
+                    // Multiplayer: split rewards 50/50
+                    if (this.game.isMultiplayer) {
+                        const half = Math.floor(goldReward / 2);
+                        this.game.economy.addGold(half);
+                        this.game.economy.partnerGold += half;
+                    } else {
+                        this.game.economy.addGold(goldReward);
+                    }
+                    this.game.economy.addScore(e.reward);
+                    this.game.achievements.increment('totalGoldEarned', goldReward);
+                    const goldColor = heroMulti > 1 ? '#00e5ff' : (goldMulti > 1 ? '#ffaa00' : '#ffd700');
+                    this.game.particles.spawnFloatingText(e.x, e.y - 10, `+${goldReward}`, goldColor);
+
+                    // Bounty boss bonus
+                    if (e.type === 'boss' && waveTag === 'midboss') {
+                        this.game.economy.addGold(MIDBOSS_BOUNTY);
+                        this.game.particles.spawnBigFloatingText(e.x, e.y - 30, `BOUNTY +${MIDBOSS_BOUNTY}g`, '#2ecc71');
+                    }
                 }
 
                 // Type-specific death particles
@@ -573,6 +588,24 @@ export class EnemyManager {
 
     getEnemiesInRange(x, y, range) {
         return this.getEnemiesNear(x, y, range * CELL);
+    }
+
+    /** Create an enemy from state sync data (multiplayer client only) */
+    spawnFromSync(id, typeName, x, y, hp, maxHP, alive, wpIdx, progress, flying) {
+        const path = this.game.map.getEnemyPath(false);
+        const enemy = new Enemy(typeName, 1, path);
+        enemy.id = id;
+        enemy.x = x;
+        enemy.y = y;
+        enemy.hp = hp;
+        enemy.maxHP = maxHP;
+        enemy.alive = alive;
+        enemy.waypointIndex = wpIdx;
+        enemy.progress = progress;
+        enemy.flying = flying;
+        if (!alive) enemy.deathTimer = 0;
+        this.enemies.push(enemy);
+        return enemy;
     }
 
     isEmpty() {

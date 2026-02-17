@@ -47,9 +47,17 @@ export class InputHandler {
             const grid = worldToGrid(pos.x, pos.y);
             const tower = this.game.towers.getTowerAt(grid.x, grid.y);
             if (tower) {
+                // Multiplayer: only upgrade own towers
+                if (this.game.isMultiplayer && tower.ownerId !== this.game.net?.playerId) {
+                    this.selectedTower = tower;
+                    this.selectedTowerType = null;
+                    this.game.ui.showTowerInfo(tower);
+                    return;
+                }
                 this.selectedTower = tower;
                 this.selectedTowerType = null;
                 if (this.game.towers.upgradeTower(tower)) {
+                    if (this.game.isMultiplayer) this.game.net.sendTowerUpgrade(tower.id);
                     const def = TOWER_TYPES[tower.type];
                     if (tower.level >= def.levels.length - 1) {
                         this.selectedTower = null;
@@ -168,9 +176,24 @@ export class InputHandler {
         if (gx < 0 || gx >= COLS || gy < 0 || gy >= ROWS) return;
 
         if (this.selectedTowerType) {
+            // Multiplayer client: send placement request instead of placing locally
+            if (this.game.isMultiplayer && !this.game.net?.isHost) {
+                if (this.game.towers.canPlace(gx, gy, this.selectedTowerType) &&
+                    this.game.economy.canAfford(TOWER_TYPES[this.selectedTowerType].cost)) {
+                    this.game.net.sendTowerPlaceRequest(this.selectedTowerType, gx, gy);
+                    this.selectedTowerType = null;
+                    this.game.ui.update();
+                }
+                return;
+            }
             // Place tower
-            const tower = this.game.towers.place(this.selectedTowerType, gx, gy);
+            const placeOpts = this.game.isMultiplayer ? { ownerId: this.game.net.playerId } : undefined;
+            const tower = this.game.towers.place(this.selectedTowerType, gx, gy, placeOpts);
             if (tower) {
+                // Multiplayer host: broadcast placement
+                if (this.game.isMultiplayer && this.game.net?.isHost) {
+                    this.game.net.sendTowerPlace(tower.type, gx, gy, tower.id, tower.ownerId);
+                }
                 // Select the placed tower and show its info card
                 this.selectedTower = tower;
                 this.selectedTowerType = null;
@@ -275,8 +298,8 @@ export class InputHandler {
             return;
         }
 
-        // WASD hero movement + Q/E abilities (only during gameplay)
-        if (this.game.state === STATE.PLAYING) {
+        // WASD hero movement + Q/E abilities (only during gameplay, disabled in multiplayer)
+        if (this.game.state === STATE.PLAYING && !this.game.isMultiplayer) {
             // W: hero move (unless admin mode wants it for wave-set)
             if (keyLower === 'w') {
                 if (this.game.adminMode) {
@@ -308,7 +331,11 @@ export class InputHandler {
             // S: sell tower if one selected, otherwise hero move
             if (keyLower === 's') {
                 if (this.selectedTower) {
+                    // Multiplayer: only sell own towers
+                    if (this.game.isMultiplayer && this.selectedTower.ownerId !== this.game.net?.playerId) return;
+                    const sellId = this.selectedTower.id;
                     this.game.towers.sell(this.selectedTower);
+                    if (this.game.isMultiplayer) this.game.net.sendTowerSell(sellId);
                     this.selectedTower = null;
                     this.game.ui.hideTowerInfo();
                     this.game.ui.update();
@@ -376,7 +403,10 @@ export class InputHandler {
             case 'u':
             case 'U':
                 if (this.selectedTower) {
+                    // Multiplayer: only upgrade own towers
+                    if (this.game.isMultiplayer && this.selectedTower.ownerId !== this.game.net?.playerId) break;
                     if (this.game.towers.upgradeTower(this.selectedTower)) {
+                        if (this.game.isMultiplayer) this.game.net.sendTowerUpgrade(this.selectedTower.id);
                         const def = TOWER_TYPES[this.selectedTower.type];
                         if (this.selectedTower.level >= def.levels.length - 1) {
                             this.selectedTower = null;

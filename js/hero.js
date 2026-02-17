@@ -52,6 +52,7 @@ export class Hero {
     }
 
     init(map) {
+        if (this.game.isMultiplayer) return; // Hero disabled in multiplayer
         // Spawn near the castle — use shared suffix for split maps (both forks converge there)
         const layout = map.layout;
         let spawnPt;

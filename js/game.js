@@ -15,6 +15,7 @@ import { WaveDebugger } from './debug.js';
 import { PostFX } from './postfx.js';
 import { Hero } from './hero.js';
 import { Achievements } from './achievements.js';
+import { Net, ENEMY_TYPE_IDX, IDX_ENEMY_TYPE } from './net.js';
 // Renderer3D loaded dynamically to avoid breaking the game if Three.js CDN is unavailable
 
 const FIXED_DT = 1 / 60; // 60 Hz physics
@@ -48,6 +49,12 @@ export class Game {
         this.selectedAtmosphere = localStorage.getItem('td_atmosphere') || 'standard';
         this.atmosphereColors = null;    // { ground, obstacle } or null (path always map-native)
         this.atmosphereParticles = null; // { primary, secondary } or null
+
+        // Multiplayer state
+        this.isMultiplayer = false;
+        this.net = null;
+        this._netTypes = { ENEMY_TYPE_IDX, IDX_ENEMY_TYPE };
+        this._syncFrameCounter = 0;
 
         // Track which wave thresholds have been triggered this run
         this._triggeredThresholds = new Set();
@@ -172,7 +179,7 @@ export class Game {
         return Math.floor(Math.random() * numLayouts);
     }
 
-    start(mapId) {
+    start(mapId, layoutIndex) {
         if (mapId) this.selectMap(mapId);
         if (!this.selectedMapId) return;
         this.audio.ensureContext();
@@ -185,10 +192,18 @@ export class Game {
             this.economy.gold = mapStartGold;
         }
 
+        // Multiplayer: halve starting gold, each player gets 50%
+        if (this.isMultiplayer) {
+            const halfGold = Math.floor(this.economy.gold / 2);
+            this.economy.gold = halfGold;
+            this.economy.partnerGold = halfGold;
+        }
+
         this._triggeredThresholds = new Set();
 
-        // Pick random layout, always build secondary paths
-        this.map = new GameMap(this.selectedMapId, this.getLayoutIndex());
+        // Pick random layout (or use provided index from host), always build secondary paths
+        const li = layoutIndex != null ? layoutIndex : this.getLayoutIndex();
+        this.map = new GameMap(this.selectedMapId, li);
         this.refreshTerrain();
 
         this.heroDeathsThisLevel = 0;
@@ -271,6 +286,9 @@ export class Game {
 
     setSpeed(s) {
         this.speed = s;
+        if (this.isMultiplayer && this.net) {
+            this.net.sendSpeedChange(s);
+        }
         this.ui.update();
     }
 
@@ -282,6 +300,10 @@ export class Game {
         // Per-map wave record for map achievements
         if (this.selectedMapId) {
             this.achievements.set(`${this.selectedMapId}_best`, this.waves.currentWave);
+        }
+        // Multiplayer: broadcast game over to partner
+        if (this.isMultiplayer && this.net?.isHost) {
+            this.net.sendGameOver();
         }
         this.audio.playGameOver();
         this.ui.update();
@@ -325,15 +347,20 @@ export class Game {
                     this.refreshTerrain();
                 }
 
-                // Hero unlock
-                if (unlock.hero && !this.hero.active) {
+                // Hero unlock (disabled in multiplayer)
+                if (unlock.hero && !this.hero.active && !this.isMultiplayer) {
                     this.hero.init(this.map);
                     this.particles.spawnAuraPulse(this.hero.x, this.hero.y, 60, HERO_STATS.color);
                 }
 
                 // Dual spawn bonus gold to help build secondary defenses
                 if (unlock.dualSpawn) {
-                    this.economy.addGold(100);
+                    if (this.isMultiplayer) {
+                        this.economy.addGold(50);
+                        this.economy.partnerGold += 50;
+                    } else {
+                        this.economy.addGold(100);
+                    }
                 }
             }
         }
@@ -358,6 +385,14 @@ export class Game {
         if (this.selectedMapId && this.waves.currentWave > 0) {
             Economy.setWaveRecord(this.selectedMapId, this.waves.currentWave);
         }
+        // Disconnect multiplayer
+        if (this.isMultiplayer && this.net) {
+            this.net.disconnect();
+        }
+        this.isMultiplayer = false;
+        this.net = null;
+        this._syncFrameCounter = 0;
+
         this.state = STATE.MENU;
         this._unlockScreenActive = false;
         this.selectedMapId = null;
@@ -491,6 +526,15 @@ export class Game {
         if (this.waves.isWaveComplete() && this.enemies.isEmpty()) {
             this.waves.onWaveComplete();
         }
+
+        // Multiplayer: host sends state sync every 10 frames (~166ms at 60Hz)
+        if (this.isMultiplayer && this.net?.isHost) {
+            this._syncFrameCounter++;
+            if (this._syncFrameCounter >= 10) {
+                this._syncFrameCounter = 0;
+                this._sendStateSync();
+            }
+        }
     }
 
     addScorchZone(x, y, radius, dps, duration) {
@@ -579,6 +623,180 @@ export class Game {
         this.state = STATE.PAUSED;
         this._unlockScreenActive = true;
         this.ui.showMilestoneScreen(wave, stats);
+    }
+
+    // ── Multiplayer ─────────────────────────────────────────
+
+    async initMultiplayer(serverUrl) {
+        this.net = new Net(this);
+        await this.net.connect(serverUrl);
+        this.isMultiplayer = true;
+        return this.net;
+    }
+
+    _sendStateSync() {
+        const enemies = this.enemies.enemies;
+        const e = [];
+        for (const en of enemies) {
+            if (!en.alive && en.deathTimer < 0) continue;
+            e.push([
+                en.id, Math.round(en.x), Math.round(en.y),
+                Math.round(en.hp), Math.round(en.maxHP),
+                ENEMY_TYPE_IDX[en.type] ?? 0,
+                en.alive ? 1 : 0, en.waypointIndex, en.progress,
+                en.flying ? 1 : 0,
+            ]);
+        }
+        this.net.sendStateSync({
+            e,
+            g: [this.economy.gold, this.economy.partnerGold],
+            l: this.economy.lives,
+            w: this.waves.currentWave,
+            s: this.economy.score,
+            sp: this.waves.spawning ? 1 : 0,
+        });
+    }
+
+    _onNetMapSelect(mapId, layoutIndex) {
+        this._mpLayoutIndex = layoutIndex;
+        this.selectMap(mapId);
+        this.ui.showMPLobbyStatus('Host selected map. Ready to start!');
+    }
+
+    _onNetGameStart() {
+        this.start(this.selectedMapId, this._mpLayoutIndex);
+    }
+
+    _onNetTowerPlace(typeName, gx, gy, towerId, ownerId) {
+        // Relay only goes to the other player — host never receives own broadcasts
+        const def = TOWER_TYPES[typeName];
+        // Client: deduct own gold for immediate UI feedback when it's our tower
+        if (!this.net.isHost && ownerId === this.net.playerId) {
+            this.economy.spendGold(def.cost);
+        }
+        this.towers.place(typeName, gx, gy, {
+            ownerId,
+            assignedId: towerId,
+            skipGold: true,
+        });
+    }
+
+    _onNetTowerPlaceRequest(typeName, gx, gy) {
+        // Host-only: client requested to place a tower — validate and create
+        if (!this.net.isHost) return;
+        const def = TOWER_TYPES[typeName];
+        if (!this.towers.canPlace(gx, gy, typeName)) return;
+        if (this.economy.partnerGold < def.cost) return;
+
+        // Deduct from client's gold pool on host
+        this.economy.partnerGold -= def.cost;
+
+        const tower = this.towers.place(typeName, gx, gy, {
+            ownerId: 2,
+            skipGold: true,
+        });
+        if (tower) {
+            // Broadcast the confirmed placement to both (relay goes to client)
+            this.net.sendTowerPlace(typeName, gx, gy, tower.id, 2);
+        }
+    }
+
+    _onNetTowerSell(towerId) {
+        const tower = this.towers.getTowerById(towerId);
+        if (!tower) return;
+        const value = tower.getSellValue();
+        if (this.net.isHost && tower.ownerId === 2) {
+            // Host: sell removes tower and adds gold to host's pool via sell().
+            // We need to credit partner instead, so we reverse the host credit after.
+            this.towers.sell(tower);
+            this.economy.gold -= value; // undo addGold from sell()
+            this.economy.partnerGold += value;
+        } else {
+            // Client: host sold their tower — remove visually, don't credit our gold
+            this.towers.sell(tower);
+            this.economy.gold -= value; // undo addGold from sell()
+        }
+    }
+
+    _onNetTowerUpgrade(towerId) {
+        const tower = this.towers.getTowerById(towerId);
+        if (!tower) return;
+        const cost = tower.getUpgradeCost();
+        if (cost === null) return;
+
+        if (this.net.isHost && tower.ownerId === 2) {
+            // Host: deduct from partner gold
+            if (this.economy.partnerGold < cost) return;
+            this.economy.partnerGold -= cost;
+            tower.upgrade();
+            this.refreshTerrain();
+            this.particles.spawnUpgradeSparkle(tower.x, tower.y);
+        } else {
+            // Client: host upgraded their tower — apply visually, don't touch our gold
+            tower.upgrade();
+            this.refreshTerrain();
+            this.particles.spawnUpgradeSparkle(tower.x, tower.y);
+        }
+    }
+
+    _onNetWaveDef(data) {
+        // Client receives wave definition from host
+        this.waves.applyWaveDef(data);
+    }
+
+    _onNetStateSync(state) {
+        // Client applies state corrections from host
+        if (this.net.isHost) return;
+
+        // Update economy
+        this.economy.gold = state.g[1]; // client's gold is index 1
+        this.economy.partnerGold = state.g[0]; // host's gold
+        this.economy.lives = state.l;
+        this.economy.score = state.s;
+        this.waves.currentWave = state.w;
+        this.waves.spawning = state.sp === 1;
+
+        // Full enemy reconciliation — host is authoritative
+        const localMap = new Map();
+        for (const en of this.enemies.enemies) {
+            localMap.set(en.id, en);
+        }
+
+        const hostIds = new Set();
+        for (const ed of state.e) {
+            const [id, x, y, hp, maxHP, typeIdx, alive, wpIdx, progress, flying] = ed;
+            hostIds.add(id);
+            const en = localMap.get(id);
+            if (en) {
+                // Update existing enemy
+                en.x = x;
+                en.y = y;
+                en.hp = hp;
+                en.maxHP = maxHP;
+                en.displayHP = hp;
+                en.alive = alive === 1;
+                en.waypointIndex = wpIdx;
+                en.progress = progress;
+                en.flying = flying === 1;
+                if (!en.alive && en.deathTimer < 0) en.deathTimer = 0;
+            } else {
+                // Create enemy that exists on host but not on client
+                const typeName = IDX_ENEMY_TYPE[typeIdx] || 'grunt';
+                this.enemies.spawnFromSync(id, typeName, x, y, hp, maxHP, alive === 1, wpIdx, progress, flying === 1);
+            }
+        }
+
+        // Remove enemies that exist on client but not on host
+        this.enemies.enemies = this.enemies.enemies.filter(en => hostIds.has(en.id));
+
+        this.ui.update();
+    }
+
+    _onNetGoldUpdate(hostGold, clientGold) {
+        if (this.net.isHost) return;
+        this.economy.gold = clientGold;
+        this.economy.partnerGold = hostGold;
+        this.ui.update();
     }
 
     run() {

@@ -6,6 +6,7 @@ const WAVE_RECORD_KEY = 'td_wave_record';
 export class Economy {
     constructor() {
         this.gold = 0;
+        this.partnerGold = 0; // other player's gold (display-only on client, tracked by host)
         this.lives = STARTING_LIVES;
         this.score = 0;
         this.record = Economy.getRecord();
@@ -45,6 +46,7 @@ export class Economy {
 
     startReset() {
         this.gold = STARTING_GOLD;
+        this.partnerGold = 0;
         this.lives = STARTING_LIVES;
         this.score = 0;
         this.record = Economy.getRecord();
@@ -52,6 +54,7 @@ export class Economy {
 
     reset() {
         this.gold = 0;
+        this.partnerGold = 0;
         this.lives = STARTING_LIVES;
         this.score = 0;
         this.record = Economy.getRecord();

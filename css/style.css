@@ -1560,6 +1560,82 @@ body {
     margin-top: 2px;
 }
 
+/* ── Multiplayer Lobby ─────────────────────────────────── */
+#mp-lobby {
+    margin-bottom: 16px;
+}
+
+.mp-lobby-row {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.mp-btn {
+    font-size: 14px;
+    padding: 8px 20px;
+    background: #2c3e50;
+}
+
+.mp-btn:hover {
+    background: #3d566e;
+}
+
+.mp-join-group {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.mp-code-input {
+    width: 80px;
+    padding: 8px 12px;
+    font-size: 18px;
+    font-weight: 700;
+    text-align: center;
+    text-transform: uppercase;
+    background: #0d1b2a;
+    color: #eee;
+    border: 2px solid #1a4a8a;
+    border-radius: 8px;
+    letter-spacing: 3px;
+    outline: none;
+}
+
+.mp-code-input:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 10px rgba(52, 152, 219, 0.4);
+}
+
+.mp-status {
+    text-align: center;
+    margin-top: 10px;
+    font-size: 14px;
+    color: #2ecc71;
+    min-height: 20px;
+    font-weight: 600;
+}
+
+.mp-room-code {
+    font-size: 32px;
+    font-weight: 800;
+    color: #ffd700;
+    letter-spacing: 6px;
+    text-shadow: 0 0 12px rgba(255, 215, 0, 0.5);
+}
+
+/* ── Tower Owner Badge ────────────────────────────────── */
+.tower-owner-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: #fff;
+    margin-left: 4px;
+}
+
 /* ── Responsive ────────────────────────────────────────── */
 @media (max-width: 1150px) {
     #game-container {

@@ -1,4 +1,4 @@
-import { TOWER_TYPES, TARGET_MODES, STATE, MAP_DEFS, COLS, ROWS, CELL, CELL_TYPE, EARLY_SEND_MAX_BONUS, EARLY_SEND_DECAY, VERSION, SPEED_MAX, ATMOSPHERE_PRESETS } from './constants.js';
+import { TOWER_TYPES, TARGET_MODES, STATE, MAP_DEFS, COLS, ROWS, CELL, CELL_TYPE, CANVAS_W, CANVAS_H, EARLY_SEND_MAX_BONUS, EARLY_SEND_DECAY, VERSION, SPEED_MAX, ATMOSPHERE_PRESETS } from './constants.js';
 import { Economy } from './economy.js';
 
 export class UI {
@@ -99,7 +99,19 @@ export class UI {
             if (!mapLocked) {
                 card.addEventListener('click', () => {
                     this.game.audio.ensureContext();
-                    this.game.start(id);
+                    if (this.game.isMultiplayer && this.game.net?.isHost) {
+                        // Host: pick layout, send to client, then start
+                        this.game.selectMap(id);
+                        const li = this.game.getLayoutIndex();
+                        this.game.net.sendMapSelect(id, li);
+                        this.game.net.sendGameStart();
+                        this.game.start(id, li);
+                    } else if (this.game.isMultiplayer && !this.game.net?.isHost) {
+                        // Client can't start — host picks the map
+                        return;
+                    } else {
+                        this.game.start(id);
+                    }
                 });
             }
 
@@ -558,6 +570,9 @@ export class UI {
             }
         });
 
+        // Multiplayer buttons
+        this._setupMultiplayer();
+
         // Screen buttons
         document.getElementById('restart-btn')?.addEventListener('click', () => {
             this.game.restart();
@@ -628,7 +643,11 @@ export class UI {
         const livesPercent = Math.max(0, (eco.lives / 20) * 100);
         this.elLivesFill.style.width = livesPercent + '%';
         this.elLives.classList.toggle('lives-critical', eco.lives <= 5 && eco.lives > 0);
-        this.elGold.textContent = `\u{1FA99} ${eco.gold}`;
+        if (game.isMultiplayer) {
+            this.elGold.textContent = `\u{1FA99} ${eco.gold} | P2: ${eco.partnerGold}`;
+        } else {
+            this.elGold.textContent = `\u{1FA99} ${eco.gold}`;
+        }
         if (this.elKills) this.elKills.textContent = `\u{1F480} ${game.runKills}`;
         // Toggle hero-active class for mobile controls (only shows on mobile when hero is active)
         const canvasWrapper = document.getElementById('canvas-wrapper');
@@ -770,9 +789,15 @@ export class UI {
         }
         statsHtml += `<div>Target: <span style="color:${modeColor};font-weight:700">${targetMode}</span></div>`;
 
+        // Multiplayer ownership
+        const isMP = this.game.isMultiplayer;
+        const isOwner = !isMP || tower.ownerId === this.game.net?.playerId;
+        const ownerBadge = isMP ? `<span class="tower-owner-badge" style="background:${tower.ownerId === 1 ? '#3498db' : '#e67e22'}">P${tower.ownerId}</span>` : '';
+
         let html = `
             <div class="tower-info-header">
                 <span class="tower-info-name" style="color:${def.color}">${tower.name} Tower</span>
+                ${ownerBadge}
                 <span class="tower-info-level${tower.level >= def.levels.length - 1 ? ' max-level' : ''}">${tower.level >= def.levels.length - 1 ? 'MAX' : `Lv.${tower.level + 1}`}</span>
             </div>
             <div class="tower-info-body">
@@ -783,15 +808,16 @@ export class UI {
                 <button id="target-btn" class="action-btn target-mode-btn" style="border-color:${modeColor};color:${modeColor}" title="Cycle targeting mode (T)">Target: ${targetMode}</button>
         `;
 
-        if (upgradeCost !== null) {
+        if (isOwner && upgradeCost !== null) {
             const canAfford = this.game.economy.canAfford(upgradeCost);
             html += `<button id="upgrade-btn" class="action-btn upgrade-btn${canAfford ? '' : ' disabled'}" title="Upgrade (U)">Upgrade $${upgradeCost}</button>`;
         }
 
-        html += `
-                <button id="sell-btn" class="action-btn sell-btn" title="Sell (S)">Sell $${sellValue}</button>
-            </div>
-        `;
+        if (isOwner) {
+            html += `<button id="sell-btn" class="action-btn sell-btn" title="Sell (S)">Sell $${sellValue}</button>`;
+        }
+
+        html += `</div>`;
 
         info.innerHTML = html;
         info.style.display = 'block';
@@ -868,6 +894,7 @@ export class UI {
         });
         document.getElementById('upgrade-btn')?.addEventListener('click', () => {
             if (this.game.towers.upgradeTower(tower)) {
+                if (this.game.isMultiplayer) this.game.net.sendTowerUpgrade(tower.id);
                 const def = TOWER_TYPES[tower.type];
                 if (tower.level >= def.levels.length - 1) {
                     // Maxed — close the card
@@ -880,7 +907,9 @@ export class UI {
             }
         });
         document.getElementById('sell-btn')?.addEventListener('click', () => {
+            const sellId = tower.id;
             this.game.towers.sell(tower);
+            if (this.game.isMultiplayer) this.game.net.sendTowerSell(sellId);
             this.game.input.selectedTower = null;
             this.hideTowerInfo();
             this.update();
@@ -946,7 +975,7 @@ export class UI {
                     replacesText += `<div class="unlock-replaces">Replaces ${oldNames} — existing towers auto-upgraded!</div>`;
                 }
             }
-            if (unlock.hero) {
+            if (unlock.hero && !this.game.isMultiplayer) {
                 extras += `<div class="unlock-extra" style="color:#00e5ff">HERO UNLOCKED! Move with WASD, Q to stun, E for gold magnet</div>`;
             }
             if (unlock.dualSpawn) {
@@ -985,7 +1014,11 @@ export class UI {
             }
             // Resume deferred wave setup if unlock screen interrupted startNextWave
             if (this.game.waves._pendingWaveSetup) {
-                this.game.waves._beginWave();
+                if (this.game.waves._pendingNetWaveDef) {
+                    this.game.waves._applyWaveDefInner(this.game.waves._pendingNetWaveDef);
+                } else {
+                    this.game.waves._beginWave();
+                }
             }
             this.game.audio.ensureContext();
         }, { once: true });
@@ -1157,6 +1190,77 @@ export class UI {
                 }, { once: true });
             }
         }
+    }
+
+    _setupMultiplayer() {
+        const createBtn = document.getElementById('mp-create-btn');
+        const joinBtn = document.getElementById('mp-join-btn');
+        const codeInput = document.getElementById('mp-code-input');
+        const statusEl = document.getElementById('mp-status');
+
+        if (!createBtn || !joinBtn) return;
+
+        const getServerUrl = () => {
+            // GCP VM relay server — set your VM's external IP here
+            // For local dev: ws://localhost:8080
+            const RELAY_SERVER_URL = 'ws://localhost:8080';
+            return RELAY_SERVER_URL;
+        };
+
+        createBtn.addEventListener('click', async () => {
+            statusEl.textContent = 'Connecting...';
+            try {
+                const net = await this.game.initMultiplayer(getServerUrl());
+                net.onRoomCreated = (code) => {
+                    statusEl.innerHTML = `Room: <span class="mp-room-code">${code}</span><br>Waiting for partner...`;
+                };
+                net.onPartnerJoined = () => {
+                    statusEl.textContent = 'Partner joined! Select a map to start.';
+                };
+                net.onPartnerLeft = () => {
+                    statusEl.textContent = 'Partner disconnected.';
+                    this.game.particles.spawnBigFloatingText(CANVAS_W / 2, CANVAS_H / 3, 'PARTNER LEFT', '#e74c3c');
+                };
+                net.onError = (msg) => {
+                    statusEl.textContent = `Error: ${msg}`;
+                };
+                net.createRoom();
+            } catch (e) {
+                statusEl.textContent = 'Failed to connect to server.';
+                this.game.isMultiplayer = false;
+            }
+        });
+
+        joinBtn.addEventListener('click', async () => {
+            const code = (codeInput.value || '').trim().toUpperCase();
+            if (code.length !== 4) {
+                statusEl.textContent = 'Enter a 4-character room code.';
+                return;
+            }
+            statusEl.textContent = 'Connecting...';
+            try {
+                const net = await this.game.initMultiplayer(getServerUrl());
+                net.onRoomJoined = (roomCode, playerId) => {
+                    statusEl.textContent = `Joined room ${roomCode} as Player ${playerId}. Waiting for host to pick a map...`;
+                };
+                net.onPartnerLeft = () => {
+                    statusEl.textContent = 'Host disconnected.';
+                    this.game.particles.spawnBigFloatingText(CANVAS_W / 2, CANVAS_H / 3, 'HOST LEFT', '#e74c3c');
+                };
+                net.onError = (msg) => {
+                    statusEl.textContent = `Error: ${msg}`;
+                };
+                net.joinRoom(code);
+            } catch (e) {
+                statusEl.textContent = 'Failed to connect to server.';
+                this.game.isMultiplayer = false;
+            }
+        });
+    }
+
+    showMPLobbyStatus(msg) {
+        const el = document.getElementById('mp-status');
+        if (el) el.textContent = msg;
     }
 
     hideAllScreens() {

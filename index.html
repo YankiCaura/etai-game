@@ -97,6 +97,17 @@
             <div id="menu-screen" class="game-screen visible">
                 <div class="screen-title">Etai's Tower Defence</div>
                 <div class="screen-subtitle">Choose a world and survive as long as you can!</div>
+                <!-- Multiplayer Lobby -->
+                <div id="mp-lobby">
+                    <div class="mp-lobby-row">
+                        <button id="mp-create-btn" class="screen-btn mp-btn">Create Room</button>
+                        <div class="mp-join-group">
+                            <input id="mp-code-input" type="text" maxlength="4" placeholder="CODE" class="mp-code-input">
+                            <button id="mp-join-btn" class="screen-btn mp-btn">Join</button>
+                        </div>
+                    </div>
+                    <div id="mp-status" class="mp-status"></div>
+                </div>
                 <div id="map-select"></div>
                 <div id="atmosphere-select">
                     <div class="atmosphere-label">Atmosphere</div>
