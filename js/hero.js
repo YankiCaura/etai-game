@@ -401,7 +401,8 @@ export class Hero {
             return;
         }
 
-        // Instant kill
+        // Instant kill — track damage before zeroing HP
+        this.game.trackDamage('hero', target.hp);
         target.hp = 0;
         target.alive = false;
 

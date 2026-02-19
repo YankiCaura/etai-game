@@ -36,6 +36,7 @@ export class Enemy {
         // Burn effect (DoT)
         this.burnTimer = 0;
         this.burnDPS = 0;
+        this.burnSource = null;
 
         // Freeze effect
         this.freezeTimer = 0;
@@ -144,10 +145,11 @@ export class Enemy {
         this.armor = Math.max(0, this.baseArmor - this.armorShredAmount * this.armorShredStacks);
     }
 
-    applyBurn(dps, duration) {
+    applyBurn(dps, duration, sourceType) {
         // Take best of each independently — stronger DPS + longer duration
         if (dps > this.burnDPS) this.burnDPS = dps;
         if (duration > this.burnTimer) this.burnTimer = duration;
+        if (sourceType) this.burnSource = sourceType;
     }
 
     applyKnockback(cells, towerId) {
@@ -477,6 +479,10 @@ export class EnemyManager {
 
         for (let i = this.enemies.length - 1; i >= 0; i--) {
             const e = this.enemies[i];
+            // Track burn damage (burn bypasses armor, applied directly in e.update)
+            if (e.alive && e.burnTimer > 0 && e.deathTimer < 0) {
+                this.game.trackDamage(e.burnSource || 'firearrow', e.burnDPS * dt);
+            }
             e.update(dt);
 
             if (e.reached) {

@@ -41,6 +41,8 @@ export class Game {
 
         // Per-run kill counter
         this.runKills = 0;
+        // Per-run damage tracking by tower type
+        this.damageByType = {};
 
         // Scorch zones (from Bi-Cannon heavy rounds)
         this.scorchZones = [];
@@ -208,6 +210,7 @@ export class Game {
 
         this.heroDeathsThisLevel = 0;
         this.runKills = 0;
+        this.damageByType = {};
         this.hero.reset();
 
         this.state = STATE.PLAYING;
@@ -404,6 +407,7 @@ export class Game {
         this.shakeOffsetY = 0;
         this._triggeredThresholds = new Set();
         this.runKills = 0;
+        this.damageByType = {};
         this.debug.reset();
         this.economy.reset();
         this.enemies.reset();
@@ -537,6 +541,11 @@ export class Game {
         }
     }
 
+    trackDamage(towerType, amount) {
+        if (amount <= 0) return;
+        this.damageByType[towerType] = (this.damageByType[towerType] || 0) + amount;
+    }
+
     addScorchZone(x, y, radius, dps, duration) {
         this.scorchZones.push({ x, y, radius, dps, timer: duration, maxTimer: duration });
     }
@@ -552,7 +561,9 @@ export class Game {
             // Damage enemies in zone (bypasses armor like burn) — uses spatial grid
             const nearby = this.enemies.getEnemiesNear(zone.x, zone.y, zone.radius);
             for (const e of nearby) {
-                e.hp -= zone.dps * dt;
+                const scorchDmg = zone.dps * dt;
+                e.hp -= scorchDmg;
+                this.trackDamage('bicannon', scorchDmg);
                 if (e.hp <= 0) {
                     e.hp = 0;
                     e.alive = false;

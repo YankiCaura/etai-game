@@ -1145,8 +1145,45 @@ export class UI {
                 const secs = Math.floor(elapsed % 60);
                 const timeStr = `${mins}:${secs.toString().padStart(2, '0')}`;
 
-                container.style.maxWidth = '560px';
+                container.style.maxWidth = '640px';
                 container.style.padding = '44px 56px';
+
+                // Build damage breakdown bars
+                const damageByType = this.game.damageByType || {};
+                const dmgEntries = Object.entries(damageByType)
+                    .filter(([, v]) => v > 0)
+                    .sort((a, b) => b[1] - a[1]);
+                const maxDmg = dmgEntries.length > 0 ? dmgEntries[0][1] : 1;
+
+                const towerColors = {};
+                for (const [k, d] of Object.entries(TOWER_TYPES)) towerColors[k] = d.color;
+                towerColors['hero'] = '#00e5ff';
+
+                const towerNames = {};
+                for (const [k, d] of Object.entries(TOWER_TYPES)) towerNames[k] = d.name;
+                towerNames['hero'] = 'Hero';
+
+                const formatDmg = (n) => n >= 1000 ? (n / 1000).toFixed(1) + 'k' : Math.round(n).toString();
+
+                let dmgBarsHtml = '';
+                if (dmgEntries.length > 0) {
+                    dmgBarsHtml = `
+                        <div style="margin:0 auto 24px;max-width:520px;text-align:left">
+                            <div style="color:#aaa;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;text-align:center">Damage Breakdown</div>
+                            ${dmgEntries.map(([type, dmg]) => {
+                                const color = towerColors[type] || '#888';
+                                const name = towerNames[type] || type;
+                                const pct = (dmg / maxDmg) * 100;
+                                return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                                    <div style="width:90px;font-size:12px;color:${color};font-weight:700;text-align:right;flex-shrink:0">${name}</div>
+                                    <div style="flex:1;height:16px;background:#1a1a2e;border-radius:3px;overflow:hidden">
+                                        <div style="width:${pct}%;height:100%;background:${color};border-radius:3px;transition:width 0.3s"></div>
+                                    </div>
+                                    <div style="width:50px;font-size:12px;color:#ccc;font-weight:600;flex-shrink:0">${formatDmg(dmg)}</div>
+                                </div>`;
+                            }).join('')}
+                        </div>`;
+                }
 
                 container.innerHTML = `
                     <div style="font-size:44px;font-weight:800;color:#e74c3c;margin-bottom:4px;text-shadow:0 0 30px rgba(231,76,60,0.6),0 2px 8px rgba(0,0,0,0.5);letter-spacing:2px">
@@ -1185,6 +1222,7 @@ export class UI {
                             <div style="color:#888;font-size:12px;text-transform:uppercase;letter-spacing:1px">Gold</div>
                         </div>
                     </div>
+                    ${dmgBarsHtml}
                     <button class="unlock-btn" id="restart-btn" style="padding:16px 60px;font-size:22px">Try Again</button>
                 `;
                 document.getElementById('restart-btn').addEventListener('click', () => {
