@@ -823,14 +823,17 @@ export class UI {
         info.style.display = 'block';
         info.style.borderColor = def.color;
 
-        // Auto-close: stays open while hovering card or tower, 1s after leaving both
+        // Auto-close: stays open while hovering card or tower, 500ms after leaving both
+        // On touch devices, card stays open until user taps elsewhere (onClick handles close)
         if (this.towerInfoTimer) clearTimeout(this.towerInfoTimer);
         this._infoTower = tower;
         this._hoverOnCard = false;
         this._hoverOnTower = true; // just placed/clicked = mouse is on tower
 
-        // Bind hover events once
-        if (!this._towerInfoHoverBound) {
+        const isTouch = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+
+        // Bind hover events once (skip on touch — card closes via tap-elsewhere in onClick)
+        if (!this._towerInfoHoverBound && !isTouch) {
             this._towerInfoHoverBound = true;
             const startClose = () => {
                 if (this._hoverOnCard || this._hoverOnTower) return;
