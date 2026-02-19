@@ -745,6 +745,16 @@ export const ENEMY_TYPES = {
         radius: 11,
         armor: 0,
     },
+    dragonflyer: {
+        name: 'Dragon Flyer',
+        baseHP: 30,
+        speed: 97,
+        reward: 60,
+        livesCost: 2,
+        color: '#c0392b',
+        radius: 22,
+        armor: 0,
+    },
     megaboss: {
         name: 'Mega Boss',
         baseHP: 392,

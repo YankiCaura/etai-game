@@ -23,6 +23,12 @@ export async function loadAllTowerModels() {
 
     const loader = new GLTFLoader();
 
+    // Probe for the first model — if it 404s, skip all loads (no .glb assets present)
+    try {
+        const probe = await fetch(`${MODEL_DIR}tower-${TOWER_KEYS[0]}.glb`, { method: 'HEAD' });
+        if (!probe.ok) { _loading = false; return false; }
+    } catch { _loading = false; return false; }
+
     const promises = TOWER_KEYS.map(type => {
         const url = `${MODEL_DIR}tower-${type}.glb`;
         return new Promise(resolve => {

@@ -229,7 +229,8 @@ export class Renderer3D {
             // Flying altitude
             let altitude = 0;
             if (e.flying && e.flyProgress !== undefined) {
-                altitude = Math.sin(e.flyProgress * Math.PI) * 40;
+                const peakAlt = e.type === 'dragonflyer' ? 60 : 40;
+                altitude = Math.sin(e.flyProgress * Math.PI) * peakAlt;
             }
 
             entry.group.position.set(e.x, altitude + bob, e.y);

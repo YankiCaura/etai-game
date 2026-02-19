@@ -72,7 +72,7 @@ export class Enemy {
         this.flying = false;
         this.flyTarget = null;
         this.landingIndex = 0;
-        if (typeName === 'flying') {
+        if (typeName === 'flying' || typeName === 'dragonflyer') {
             this.flying = true;
             this.flySpeed = 110; // px/s (slow glide)
             // Start at the exit (last waypoint)
@@ -434,7 +434,7 @@ export class EnemyManager {
 
     spawn(typeName, hpScale, modifier, useSecondary, pathIndex) {
         // Flying enemies always use primary path (they start at the exit)
-        const actualSecondary = typeName === 'flying' ? false : useSecondary;
+        const actualSecondary = (typeName === 'flying' || typeName === 'dragonflyer') ? false : useSecondary;
         const enemy = new Enemy(typeName, hpScale, this.game.map.getEnemyPath(actualSecondary, pathIndex));
         enemy.isSecondary = actualSecondary;
         if (modifier) enemy.applyModifier(modifier);

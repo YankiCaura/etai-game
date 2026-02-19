@@ -513,6 +513,7 @@ const BODY_FACTORY = {
     swarm: swarmBody,
     wobbler: wobblerBody,
     flying: flyingBody,
+    dragonflyer: flyingBody,
     megaboss: megabossBody,
 };
 

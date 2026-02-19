@@ -204,6 +204,11 @@ export class WaveManager {
             const flyCount = Math.min(20, 1 + Math.round((waveNum - flyStart) * 19 / 13));
             def.push({ type: 'flying', count: flyCount, interval: 0.8, delay: 0 });
         }
+        // Dragon Flyers from wave 25+: 1 at wave 25, +1 every 3 waves, max 8
+        if (waveNum >= 25) {
+            const dragonCount = Math.min(8, 1 + Math.floor((waveNum - 25) / 3));
+            def.push({ type: 'dragonflyer', count: dragonCount, interval: 1.2, delay: 0.5 });
+        }
         return def;
     }
 

@@ -674,6 +674,9 @@ export class Renderer {
             case 'flying':
                 this.drawWing(ctx, x, y, r);
                 break;
+            case 'dragonflyer':
+                this.drawWing(ctx, x, y, r);
+                break;
             case 'megaboss':
                 this.drawOctagon(ctx, x, y, r);
                 break;
@@ -714,10 +717,11 @@ export class Renderer {
             const bob = e.alive && !isDying && !e.flying ? Math.sin(e.walkPhase) * 1.5 : 0;
             const drawX = e.x;
 
-            // Flying altitude: arc peaking at 40px, using sine envelope on progress
+            // Flying altitude: arc peaking at 40px (60px for dragon), using sine envelope on progress
             let altitude = 0;
             if (e.flying && e.flyProgress !== undefined) {
-                altitude = Math.sin(e.flyProgress * Math.PI) * 40;
+                const peakAlt = e.type === 'dragonflyer' ? 60 : 40;
+                altitude = Math.sin(e.flyProgress * Math.PI) * peakAlt;
             }
 
             const drawY = e.y + bob - altitude;
@@ -912,6 +916,36 @@ export class Renderer {
                     ctx.lineTo(sx + Math.cos(backAngle) * 5, sy + Math.sin(backAngle) * 5);
                     ctx.stroke();
                 }
+            } else if (e.type === 'dragonflyer' && !isDying) {
+                // Wing strokes for definition
+                ctx.strokeStyle = 'rgba(255,180,100,0.5)';
+                ctx.lineWidth = 1.5;
+                // Right wing outline
+                ctx.beginPath();
+                ctx.moveTo(drawX + r * 0.3, drawY - r * 0.1);
+                ctx.lineTo(drawX + r * 1.4, drawY - r * 0.6);
+                ctx.lineTo(drawX + r * 1.1, drawY + r * 0.1);
+                ctx.lineTo(drawX + r * 0.3, drawY + r * 0.1);
+                ctx.closePath();
+                ctx.stroke();
+                // Left wing outline
+                ctx.beginPath();
+                ctx.moveTo(drawX - r * 0.3, drawY - r * 0.1);
+                ctx.lineTo(drawX - r * 1.4, drawY - r * 0.6);
+                ctx.lineTo(drawX - r * 1.1, drawY + r * 0.1);
+                ctx.lineTo(drawX - r * 0.3, drawY + r * 0.1);
+                ctx.closePath();
+                ctx.stroke();
+                // Body outline
+                ctx.strokeStyle = 'rgba(255,220,150,0.6)';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(drawX, drawY - r * 0.7);
+                ctx.lineTo(drawX + r * 0.35, drawY);
+                ctx.lineTo(drawX, drawY + r * 0.7);
+                ctx.lineTo(drawX - r * 0.35, drawY);
+                ctx.closePath();
+                ctx.stroke();
             } else if (e.type === 'wobbler' && !isDying) {
                 // Googly eyes
                 const eyeOff = r * 0.32;
